@@ -1,9 +1,9 @@
-import type { CapacitorConfig } from "@capacitor/cli";
+import type { CapacitorConfig } from '@capacitor/cli';
 
 const config: CapacitorConfig = {
-  appId: "com.example.app",
-  appName: "safwat",
-  webDir: "out",
+  appId: 'com.tredromandoub.app',
+  appName: 'Tredro Mandoub',
+  webDir: 'public'
 };
 
 export default config;
