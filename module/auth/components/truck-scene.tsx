@@ -3,17 +3,6 @@ import Image from "next/image";
 export default function TruckScene() {
   return (
     <div className="relative h-full w-full overflow-hidden bg-primary">
-      {/* <div className="absolute inset-x-0 top-4 z-10 flex justify-center">
-        <Image
-          src="/tredro/full_logo.svg"
-          alt="Tredro Logo"
-          width={160}
-          height={80}
-          unoptimized
-          priority
-        />
-      </div> */}
-
       <svg
         viewBox="0 0 400 340"
         className="h-full w-full"

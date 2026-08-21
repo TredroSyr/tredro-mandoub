@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
 import { AnimatePresence, motion } from "framer-motion";
 import { AxiosError } from "axios";
 import { toast } from "sonner";
@@ -81,18 +82,53 @@ const LoginPage = () => {
 
   return (
     <div className="relative flex flex-col overflow-hidden bg-primary">
-      <AnimatePresence initial={false}>
-        {!isKeyboardOpen && (
+      {/*
+        AnimatePresence mode="wait" بيضمن إنه العنصر القديم (الشاحنة)
+        يخلص exit animation تبعه أول قبل ما يبلش العنصر الجديد (اللوغو)
+        بالدخول. هيك ما بصير "ومضة" أو تراكب غريب بين الاثنين.
+      */}
+      <AnimatePresence mode="wait" initial={false}>
+        {!isKeyboardOpen ? (
           <motion.div
             key="truck-scene"
             initial={{ height: 0, opacity: 0 }}
             animate={{ height: "auto", opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
             transition={SHEET_TRANSITION}
-            className="relative flex-1 overflow-hidden"
+            className="relative overflow-hidden"
           >
             <TruckScene />
             <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-card to-transparent" />
+          </motion.div>
+        ) : (
+          <motion.div
+            key="logo"
+            // اللوغو يبلش من فوق الشاشة (خارج الإطار) وشفافية صفر
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: "auto", opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={SHEET_TRANSITION}
+            className="relative flex items-center justify-center overflow-hidden py-8"
+          >
+            <motion.div
+              initial={{ y: -48, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              exit={{ y: -24, opacity: 0 }}
+              transition={{
+                duration: 0.45,
+                ease: [0.16, 1, 0.3, 1],
+                delay: 0.05,
+              }}
+            >
+              <Image
+                src="/tredro/full_logo.svg"
+                alt="Tredro Logo"
+                width={160}
+                height={80}
+                unoptimized
+                priority
+              />
+            </motion.div>
           </motion.div>
         )}
       </AnimatePresence>
