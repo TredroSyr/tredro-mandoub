@@ -1,0 +1,9 @@
+import { SVGProps } from 'react';
+
+export const MessageOpenFilled = (props: SVGProps<SVGSVGElement>) => (
+  <svg viewBox="0 0 48 48" fill="currentColor" xmlns="http://www.w3.org/2000/svg" {...props}>
+    <path d="M24 6C23.7365 6 23.4729 6.07094 23.2344 6.21094L6.30273 16.3398C5.78573 16.6498 5.348 17.0593 5 17.5293L24 26.8301L42.998 17.5293C42.65 17.0593 42.2143 16.6498 41.6973 16.3398L24.7656 6.21094C24.5271 6.07094 24.2635 6 24 6ZM4 20.4395V35.5C4 39.08 6.92 42 10.5 42H37.5C41.08 42 44 39.08 44 35.5V20.4395L24.6602 29.8496C24.4502 29.9496 24.22 30 24 30C23.78 30 23.5498 29.9496 23.3398 29.8496L4 20.4395Z"/>
+  </svg>
+);
+
+export default MessageOpenFilled;

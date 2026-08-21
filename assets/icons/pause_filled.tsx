@@ -1,0 +1,9 @@
+import { SVGProps } from 'react';
+
+export const PauseFilled = (props: SVGProps<SVGSVGElement>) => (
+  <svg viewBox="0 0 48 48" fill="currentColor" xmlns="http://www.w3.org/2000/svg" {...props}>
+    <path d="M23.9199 4C12.8739 4 3.91992 12.954 3.91992 24C3.91992 35.046 12.8739 44 23.9199 44C34.9659 44 43.9199 35.046 43.9199 24C43.9199 12.954 34.9659 4 23.9199 4ZM19 16C20.105 16 21 16.895 21 18V30C21 31.105 20.105 32 19 32C17.895 32 17 31.105 17 30V18C17 16.895 17.895 16 19 16ZM29 16C30.105 16 31 16.895 31 18V30C31 31.105 30.105 32 29 32C27.895 32 27 31.105 27 30V18C27 16.895 27.895 16 29 16Z"/>
+  </svg>
+);
+
+export default PauseFilled;
