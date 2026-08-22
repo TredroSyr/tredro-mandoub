@@ -4,11 +4,11 @@ import type { ReactNode } from "react";
 
 export default function ProtectedLayout({ children }: { children: ReactNode }) {
   return (
-    <ProtectedRoute>
+    <>
       <div style={{ paddingBottom: NAV_H }} className="min-h-dvh bg-background">
         {children}
       </div>
       <BottomNav />
-    </ProtectedRoute>
+    </>
   );
 }

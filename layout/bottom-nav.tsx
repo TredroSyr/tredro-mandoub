@@ -88,7 +88,7 @@ export default function BottomNav() {
       initial={{ y: 24, opacity: 0 }}
       animate={{ y: 0, opacity: 1 }}
       transition={{ type: "spring", stiffness: 300, damping: 28 }}
-      className="fixed inset-x-0 bottom-0 z-[2000] pb-[max(0.4rem,env(safe-area-inset-bottom))] pt-1.5"
+      className="fixed inset-x-0 bottom-0 z-[40] pb-[max(0.4rem,env(safe-area-inset-bottom))] pt-1.5"
       style={{
         background: "rgba(255, 255, 255, 0.12)",
         backdropFilter: "blur(18px) saturate(180%)",

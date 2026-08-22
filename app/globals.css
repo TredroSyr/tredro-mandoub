@@ -51,6 +51,7 @@
 }
 
 :root {
+  --map-primary: oklch(0.45 0.188 259.81);
   --background: oklch(1 0 0);
   --foreground: oklch(0.145 0 0);
   --card: oklch(1 0 0);
@@ -178,14 +179,74 @@
 }
 
 /* --- Leaflet look & feel: blue cartographic theme --- */
+/* =========================================================
+   LEAFLET
+========================================================= */
+
+/*
+ * IMPORTANT:
+ * Leaflet's official CSS must be loaded.
+ *
+ * Prefer importing this from app/layout.tsx:
+ *
+ * import "leaflet/dist/leaflet.css";
+ */
+
+/* =========================================================
+   MAP
+========================================================= */
+
 @utility map-surface {
-  & .leaflet-container {
-    background: oklch(0.94 0.02 250);
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+
+  &.leaflet-container {
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    background: var(--muted);
     font-family: var(--font-sans);
+    touch-action: pan-x pan-y;
+  }
+
+  & .leaflet-pane {
+    position: absolute;
+    left: 0;
+    top: 0;
   }
 
   & .leaflet-tile-pane {
-    filter: saturate(0.55) hue-rotate(178deg) brightness(1.02) contrast(1.02);
+    z-index: 200;
+    filter: sepia(0.18) saturate(1.5) hue-rotate(188deg) brightness(1.01)
+      contrast(0.96);
+  }
+
+  & .leaflet-tile {
+    display: block;
+    user-select: none;
+    -webkit-user-drag: none;
+  }
+
+  & .leaflet-marker-pane {
+    z-index: 600;
+  }
+
+  & .leaflet-shadow-pane {
+    z-index: 500;
+  }
+
+  & .leaflet-overlay-pane {
+    z-index: 400;
+  }
+
+  & .leaflet-tooltip-pane {
+    z-index: 650;
+  }
+
+  & .leaflet-popup-pane {
+    z-index: 700;
   }
 
   & .leaflet-control-attribution {
@@ -198,7 +259,7 @@
   }
 
   & .leaflet-control-attribution a {
-    color: var(--primary);
+    color: var(--map-primary);
   }
 
   & .leaflet-popup-content-wrapper {
@@ -224,39 +285,21 @@
 @utility marker-pin {
   display: grid;
   place-items: center;
+  pointer-events: auto;
 
   & svg {
-    filter: drop-shadow(0 6px 8px oklch(0.32 0.1 259.8 / 0.35));
+    filter: drop-shadow(0 6px 8px oklch(0.45 0.188 259.81 / 0.35));
   }
 }
 
 @utility user-dot {
-  & .halo {
-    animation: userpulse 2s ease-out infinite;
-  }
+  pointer-events: none;
+  will-change: transform;
 }
 
-@keyframes userpulse {
-  0% {
-    transform: scale(0.6);
-    opacity: 0.55;
-  }
-  100% {
-    transform: scale(2.2);
-    opacity: 0;
-  }
+@utility route-line {
+  pointer-events: none;
 }
-
-@keyframes floatY {
-  0%,
-  100% {
-    transform: translateY(0);
-  }
-  50% {
-    transform: translateY(-10px);
-  }
-}
-
 /* --- Splash / login animations --- */
 @keyframes splashbar {
   0% {
