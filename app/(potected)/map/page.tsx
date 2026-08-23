@@ -44,7 +44,6 @@ import { Customer } from "@/module/customers/types";
 import { Skeleton, SkeletonCard } from "@/components/ui/skeleton";
 
 const BOTTOM_NAV_H_CSS = "var(--bottom-nav-height)";
-const BOTTOM_NAV_H_PX = 64;
 const PANEL_WIDTH_CLASS =
   "md:inset-x-auto md:left-1/2 md:w-full md:max-w-md md:-translate-x-1/2";
 const OVERLAY_Z = "z-[2600]";
@@ -265,7 +264,12 @@ export default function TourPage() {
     setForm({ name: "", address: "", day: s.day });
   };
 
-  const bottomInset = (listOpen ? 340 : 100) + BOTTOM_NAV_H_PX;
+  // TODO: These values are tied to the drawer heights in the JSX (h-[46svh], h-[75svh]).
+  // For Leaflet's fitBounds, we need pixel estimates.
+  // 46svh ≈ 340px on typical mobile, 100px = minimal offset when closed.
+  // The nav height is approx 64px (4rem) + safe area, but Leaflet needs a static number.
+  const NAV_H_ESTIMATE = 64;
+  const bottomInset = (listOpen ? 340 : 100) + NAV_H_ESTIMATE;
   const floatingBottom = listOpen
     ? `calc(46svh + 0.7rem)`
     : `0rem`;
@@ -385,7 +389,7 @@ export default function TourPage() {
         }}
         className="h-11 w-11 rounded-full   p-0 text-primary shadow-sheet backdrop-blur-xl hover:bg-card"
       >
-        <IconRenderer name="plus_outlined" className="w-5 h-5 text-white" />
+        <IconRenderer name="plus_outlined" className="w-5 h-5 text-primary-foreground" />
       </Button>
     </div>
   </>

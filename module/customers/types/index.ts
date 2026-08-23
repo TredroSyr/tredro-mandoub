@@ -62,6 +62,23 @@ export interface UpdateCustomerRequest {
   work_days?: string[];
 }
 
+export interface CreateCustomerRequest {
+  name: string;
+  phone: string;
+  address?: string;
+  latitude?: number;
+  longitude?: number;
+  work_days?: string[];
+}
+
+export interface CreateCustomerResponse {
+  success: boolean;
+  message: string;
+  data: {
+    customer: Customer;
+  };
+}
+
 export interface UpdateCustomerResponse {
   success: boolean;
   message: string;

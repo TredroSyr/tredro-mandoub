@@ -7,6 +7,8 @@ import {
   UpdateCustomerResponse,
   UpdateRepWorkDaysRequest,
   UpdateRepWorkDaysResponse,
+  CreateCustomerRequest,
+  CreateCustomerResponse,
 } from "../types";
 
 export const getCustomers = async (params?: {
@@ -51,6 +53,16 @@ export const updateRepWorkDays = async (
 ): Promise<UpdateRepWorkDaysResponse> => {
   const response = await api.patch<UpdateRepWorkDaysResponse>(
     "/api/reps/profile/",
+    data,
+  );
+  return response.data;
+};
+
+export const createCustomer = async (
+  data: CreateCustomerRequest,
+): Promise<CreateCustomerResponse> => {
+  const response = await api.post<CreateCustomerResponse>(
+    "/reps/customers/",
     data,
   );
   return response.data;

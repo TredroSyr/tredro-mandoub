@@ -56,14 +56,14 @@ const TABS: Tab[] = [
 function NavGlassEffect({ isActive }: { isActive: boolean }) {
   if (isActive) {
     return (
-      <div className="absolute inset-0 rounded-2xl -z-1 bg-primary shadow-[0_4px_16px_rgba(0,0,0,0.22)]" />
+      <div className="absolute inset-0 rounded-2xl -z-1 bg-primary shadow-[var(--shadow-raised)]" />
     );
   }
 
   return (
     <div className="absolute -rotate-18 inset-0 rounded-2xl -z-1">
-      <div className="absolute top-0 w-full h-1/2 rounded-t-2xl bg-linear-180 dark:from-gray-400/60 from-white to-transparent via-transparent via-40% dark:via-16% transition-all duration-150 backdrop-blur-sm" />
-      <div className="absolute bottom-0 w-full h-1/2 rounded-b-2xl bg-linear-0 dark:from-gray-400/60 from-white to-transparent via-transparent via-40% dark:via-16% transition-all duration-150 backdrop-blur-sm" />
+      <div className="absolute top-0 w-full h-1/2 rounded-t-2xl bg-linear-180 from-card/60 to-transparent via-transparent via-40% transition-all duration-150 backdrop-blur-sm" />
+      <div className="absolute bottom-0 w-full h-1/2 rounded-b-2xl bg-linear-0 from-card/60 to-transparent via-transparent via-40% transition-all duration-150 backdrop-blur-sm" />
     </div>
   );
 }
@@ -122,7 +122,7 @@ export default function BottomNav() {
                     transition={{ type: "spring", stiffness: 500, damping: 20 }}
                     className={`relative z-10 grid h-full w-full place-items-center ${
                       active
-                        ? "text-white"
+                        ? "text-primary-foreground"
                         : "text-muted-foreground group-hover:text-fg-brand-primary"
                     }`}
                   >

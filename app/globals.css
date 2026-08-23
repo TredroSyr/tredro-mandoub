@@ -88,12 +88,13 @@
   --sidebar-accent-foreground: oklch(0.205 0 0);
   --sidebar-border: oklch(0.922 0 0);
   --sidebar-ring: oklch(0.708 0 0);
-  --glass: rgba(255, 255, 255, 0.95);
-  --glass-border: rgba(255, 255, 255, 0.25);
+  --glass: oklch(from var(--card) l c h / 0.95);
+  --glass-border: oklch(from var(--border) l c h / 0.8);
   --bottom-nav-height: calc(4rem + env(safe-area-inset-bottom));
   --bottom-nav-bg: oklch(1 0 0 / 0.7);
   --bottom-nav-border: oklch(0.922 0 0 / 0.8);
   --bottom-nav-shadow: 0 -8px 32px oklch(0 0 0 / 0.1);
+  --shadow-raised: 0 4px 16px oklch(0 0 0 / 0.22);
 }
 
 .dark {
@@ -132,11 +133,12 @@
   --sidebar-accent-foreground: oklch(0.985 0 0);
   --sidebar-border: oklch(1 0 0 / 10%);
   --sidebar-ring: oklch(0.556 0 0);
-  --glass: rgba(30, 30, 30, 0.95);
-  --glass-border: rgba(255, 255, 255, 0.1);
+  --glass: oklch(from var(--card) l c h / 0.95);
+  --glass-border: oklch(from var(--border) l c h / 0.6);
   --bottom-nav-bg: oklch(0.145 0 0 / 0.7);
   --bottom-nav-border: oklch(1 0 0 / 0.1);
   --bottom-nav-shadow: 0 -8px 32px oklch(0 0 0 / 0.3);
+  --shadow-raised: 0 4px 16px oklch(0 0 0 / 0.4);
 }
 
 @layer base {

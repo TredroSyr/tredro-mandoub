@@ -8,10 +8,12 @@ import {
   getCustomerStats,
   updateCustomer,
   updateRepWorkDays,
+  createCustomer,
 } from "../api";
 import {
   UpdateCustomerRequest,
   UpdateRepWorkDaysRequest,
+  CreateCustomerRequest,
 } from "../types";
 
 export const useGetCustomersQuery = (params?: {
@@ -86,6 +88,27 @@ export const useUpdateRepWorkDaysMutation = (options?: {
     },
     onError: (error: AxiosError<ApiErrorResponse>) => {
       toast.error(error.response?.data?.message || "فشل تحديث أيام العمل");
+      if (options?.onError) options.onError(error);
+    },
+  });
+};
+
+export const useCreateCustomerMutation = (options?: {
+  onSuccess?: () => void;
+  onError?: (error: AxiosError<ApiErrorResponse>) => void;
+}) => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationKey: ["createCustomer"],
+    mutationFn: (data: CreateCustomerRequest) => createCustomer(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["customers"] });
+      toast.success("تم إضافة العميل بنجاح");
+      if (options?.onSuccess) options.onSuccess();
+    },
+    onError: (error: AxiosError<ApiErrorResponse>) => {
+      toast.error(error.response?.data?.message || "فشل إضافة العميل");
       if (options?.onError) options.onError(error);
     },
   });
