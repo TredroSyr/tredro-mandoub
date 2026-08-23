@@ -5,12 +5,11 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-  SheetFooter,
-} from "@/components/ui/sheet";
+  Drawer,
+  DrawerContent,
+  DrawerHeader,
+  DrawerTitle,
+} from "@/components/ui/drawer";
 import { IconRenderer } from "@/assets/icons/iconRenderer";
 import {
   useGetCustomersQuery,
@@ -19,6 +18,7 @@ import {
 import { Customer } from "@/module/customers/types";
 import { distanceKm } from "@/module/map/lib/tour-data";
 import { ALEPPO_CENTER } from "@/module/map/lib/tour-data";
+import { Skeleton, SkeletonCard, SkeletonStat } from "@/components/ui/skeleton";
 
 const WORK_DAYS_LABELS: Record<string, string> = {
   sunday: "الأحد",
@@ -55,7 +55,13 @@ export default function CustomersPage() {
         <h1 className="text-lg font-extrabold mb-3">العملاء</h1>
         
         {/* Stats Row */}
-        {!isLoadingStats && stats && (
+        {isLoadingStats ? (
+          <div className="grid grid-cols-3 gap-2 mb-3">
+            <SkeletonStat />
+            <SkeletonStat />
+            <SkeletonStat />
+          </div>
+        ) : stats ? (
           <div className="grid grid-cols-3 gap-2 mb-3">
             <div className="text-center p-2 rounded-xl bg-primary/8">
               <p className="text-2xl font-bold text-primary">{stats.total_customers}</p>
@@ -70,7 +76,7 @@ export default function CustomersPage() {
               <p className="text-[10px] text-muted-foreground">غير نشط</p>
             </div>
           </div>
-        )}
+        ) : null}
 
         {/* Search and Filter */}
         <div className="flex gap-2">
@@ -114,15 +120,11 @@ export default function CustomersPage() {
       {/* Customers List */}
       <div className="p-4">
         {isLoadingCustomers ? (
-          <div className="flex flex-col items-center justify-center py-12 gap-3">
-            <div
-              className="h-9 w-9 animate-spin rounded-full border-4"
-              style={{
-                borderColor: "var(--border)",
-                borderTopColor: "var(--primary)",
-              }}
-            />
-            <span className="text-sm text-muted-foreground">جاري تحميل العملاء...</span>
+          <div className="space-y-2">
+            <SkeletonCard />
+            <SkeletonCard />
+            <SkeletonCard />
+            <SkeletonCard />
           </div>
         ) : customers.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-12 gap-3 text-center">
@@ -131,7 +133,7 @@ export default function CustomersPage() {
               className="w-12 h-12 text-muted-foreground/50"
             />
             <p className="text-sm text-muted-foreground">
-              {search ? "ما في عملاء مطابقين للبحث" : "ما في عملاء مسجلين بعد"}
+              {search ? "لا يوجد عملاء مطابقين للبحث" : "لا يوجد عملاء مسجلين بعد"}
             </p>
           </div>
         ) : (
@@ -186,20 +188,24 @@ export default function CustomersPage() {
         )}
       </div>
 
-      {/* Customer Detail Sheet */}
-      <Sheet
+      {/* Customer Detail Drawer */}
+      <Drawer
         open={!!selectedCustomer}
         onOpenChange={(open) => !open && setSelectedCustomer(null)}
       >
-        <SheetContent className="z-[2600]">
+        <DrawerContent
+          className="z-[2600] mt-0 h-[75svh] rounded-t-[1.75rem] border-t border-glass-border bg-card/95 shadow-sheet backdrop-blur-xl"
+        >
           {selectedCustomer && (
             <>
-              <SheetHeader className="grid-cols-[minmax(0,1fr)_auto]">
+              <DrawerHeader className="grid-cols-[minmax(0,1fr)_auto] items-center gap-3 px-5 pb-3 pt-1 text-start">
                 <div className="min-w-0">
                   <p className="font-mono text-[10px] uppercase tracking-widest text-primary">
                     تفاصيل العميل
                   </p>
-                  <SheetTitle className="mt-0.5">{selectedCustomer.name}</SheetTitle>
+                  <DrawerTitle className="mt-0.5 truncate text-base font-extrabold">
+                    {selectedCustomer.name}
+                  </DrawerTitle>
                   <p className="mt-1 text-xs text-muted-foreground">
                     {selectedCustomer.phone}
                   </p>
@@ -221,7 +227,7 @@ export default function CustomersPage() {
                 >
                   <IconRenderer name="close_outlined" className="w-6 h-6" />
                 </Button>
-              </SheetHeader>
+              </DrawerHeader>
 
               <div className="flex-1 overflow-y-auto px-5 py-4 space-y-4">
                 {/* Contact Info */}
@@ -260,7 +266,7 @@ export default function CustomersPage() {
                   </h4>
                   {selectedCustomer.assigned_reps_details.length === 0 ? (
                     <p className="rounded-2xl bg-muted/60 p-3 text-[11px] text-muted-foreground">
-                      ما في مندوبين معينين لهذا العميل.
+                      لا يوجد مندوبين معينين لهذا العميل.
                     </p>
                   ) : (
                     <div className="space-y-2">
@@ -294,7 +300,7 @@ export default function CustomersPage() {
                 </div>
               </div>
 
-              <SheetFooter>
+              <div className="px-5 pb-4">
                 <Button
                   className="w-full py-3.5 text-sm"
                   onClick={() => {
@@ -304,11 +310,11 @@ export default function CustomersPage() {
                 >
                   <IconRenderer name="map_outlined" className="w-6 h-6" /> عرض على الخريطة
                 </Button>
-              </SheetFooter>
+              </div>
             </>
           )}
-        </SheetContent>
-      </Sheet>
+        </DrawerContent>
+      </Drawer>
     </div>
   );
 }

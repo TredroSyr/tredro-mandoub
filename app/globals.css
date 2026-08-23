@@ -90,7 +90,10 @@
   --sidebar-ring: oklch(0.708 0 0);
   --glass: rgba(255, 255, 255, 0.95);
   --glass-border: rgba(255, 255, 255, 0.25);
-  --bottom-nav-height: calc(4.5rem + env(safe-area-inset-bottom));
+  --bottom-nav-height: calc(4rem + env(safe-area-inset-bottom));
+  --bottom-nav-bg: oklch(1 0 0 / 0.7);
+  --bottom-nav-border: oklch(0.922 0 0 / 0.8);
+  --bottom-nav-shadow: 0 -8px 32px oklch(0 0 0 / 0.1);
 }
 
 .dark {
@@ -131,6 +134,9 @@
   --sidebar-ring: oklch(0.556 0 0);
   --glass: rgba(30, 30, 30, 0.95);
   --glass-border: rgba(255, 255, 255, 0.1);
+  --bottom-nav-bg: oklch(0.145 0 0 / 0.7);
+  --bottom-nav-border: oklch(1 0 0 / 0.1);
+  --bottom-nav-shadow: 0 -8px 32px oklch(0 0 0 / 0.3);
 }
 
 @layer base {
@@ -189,6 +195,14 @@
   background: var(--glass);
   backdrop-filter: blur(18px) saturate(160%);
   border: 1px solid var(--glass-border);
+}
+
+@utility bottom-nav-glass {
+  background: var(--bottom-nav-bg);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border-top: 1px solid var(--bottom-nav-border);
+  box-shadow: var(--bottom-nav-shadow);
 }
 
 /* --- Leaflet look & feel: blue cartographic theme --- */

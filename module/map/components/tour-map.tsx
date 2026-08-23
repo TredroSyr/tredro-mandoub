@@ -169,6 +169,9 @@ export default function TourMap({
     });
 
     shops.forEach((shop) => {
+      // Skip shops with invalid coordinates
+      if (shop.lat == null || shop.lng == null) return;
+
       const active = shop.id === selectedId;
       const size: [number, number] = active ? [42, 51] : [31, 38];
       const icon = L.divIcon({
@@ -273,8 +276,8 @@ export default function TourMap({
             maxZoom: 20,
             subdomains: "abcd",
             attribution: "© OpenStreetMap · CARTO",
-            keepBuffer: 1,
-            updateWhenIdle: true,
+            keepBuffer: 4,
+            updateWhenIdle: false,
             updateWhenZooming: true,
             crossOrigin: false,
             detectRetina: false,
@@ -382,6 +385,14 @@ export default function TourMap({
       map.touchRotate?.enable?.();
     }
   }, [navMode]);
+
+  // Force tile layer refresh when picking mode changes
+  useEffect(() => {
+    const tileLayer = tileLayerRef.current;
+    if (tileLayer && initializedRef.current) {
+      tileLayer.redraw?.();
+    }
+  }, [picking, overlayOpen]);
 
   useEffect(() => {
     const L = leafletRef.current;
@@ -497,27 +508,30 @@ export default function TourMap({
   useEffect(() => {
     const map = mapRef.current;
     if (!map) return;
-    const timer = setTimeout(() => {
-      mapRef.current?.invalidateSize({ animate: false, pan: false } as any);
-    }, 250);
-    return () => clearTimeout(timer);
-  }, [bottomInset]);
 
-  useEffect(() => {
-    const map = mapRef.current;
-    if (!map) return;
-    const timer = setTimeout(() => {
-      mapRef.current?.invalidateSize({ animate: false, pan: false } as any);
-    }, 300);
-    return () => clearTimeout(timer);
-  }, [overlayOpen]);
+    const invalidate = () => {
+      map.invalidateSize({ animate: false, pan: false } as any);
+    };
+
+    // Initial invalidation
+    invalidate();
+
+    // Schedule multiple invalidations to handle layout transitions
+    const timers = [50, 100, 200, 400, 600, 800].map((delay) =>
+      setTimeout(invalidate, delay)
+    );
+
+    return () => {
+      timers.forEach(clearTimeout);
+    };
+  }, [picking, overlayOpen, bottomInset]);
 
   return (
     <div className="absolute inset-0 h-full w-full">
       <div
         ref={containerRef}
         className={`map-surface absolute inset-0 h-full w-full ${
-          picking ? "cursor-crosshair" : ""
+          picking ? "" : ""
         }`}
       />
 

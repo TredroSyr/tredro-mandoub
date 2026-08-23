@@ -88,14 +88,7 @@ export default function BottomNav() {
       initial={{ y: 24, opacity: 0 }}
       animate={{ y: 0, opacity: 1 }}
       transition={{ type: "spring", stiffness: 300, damping: 28 }}
-      className="fixed inset-x-0 bottom-0 z-[40] pb-[max(0.4rem,env(safe-area-inset-bottom))] pt-1.5"
-      style={{
-        background: "rgba(255, 255, 255, 0.12)",
-        backdropFilter: "blur(18px) saturate(180%)",
-        WebkitBackdropFilter: "blur(18px) saturate(180%)",
-        borderTop: "1px solid rgba(255, 255, 255, 0.25)",
-        boxShadow: "0 -8px 32px rgba(0, 0, 0, 0.18)",
-      }}
+      className="fixed inset-x-0 bottom-0 z-[2100] pb-[max(0.4rem,env(safe-area-inset-bottom))] pt-1.5 bottom-nav-glass"
     >
       <ul className={`mx-auto grid max-w-md ${gridColsClass} px-1.5`}>
         {TABS.map(({ to, label, filled, outlined }) => {
@@ -145,4 +138,4 @@ export default function BottomNav() {
   );
 }
 
-export const NAV_H = "calc(4.5rem + env(safe-area-inset-bottom))";
+export const NAV_H = "calc(4rem + env(safe-area-inset-bottom))";

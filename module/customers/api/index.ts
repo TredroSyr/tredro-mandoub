@@ -13,7 +13,7 @@ export const getCustomers = async (params?: {
   is_active?: boolean;
   search?: string;
 }): Promise<CustomersListResponse> => {
-  const response = await api.get<CustomersListResponse>("/api/reps/customers/", {
+  const response = await api.get<CustomersListResponse>("/reps/customers/", {
     params,
   });
   return response.data;
@@ -23,14 +23,14 @@ export const getCustomerById = async (
   customerId: number,
 ): Promise<CustomerDetailResponse> => {
   const response = await api.get<CustomerDetailResponse>(
-    `/api/reps/customers/${customerId}/`,
+    `/reps/customers/${customerId}/`,
   );
   return response.data;
 };
 
 export const getCustomerStats = async (): Promise<CustomerStatsResponse> => {
   const response = await api.get<CustomerStatsResponse>(
-    "/api/reps/customers/stats/",
+    "/reps/customers/stats/",
   );
   return response.data;
 };
@@ -40,7 +40,7 @@ export const updateCustomer = async (
   data: UpdateCustomerRequest,
 ): Promise<UpdateCustomerResponse> => {
   const response = await api.patch<UpdateCustomerResponse>(
-    `/api/reps/customers/${customerId}/`,
+    `/reps/customers/${customerId}/`,
     data,
   );
   return response.data;

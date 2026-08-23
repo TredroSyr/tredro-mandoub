@@ -12,8 +12,8 @@ export interface Customer {
   name: string;
   phone: string;
   email: string | null;
-  latitude: number;
-  longitude: number;
+  latitude: number | null;
+  longitude: number | null;
   is_active: boolean;
   assigned_reps_count: number;
   assigned_reps_details: RepAssignment[];
