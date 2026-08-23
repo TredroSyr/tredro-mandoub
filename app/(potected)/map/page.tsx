@@ -45,7 +45,8 @@ import { IconRenderer } from "@/assets/icons/iconRenderer";
 import TourMap from "@/module/map/components/tour-map";
 import { Crosshair } from "lucide-react";
 
-const BOTTOM_NAV_H = 64;
+const BOTTOM_NAV_H_CSS = "var(--bottom-nav-height)";
+const BOTTOM_NAV_H_PX = 72;
 const PANEL_WIDTH_CLASS =
   "md:inset-x-auto md:left-1/2 md:w-full md:max-w-md md:-translate-x-1/2";
 const OVERLAY_Z = "z-[2600]";
@@ -259,15 +260,15 @@ export default function TourPage() {
     setForm({ name: "", address: "", day: s.day });
   };
 
-  const bottomInset = (listOpen ? 340 : 100) + BOTTOM_NAV_H;
+  const bottomInset = (listOpen ? 340 : 100) + BOTTOM_NAV_H_PX;
   const floatingBottom = listOpen
-    ? `calc(46svh + 0.75rem + ${BOTTOM_NAV_H}px)`
-    : `calc(3.5rem + ${BOTTOM_NAV_H}px)`;
+    ? `calc(46svh + 0.75rem + ${BOTTOM_NAV_H_CSS})`
+    : BOTTOM_NAV_H_CSS;
 
   return (
     <main
       className="fixed inset-x-0 top-0 overflow-hidden bg-background"
-      style={{ bottom: BOTTOM_NAV_H }}
+      style={{ bottom: BOTTOM_NAV_H_CSS }}
     >
       <TourMap
         shops={dayShops}
@@ -389,7 +390,7 @@ export default function TourPage() {
       {picking && (
         <div
           className={`absolute inset-x-3 z-[1600] glass-panel flex items-center gap-3 rounded-3xl p-3 shadow-float ${PANEL_WIDTH_CLASS}`}
-          style={{ bottom: BOTTOM_NAV_H + 16 }}
+          style={{ bottom: `calc(${BOTTOM_NAV_H_CSS} + 1rem)` }}
         >
           <IconRenderer
             name="pin_outlined"
@@ -415,7 +416,7 @@ export default function TourPage() {
       {!navShop && !listOpen && !addOpen && !picking && (
         <div
           className={`pointer-events-none absolute inset-x-0 z-[1000] flex justify-center ${PANEL_WIDTH_CLASS}`}
-          style={{ bottom: BOTTOM_NAV_H + 12 }}
+          style={{ bottom: `calc(${BOTTOM_NAV_H_CSS} + 0.75rem)` }}
         >
           <Button
             onClick={() => setListOpen(true)}
@@ -435,12 +436,10 @@ export default function TourPage() {
         open={!navShop && listOpen}
         onOpenChange={setListOpen}
         modal={false}
-        dismissible
-        shouldScaleBackground={false}
       >
         <DrawerContent
           className={`${OVERLAY_Z} mt-0 h-[46svh] rounded-t-[1.75rem] border-t border-glass-border bg-card/95 shadow-sheet backdrop-blur-xl ${PANEL_WIDTH_CLASS} md:rounded-b-[1.75rem]`}
-          style={{ bottom: BOTTOM_NAV_H }}
+          style={{ bottom: BOTTOM_NAV_H_CSS }}
         >
           <DrawerHeader className="grid-cols-[minmax(0,1fr)_auto] items-center gap-3 px-5 pb-3 pt-1 text-start">
             <div className="min-w-0">
@@ -799,7 +798,7 @@ export default function TourPage() {
             <div
               className={`absolute inset-x-3 z-[1900] glass-panel grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-3 rounded-3xl px-4 py-3 shadow-float ${PANEL_WIDTH_CLASS}`}
               style={{
-                bottom: `max(calc(1rem + ${BOTTOM_NAV_H}px), calc(env(safe-area-inset-bottom) + ${BOTTOM_NAV_H}px))`,
+                bottom: `max(calc(1rem + ${BOTTOM_NAV_H_CSS}), calc(env(safe-area-inset-bottom) + ${BOTTOM_NAV_H_CSS}))`,
               }}
             >
               <span className="grid size-10 place-items-center rounded-2xl bg-primary text-primary-foreground">
