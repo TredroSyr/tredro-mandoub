@@ -243,12 +243,14 @@ export default function CustomersPage() {
                         <span className="text-xs font-medium">{selectedCustomer.email}</span>
                       </div>
                     )}
-                    <div className="flex justify-between items-center p-2 rounded-xl bg-muted/50">
-                      <span className="text-xs text-muted-foreground">الإحداثيات</span>
-                      <span className="text-xs font-mono">
-                        {selectedCustomer.latitude.toFixed(5)}, {selectedCustomer.longitude.toFixed(5)}
-                      </span>
-                    </div>
+                    {selectedCustomer.latitude != null && selectedCustomer.longitude != null && (
+                      <div className="flex justify-between items-center p-2 rounded-xl bg-muted/50">
+                        <span className="text-xs text-muted-foreground">الإحداثيات</span>
+                        <span className="text-xs font-mono">
+                          {selectedCustomer.latitude.toFixed(5)}, {selectedCustomer.longitude.toFixed(5)}
+                        </span>
+                      </div>
+                    )}
                     <div className="flex justify-between items-center p-2 rounded-xl bg-muted/50">
                       <span className="text-xs text-muted-foreground">تاريخ التسجيل</span>
                       <span className="text-xs font-medium">

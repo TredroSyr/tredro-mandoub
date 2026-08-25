@@ -26,6 +26,7 @@ export interface Rep {
   phone: string;
   referral_code: string;
   is_active: boolean;
+  work_days: string[];
   company: Company;
 }
 

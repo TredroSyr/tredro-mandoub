@@ -106,7 +106,7 @@ function closestIndexOnRoute(
   return bestIndex;
 }
 
-export default function TourMap({
+export function TourMap({
   shops,
   selectedId,
   onSelect,
