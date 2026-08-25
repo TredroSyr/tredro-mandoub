@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   Drawer,
   DrawerContent,
@@ -12,6 +13,7 @@ import {
   DrawerClose,
 } from "@/components/ui/drawer";
 import { Crosshair } from "lucide-react";
+import { PhoneInput } from "@/components/tredro/phone-input";
 import { useGetCustomersQuery, useUpdateCustomerMutation } from "@/module/customers/hooks";
 import { customersToShops, customersToListItems, CustomerListItem } from "@/module/customers/lib/utils";
 import {
@@ -432,9 +434,13 @@ export default function TourPage() {
           >
             <IconRenderer name="category_outlined" className="w-5 h-5" />
             محلات {DAYS.find((d) => d.key === day)?.label}
-            <span className="font-mono text-[10px] opacity-70">
-              {dayShops.length}
-            </span>
+            {isLoadingCustomers ? (
+              <Skeleton className="h-3 w-3 rounded-full bg-current/20" />
+            ) : (
+              <span className="font-mono text-[10px] opacity-70">
+                {dayShops.length}
+              </span>
+            )}
           </Button>
         </div>
       )}
@@ -480,9 +486,8 @@ export default function TourPage() {
                   <DrawerTitle className="truncate text-base font-extrabold leading-tight">
                     {selectedListItem.name}
                   </DrawerTitle>
-                  <p className="mt-1 truncate text-xs text-muted-foreground">
-                    {selectedListItem.phone}
-                  </p>
+                
+                   <PhoneInput value={selectedListItem.phone} readOnly/>  
                   <div className="mt-2.5 flex flex-wrap gap-2">
                     {selectedListItem.hasCoordinates &&
                     selectedListItem.lat != null &&
@@ -569,18 +574,7 @@ export default function TourPage() {
                       <span className="text-xs font-medium">{selectedListItem.email}</span>
                     </div>
                   )}
-                  <div className="flex justify-between items-center p-2 rounded-xl bg-muted/50">
-                    <span className="text-xs text-muted-foreground">الإحداثيات</span>
-                    <span className="text-xs font-mono">
-                      {selectedListItem.hasCoordinates &&
-                      selectedListItem.lat != null &&
-                      selectedListItem.lng != null &&
-                      typeof selectedListItem.lat === "number" &&
-                      typeof selectedListItem.lng === "number"
-                        ? `${selectedListItem.lat.toFixed(5)}, ${selectedListItem.lng.toFixed(5)}`
-                        : "غير متوفر"}
-                    </span>
-                  </div>
+             
                 </div>
               </section>
             </div>

@@ -7,6 +7,7 @@ import { IconRenderer } from "@/assets/icons/iconRenderer";
 import { DayKey, DAYS, ALEPPO_CENTER, distanceKm } from "@/module/map/lib/tour-data";
 import { CustomerListItem, WORK_DAYS_LABELS } from "@/module/customers/lib/utils";
 import { SkeletonCard } from "@/components/ui/skeleton";
+import { PhoneInput } from "@/components/tredro/phone-input";
 
 interface ShopListDrawerProps {
   open: boolean;
@@ -121,9 +122,7 @@ export function ShopListDrawer({
                           </Badge>
                         )}
                       </div>
-                      <p className="mt-0.5 truncate text-[11px] text-muted-foreground">
-                        {item.phone}
-                      </p>
+                      <PhoneInput value={item.phone} readOnly/>    
                       <div className="mt-2 flex flex-wrap items-center gap-1.5">
                         {item.hasCoordinates ? (
                           <Badge>{d.toFixed(1)} كم</Badge>
