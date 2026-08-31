@@ -5,7 +5,11 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { IconRenderer } from "@/assets/icons/iconRenderer";
 import { DayKey, DAYS, ALEPPO_CENTER, distanceKm } from "@/module/map/lib/tour-data";
-import { CustomerListItem, WORK_DAYS_LABELS } from "@/module/customers/lib/utils";
+import {
+  CustomerListItem,
+  WORK_DAYS_LABELS,
+  filterListItemsByDay,
+} from "@/module/customers/lib/utils";
 import { SkeletonCard } from "@/components/ui/skeleton";
 import { PhoneInput } from "@/components/tredro/phone-input";
 
@@ -36,7 +40,7 @@ export function ShopListDrawer({
   panelWidthClass = "md:inset-x-auto md:left-1/2 md:w-full md:max-w-md md:-translate-x-1/2",
   overlayZ = "z-[2600]",
 }: ShopListDrawerProps) {
-  const dayItems = items.filter((item) => item.day === day);
+  const dayItems = filterListItemsByDay(items, day);
 
   const getDistance = (item: CustomerListItem): number => {
     if (item.hasCoordinates && item.lat != null && item.lng != null) {

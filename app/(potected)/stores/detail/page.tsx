@@ -3,7 +3,6 @@
 import { Suspense, useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import AppShell from "@/components/layout/app-shell";
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -25,6 +24,8 @@ import {
 } from "@/module/customers/hooks";
 import { WORK_DAYS_LABELS, formatCurrency, getCustomerWorkDays } from "@/module/customers/lib/utils";
 import { iconName } from "@/assets/icons/iconRenderer/types";
+import { RequestStatusBadge } from "@/module/orders/components";
+import { formatRequestMoney, formatRequestQuantity } from "@/module/orders/lib/utils";
 
 type Tab = "requests" | "invoices" | "payments" | "returns";
 
@@ -37,13 +38,7 @@ const TABS: { key: Tab; label: string; icon: iconName }[] = [
 
 export default function StoreDetailPage() {
   return (
-    <Suspense
-      fallback={
-        <AppShell title="جارِ التحميل...">
-          <div />
-        </AppShell>
-      }
-    >
+    <Suspense fallback={<div />}>
       <StoreDetailContent />
     </Suspense>
   );
@@ -66,17 +61,15 @@ function StoreDetailContent() {
 
   if (!customerId) {
     return (
-      <AppShell title="المحل غير موجود">
-        <Link href="/stores" className="text-sm font-bold text-primary">
-          العودة لقائمة المحلات
-        </Link>
-      </AppShell>
+      <Link href="/stores" className="text-sm font-bold text-primary">
+        العودة لقائمة المحلات
+      </Link>
     );
   }
 
   if (isLoading) {
     return (
-      <AppShell title="جارِ التحميل...">
+      <>
         <div className="grid grid-cols-3 gap-2">
           <SkeletonStat />
           <SkeletonStat />
@@ -86,29 +79,27 @@ function StoreDetailContent() {
           <SkeletonCard />
           <SkeletonCard />
         </div>
-      </AppShell>
+      </>
     );
   }
 
   if (isError || !customer) {
     return (
-      <AppShell title="تعذّر تحميل بيانات المحل">
-        <div className="flex flex-col items-center justify-center gap-3 py-12 text-center">
-          <IconRenderer name="warning_outlined" className="w-12 h-12 text-destructive/60" />
-          <p className="text-sm text-muted-foreground">
-            {isError ? "حدث خطأ أثناء تحميل بيانات المحل." : "هذا المحل غير موجود أو غير معيّن لك."}
-          </p>
-          {isError && (
-            <Button size="sm" variant="secondary" onClick={() => refetch()} disabled={isFetching}>
-              <IconRenderer name="refresh_outlined" className="w-4 h-4" />
-              إعادة المحاولة
-            </Button>
-          )}
-          <Link href="/stores" className="text-xs font-bold text-primary">
-            العودة لقائمة المحلات
-          </Link>
-        </div>
-      </AppShell>
+      <div className="flex flex-col items-center justify-center gap-3 py-12 text-center">
+        <IconRenderer name="warning_outlined" className="w-12 h-12 text-destructive/60" />
+        <p className="text-sm text-muted-foreground">
+          {isError ? "حدث خطأ أثناء تحميل بيانات المحل." : "هذا المحل غير موجود أو غير معيّن لك."}
+        </p>
+        {isError && (
+          <Button size="sm" variant="secondary" onClick={() => refetch()} disabled={isFetching}>
+            <IconRenderer name="refresh_outlined" className="w-4 h-4" />
+            إعادة المحاولة
+          </Button>
+        )}
+        <Link href="/stores" className="text-xs font-bold text-primary">
+          العودة لقائمة المحلات
+        </Link>
+      </div>
     );
   }
 
@@ -117,7 +108,7 @@ function StoreDetailContent() {
   const hasCoords = customer.latitude != null && customer.longitude != null;
 
   return (
-    <AppShell title={customer.name} subtitle="Store">
+    <>
       <Breadcrumb>
         <BreadcrumbList>
           <BreadcrumbItem>
@@ -215,7 +206,7 @@ function StoreDetailContent() {
       {tab === "invoices" && <InvoicesTab query={invoicesQuery} />}
       {tab === "payments" && <PaymentsTab query={paymentsQuery} />}
       {tab === "returns" && <ReturnsTab query={returnsQuery} />}
-    </AppShell>
+    </>
   );
 }
 
@@ -263,25 +254,26 @@ function RequestsTab({ query: q }: { query: ReturnType<typeof useGetCustomerRequ
             <p className="font-mono text-[10px] text-muted-foreground">
               {new Date(r.created_at).toLocaleDateString("ar-SY")}
             </p>
-            <Badge variant={r.status === "pending" ? "warning" : "secondary"}>
-              {r.status === "pending" ? "قيد الانتظار" : r.status}
-            </Badge>
+            <RequestStatusBadge status={r.status} />
           </div>
           <ul className="mt-2 space-y-1">
             {r.lines.map((l) => (
               <li key={l.id} className="flex justify-between gap-3 text-[11px]">
                 <span className="truncate text-muted-foreground">{l.product_name}</span>
                 <span className="shrink-0 font-mono">
-                  ×{Math.round(parseFloat(l.desired_quantity))} {l.unit_name}
+                  ×{formatRequestQuantity(l.desired_quantity)} {l.unit_name}
                 </span>
               </li>
             ))}
           </ul>
-          {r.fulfilled_by_invoice_number && (
-            <p className="mt-2 border-t border-border pt-2 text-[10px] text-success">
-              نُفِّذ عبر الفاتورة {r.fulfilled_by_invoice_number}
-            </p>
-          )}
+          <div className="mt-2 flex items-center justify-between border-t border-border pt-2">
+            <span className="font-mono text-[11px] font-bold text-primary">
+              {formatRequestMoney(r.estimated_total)}
+            </span>
+            {r.fulfilled_by_invoice_number && (
+              <span className="text-[10px] text-success">نُفِّذ عبر الفاتورة {r.fulfilled_by_invoice_number}</span>
+            )}
+          </div>
         </article>
       ))}
     </div>

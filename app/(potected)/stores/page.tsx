@@ -2,7 +2,6 @@
 
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import AppShell from "@/components/layout/app-shell";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -49,7 +48,7 @@ export default function StoresPage() {
   }, [allCustomers, filterActive, search]);
 
   return (
-    <AppShell title="المحلات" subtitle={`${total} Stores`}>
+    <>
       {/* Stats row */}
       {isLoading ? (
         <div className="grid grid-cols-3 gap-2">
@@ -222,6 +221,6 @@ export default function StoresPage() {
           </div>
         )}
       </div>
-    </AppShell>
+    </>
   );
 }

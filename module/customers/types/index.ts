@@ -114,35 +114,12 @@ export interface CustomerDocumentsParams {
   page_size?: number;
 }
 
-export interface CustomerRequestLine {
-  id: number;
-  product: number;
-  product_name: string;
-  product_sku: string;
-  unit: number;
-  unit_name: string;
-  desired_quantity: string;
-}
-
-export interface CustomerRequest {
-  id: number;
-  customer: number;
-  customer_name: string;
-  status: string;
-  fulfilled_by_invoice: number | null;
-  fulfilled_by_invoice_number: string | null;
-  created_at: string;
-  lines: CustomerRequestLine[];
-}
-
-export interface CustomerRequestsResponse {
-  success: boolean;
-  message: string;
-  data: {
-    requests: CustomerRequest[];
-    pagination: Pagination;
-  };
-}
+export type {
+  CustomerRequest,
+  CustomerRequestLine,
+  CustomerRequestsResponse,
+  CustomerRequestStatus,
+} from "@/module/orders/types";
 
 export type SalesInvoiceStatus = "fully_paid" | "partially_paid" | "deferred" | string;
 

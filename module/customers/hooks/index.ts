@@ -16,6 +16,7 @@ import {
 import {
   CreateCustomerRequest,
   CustomerDocumentsParams,
+  CustomerRequestStatus,
   UpdateCustomerRequest,
   UpdateRepWorkDaysRequest,
 } from "../types";
@@ -115,7 +116,7 @@ export const useCreateCustomerMutation = (options?: {
 /** الطلبات السابقة (customer-requests) لمحل معيّن */
 export const useGetCustomerRequestsQuery = (
   customerId: number | null,
-  params?: CustomerDocumentsParams & { status?: string },
+  params?: CustomerDocumentsParams & { status?: CustomerRequestStatus },
 ) => {
   return useQuery({
     queryKey: ["customerRequests", customerId, params],

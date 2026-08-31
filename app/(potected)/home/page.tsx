@@ -1,13 +1,11 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import AppShell from "@/components/layout/app-shell";
 import DateRangePicker, { type Range } from "@/components/ui/date-range-picker";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { IconRenderer } from "@/assets/icons/iconRenderer";
 import { SkeletonCard, SkeletonStat } from "@/components/ui/skeleton";
-import { useAuthStore } from "@/module/auth/store/auth-store";
 import { useGetDashboardQuery } from "@/module/dashboard/hooks";
 import { formatCurrency } from "@/module/customers/lib/utils";
 import { toISODate } from "@/lib/rep-tour-data";
@@ -24,8 +22,6 @@ const SALES_STATUS_LABEL: Record<string, string> = {
 };
 
 export default function HomePage() {
-  const authRep = useAuthStore((s) => s.rep);
-
   const today = toISODate(new Date());
   const [range, setRange] = useState<Range>({ from: today, to: today });
 
@@ -36,11 +32,10 @@ export default function HomePage() {
 
   const { data, isLoading, isError, refetch, isFetching } = useGetDashboardQuery(params);
   const dashboard = data?.data;
-  const repName = dashboard?.rep.name ?? authRep?.name ?? "";
 
   if (isLoading) {
     return (
-      <AppShell title="جارِ التحميل..." subtitle="Dashboard">
+      <>
         <div className="grid grid-cols-2 gap-3">
           <SkeletonStat />
           <SkeletonStat />
@@ -49,29 +44,27 @@ export default function HomePage() {
           <SkeletonCard />
           <SkeletonCard />
         </div>
-      </AppShell>
+      </>
     );
   }
 
   if (isError || !dashboard) {
     return (
-      <AppShell title="تعذّر تحميل الرئيسية" subtitle="Dashboard">
-        <div className="flex flex-col items-center justify-center gap-3 py-16 text-center">
-          <IconRenderer name="warning_outlined" className="w-12 h-12 text-destructive/60" />
-          <p className="text-sm text-muted-foreground">حدث خطأ أثناء تحميل بيانات الرئيسية.</p>
-          <Button size="sm" variant="secondary" onClick={() => refetch()} disabled={isFetching}>
-            <IconRenderer name="refresh_outlined" className="w-4 h-4" />
-            إعادة المحاولة
-          </Button>
-        </div>
-      </AppShell>
+      <div className="flex flex-col items-center justify-center gap-3 py-16 text-center">
+        <IconRenderer name="warning_outlined" className="w-12 h-12 text-destructive/60" />
+        <p className="text-sm text-muted-foreground">حدث خطأ أثناء تحميل بيانات الرئيسية.</p>
+        <Button size="sm" variant="secondary" onClick={() => refetch()} disabled={isFetching}>
+          <IconRenderer name="refresh_outlined" className="w-4 h-4" />
+          إعادة المحاولة
+        </Button>
+      </div>
     );
   }
 
   const { sales, returns, receivables, warehouse } = dashboard;
 
   return (
-    <AppShell title={`أهلاً ${repName.split(" ")[0] ?? ""}`} subtitle="Dashboard">
+    <>
       <DateRangePicker value={range} onChange={setRange} />
 
       <div className="mt-3 grid grid-cols-2 gap-3">
@@ -176,6 +169,6 @@ export default function HomePage() {
           </div>
         )}
       </section>
-    </AppShell>
+    </>
   );
 }

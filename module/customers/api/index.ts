@@ -1,4 +1,6 @@
 import api from "@/lib/axios";
+import { getCustomerRequests as getCustomerRequestsList } from "@/module/orders/api";
+import { CustomerRequestStatus } from "@/module/orders/types";
 import {
   Customer,
   CustomerDetailResponse,
@@ -107,15 +109,11 @@ export const createCustomer = async (
   };
 };
 
-export const getCustomerRequests = async (
+export const getCustomerRequests = (
   customerId: number,
-  params?: CustomerDocumentsParams & { status?: string },
-): Promise<CustomerRequestsResponse> => {
-  const response = await api.get("/reps/customer-requests/", {
-    params: { customer: customerId, ...params },
-  });
-  return response.data;
-};
+  params?: CustomerDocumentsParams & { status?: CustomerRequestStatus },
+): Promise<CustomerRequestsResponse> =>
+  getCustomerRequestsList({ customer: customerId, ...params });
 
 export const getCustomerSalesInvoices = async (
   customerId: number,

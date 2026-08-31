@@ -2,7 +2,6 @@
 
 import { useRouter } from "next/navigation";
 import { useShallow } from "zustand/react/shallow";
-import AppShell from "@/components/layout/app-shell";
 import { IconRenderer } from "@/assets/icons/iconRenderer";
 import { Button } from "@/components/ui/button";
 import { useAuthStore } from "@/module/auth/store/auth-store";
@@ -20,7 +19,7 @@ export default function SettingsPage() {
   const router = useRouter();
 
   return (
-    <AppShell title="الإعدادات" subtitle="Settings">
+    <>
       <section className="flex items-center gap-4 rounded-3xl border border-border bg-card p-4">
         <div className="grid size-16 shrink-0 place-items-center overflow-hidden rounded-2xl bg-primary/12 text-primary">
           <IconRenderer name="user_filled" className="size-7" />
@@ -79,6 +78,6 @@ export default function SettingsPage() {
       >
         <IconRenderer name="logout_outlined" className="size-4" /> تسجيل الخروج
       </Button>
-    </AppShell>
+    </>
   );
 }

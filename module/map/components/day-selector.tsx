@@ -3,7 +3,7 @@
 import { Button } from "@/components/ui/button";
 import { DayKey, DAYS } from "@/module/map/lib/tour-data";
 import { Customer } from "@/module/customers/types";
-import { DAY_KEY_TO_API } from "@/module/customers/lib/utils";
+import { DAY_KEY_TO_API, getCustomerWorkDays } from "@/module/customers/lib/utils";
 import { Skeleton } from "@/components/ui/skeleton";
 
 interface DaySelectorProps {
@@ -16,9 +16,8 @@ interface DaySelectorProps {
 export function DaySelector({ day, onDayChange, customers, isLoading = false }: DaySelectorProps) {
   const getCountForDay = (d: DayKey): number => {
     const apiDay = DAY_KEY_TO_API[d];
-    return customers.filter((c) =>
-      c.assigned_reps_details?.[0]?.work_days?.includes(apiDay)
-    ).length;
+    return customers.filter((c) => getCustomerWorkDays(c).includes(apiDay))
+      .length;
   };
 
   return (
