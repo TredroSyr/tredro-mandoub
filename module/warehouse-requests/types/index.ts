@@ -32,6 +32,8 @@ export interface Pagination {
 export interface RepProductsListParams {
   search?: string;
   category?: number;
+  /** The stock-transfer request picker omits this; the sales-invoice line picker passes true. */
+  is_sellable?: boolean;
   page?: number;
   page_size?: number;
 }

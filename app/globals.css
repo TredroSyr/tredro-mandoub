@@ -90,7 +90,7 @@
   --sidebar-ring: oklch(0.708 0 0);
   --glass: oklch(from var(--card) l c h / 0.95);
   --glass-border: oklch(from var(--border) l c h / 0.8);
-  --bottom-nav-height: calc(4rem + env(safe-area-inset-bottom));
+  --bottom-nav-height: calc(3.875rem + max(0.4rem, env(safe-area-inset-bottom)));
   --bottom-nav-bg: oklch(1 0 0 / 0.7);
   --bottom-nav-border: oklch(0.922 0 0 / 0.8);
   --bottom-nav-shadow: 0 -8px 32px oklch(0 0 0 / 0.1);

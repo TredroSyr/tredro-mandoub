@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { IconRenderer } from "@/assets/icons/iconRenderer";
+import { CreateInvoiceDrawer } from "@/module/invoices/components";
 import { useAcceptCustomerRequestMutation, useRejectCustomerRequestMutation } from "../hooks";
 import { CustomerRequest } from "../types";
 import { formatRequestMoney, formatRequestQuantity, isRequestAnswerable, isRequestDeliverable } from "../lib/utils";
@@ -10,6 +11,7 @@ import { RejectReasonDialog } from "./reject-reason-dialog";
 
 export function RequestCard({ request }: { request: CustomerRequest }) {
   const [rejectOpen, setRejectOpen] = useState(false);
+  const [invoiceOpen, setInvoiceOpen] = useState(false);
   const accept = useAcceptCustomerRequestMutation();
   const reject = useRejectCustomerRequestMutation({ onSuccess: () => setRejectOpen(false) });
 
@@ -83,12 +85,12 @@ export function RequestCard({ request }: { request: CustomerRequest }) {
           )}
 
           {isRequestDeliverable(request.status) && (
-            <span
-              title="شاشة الفاتورة قيد الإنشاء"
-              className="flex items-center gap-1 rounded-xl bg-muted px-3 py-2 text-[11px] font-bold text-muted-foreground"
+            <button
+              onClick={() => setInvoiceOpen(true)}
+              className="flex items-center gap-1 rounded-xl bg-primary px-3 py-2 text-[11px] font-bold text-primary-foreground"
             >
-              <IconRenderer name="checkout_outlined" className="size-3.5" /> تم التسليم (قريباً)
-            </span>
+              <IconRenderer name="checkout_outlined" className="size-3.5" /> إنشاء فاتورة وتسليم
+            </button>
           )}
         </div>
       </div>
@@ -98,6 +100,16 @@ export function RequestCard({ request }: { request: CustomerRequest }) {
         onOpenChange={setRejectOpen}
         isPending={reject.isPending}
         onConfirm={(reason) => reject.mutate({ requestId: request.id, payload: { reason } })}
+      />
+
+      <CreateInvoiceDrawer
+        open={invoiceOpen}
+        onOpenChange={setInvoiceOpen}
+        customerId={request.customer}
+        prefill={{
+          requestId: request.id,
+          lines: request.lines.map((l) => ({ product_id: l.product, quantity: l.desired_quantity })),
+        }}
       />
     </article>
   );

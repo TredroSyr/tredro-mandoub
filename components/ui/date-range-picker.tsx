@@ -60,9 +60,10 @@ export default function DateRangePicker({
   className?: string;
 }) {
   const [open, setOpen] = useState(false);
+  const [draft, setDraft] = useState<Range>(value);
 
-  const selected: DateRange | undefined = value.from
-    ? { from: new Date(value.from), to: value.to ? new Date(value.to) : undefined }
+  const selected: DateRange | undefined = draft.from
+    ? { from: new Date(draft.from), to: draft.to ? new Date(draft.to) : undefined }
     : undefined;
 
   const label = value.from
@@ -72,7 +73,13 @@ export default function DateRangePicker({
     : "كل التواريخ";
 
   return (
-    <Popover open={open} onOpenChange={setOpen}>
+    <Popover
+      open={open}
+      onOpenChange={(next) => {
+        if (next) setDraft(value);
+        setOpen(next);
+      }}
+    >
       <PopoverTrigger
         className={cn(
           "flex w-full items-center gap-2 rounded-2xl border border-border bg-card px-3.5 py-3 text-start text-xs font-bold",
@@ -99,10 +106,10 @@ export default function DateRangePicker({
       </PopoverTrigger>
       <PopoverContent
         align="start"
-        className="z-[2400] w-[min(22rem,92vw)] rounded-3xl p-3"
+        className="z-[2400] w-(--anchor-width) min-w-[min(22rem,92vw)] rounded-3xl p-3"
         dir="rtl"
       >
-        <div className="mb-2 flex flex-wrap gap-1.5">
+        <div className="flex flex-wrap gap-1.5">
           {PRESETS.map((p) => (
             <button
               key={p.key}
@@ -120,7 +127,7 @@ export default function DateRangePicker({
           mode="range"
           selected={selected}
           onSelect={(r) =>
-            onChange({
+            setDraft({
               ...(r?.from ? { from: toISODate(r.from) } : {}),
               ...(r?.to ? { to: toISODate(r.to) } : {}),
             })
@@ -128,6 +135,23 @@ export default function DateRangePicker({
           numberOfMonths={1}
           className="pointer-events-auto p-0"
         />
+        <div className="flex gap-2 border-t border-border pt-2.5">
+          <button
+            onClick={() => setOpen(false)}
+            className="flex-1 rounded-xl bg-secondary py-2 text-xs font-bold text-secondary-foreground active:scale-95"
+          >
+            إلغاء
+          </button>
+          <button
+            onClick={() => {
+              onChange(draft);
+              setOpen(false);
+            }}
+            className="flex-1 rounded-xl bg-primary py-2 text-xs font-bold text-primary-foreground active:scale-95"
+          >
+            تطبيق
+          </button>
+        </div>
       </PopoverContent>
     </Popover>
   );
