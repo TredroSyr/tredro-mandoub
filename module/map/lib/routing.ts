@@ -5,6 +5,23 @@ export type RouteResult = {
   steps: { text: string; distance: number }[];
 };
 
+export type TripStop = {
+  shop: Shop;
+  legDistance: number; // meters, this leg only (from the previous stop)
+  legDuration: number; // seconds, this leg only
+  cumulativeDistance: number;
+  cumulativeDuration: number;
+};
+
+export type TripResult = {
+  coords: [number, number][];
+  totalDistance: number;
+  totalDuration: number;
+  stops: TripStop[]; // in optimized visit order, origin excluded
+};
+
+import { Shop } from "./tour-data";
+
 /** Google's encoded-polyline decoder (precision 5 by default). */
 export function decodePolyline(str: string, precision = 5): [number, number][] {
   const factor = Math.pow(10, precision);
@@ -120,6 +137,76 @@ export async function fetchRoute(
   memory.set(key, result);
   writeSession(key, result);
   return result;
+}
+
+/**
+ * Multi-stop optimized route via OSRM's Trip API. `origin` is pinned as the
+ * fixed start (source=first, no return leg since roundtrip=false). `shops`
+ * order is arbitrary on input — the response's `waypoint_index` gives the
+ * actual optimized visit order, which is used here both to reorder `shops`
+ * and to pair each optimized leg's distance/duration back to the right shop.
+ */
+export async function fetchOptimizedTrip(
+  origin: [number, number],
+  shops: Shop[],
+  signal?: AbortSignal,
+): Promise<TripResult> {
+  if (shops.length === 0) throw new Error("no shops to route");
+
+  const coords = [origin, ...shops.map((s) => [s.lat, s.lng] as [number, number])];
+  const coordStr = coords.map(([lat, lng]) => `${lng},${lat}`).join(";");
+  const url =
+    `https://router.project-osrm.org/trip/v1/driving/${coordStr}` +
+    `?source=first&roundtrip=false&overview=full&geometries=polyline&steps=false`;
+
+  const res = await fetch(url, signal ? { signal } : undefined);
+  if (!res.ok) throw new Error(`OSRM ${res.status}`);
+  const json = (await res.json()) as {
+    code: string;
+    trips?: {
+      geometry: string;
+      distance: number;
+      duration: number;
+      legs: { distance: number; duration: number }[];
+    }[];
+    waypoints?: { waypoint_index: number; trips_index: number }[];
+  };
+
+  if (json.code !== "Ok" || !json.trips?.[0] || !json.waypoints) {
+    throw new Error("no trip");
+  }
+  const trip = json.trips[0];
+
+  // waypoints[0] is always the origin (input index 0). waypoints[i] for i>=1
+  // corresponds to shops[i-1]. waypoint_index is that point's position in
+  // the optimized visit order (0 = origin, since source=first pins it first).
+  const inputIndexToVisitOrder = json.waypoints.map((w) => w.waypoint_index);
+  const shopVisitOrder = shops
+    .map((shop, i) => ({ shop, order: inputIndexToVisitOrder[i + 1] }))
+    .sort((a, b) => a.order - b.order);
+
+  let cumulativeDistance = 0;
+  let cumulativeDuration = 0;
+  const stops: TripStop[] = shopVisitOrder.map(({ shop }, legIdx) => {
+    // trip.legs[legIdx] is the leg ARRIVING at this stop (leg 0 = origin -> 1st stop).
+    const leg = trip.legs[legIdx] ?? { distance: 0, duration: 0 };
+    cumulativeDistance += leg.distance;
+    cumulativeDuration += leg.duration;
+    return {
+      shop,
+      legDistance: leg.distance,
+      legDuration: leg.duration,
+      cumulativeDistance,
+      cumulativeDuration,
+    };
+  });
+
+  return {
+    coords: decodePolyline(trip.geometry),
+    totalDistance: trip.distance,
+    totalDuration: trip.duration,
+    stops,
+  };
 }
 
 function maneuverText(type: string, modifier?: string, name?: string) {

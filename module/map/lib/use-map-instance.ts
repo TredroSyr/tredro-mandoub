@@ -3,7 +3,8 @@
 import { useEffect, useRef, useState } from "react";
 import type { Map as LeafletMap } from "leaflet";
 
-import { ALEPPO_CENTER } from "./tour-data";
+import { getGovernorateCenter } from "./tour-data";
+import { useAuthStore } from "@/module/auth/store/auth-store";
 
 type MapCallbacks = {
   onSelect: (id: string) => void;
@@ -51,8 +52,9 @@ export function useMapInstance({
         if (cancelled || !containerRef.current || mapRef.current) return;
         leafletRef.current = L;
 
+        const governorate = useAuthStore.getState().rep?.company?.governorate;
         const map = L.map(containerRef.current, {
-          center: ALEPPO_CENTER,
+          center: getGovernorateCenter(governorate),
           zoom: 13,
           zoomControl: false,
           attributionControl: true,

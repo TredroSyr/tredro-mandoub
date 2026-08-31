@@ -3,15 +3,18 @@
 import { useRef } from "react";
 
 import { Shop } from "../lib/tour-data";
+import { TripResult } from "../lib/routing";
 import { useMapInstance } from "../lib/use-map-instance";
 import { useMapMarkers } from "../lib/use-map-markers";
 import { useMapRoute } from "../lib/use-map-route";
+import { useMapRoutePlan } from "../lib/use-map-route-plan";
 import { useMapCamera } from "../lib/use-map-camera";
 
 type Props = {
   shops: Shop[];
   selectedId: string | null;
   onSelect: (id: string) => void;
+  onViewDetails: (customerId: number) => void;
 
   picking: boolean;
   onPick: (lat: number, lng: number) => void;
@@ -38,12 +41,15 @@ type Props = {
   navMode: boolean;
 
   overlayOpen: boolean;
+
+  routePlanTrip: TripResult | null;
 };
 
 export function TourMap({
   shops,
   selectedId,
   onSelect,
+  onViewDetails,
   picking,
   onPick,
   pickedPoint,
@@ -56,9 +62,22 @@ export function TourMap({
   heading,
   navMode,
   overlayOpen,
+  routePlanTrip,
 }: Props) {
-  const callbacksRef = useRef({ onSelect, onPick, picking, onBearingChange });
-  callbacksRef.current = { onSelect, onPick, picking, onBearingChange };
+  const callbacksRef = useRef({
+    onSelect,
+    onViewDetails,
+    onPick,
+    picking,
+    onBearingChange,
+  });
+  callbacksRef.current = {
+    onSelect,
+    onViewDetails,
+    onPick,
+    picking,
+    onBearingChange,
+  };
 
   const { containerRef, mapRef, leafletRef, mapReady, tilesReady } =
     useMapInstance({ callbacksRef, picking, overlayOpen, bottomInset });
@@ -78,6 +97,8 @@ export function TourMap({
 
   useMapRoute({ mapRef, leafletRef, mapReady, route, userPos, navMode });
 
+  useMapRoutePlan({ mapRef, leafletRef, mapReady, trip: routePlanTrip });
+
   useMapCamera({
     mapRef,
     leafletRef,
@@ -85,6 +106,7 @@ export function TourMap({
     bearing,
     focus,
     route,
+    routePlanCoords: routePlanTrip?.coords ?? null,
     bottomInset,
   });
 

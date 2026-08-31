@@ -5,12 +5,57 @@ import type { Map as LeafletMap, Marker } from "leaflet";
 
 import { Shop } from "./tour-data";
 import { storeSvg, truckSvg, flagSvg } from "./markers";
+import { LABEL_MIN_SPACING_PX } from "./constants";
 
 type MarkerCallbacks = {
   onSelect: (id: string) => void;
+  onViewDetails: (customerId: number) => void;
 };
 
-/** Renders shop pins, the live user (truck) marker, and the location-picking flag. */
+/** Builds the popup body as a real detached DOM node (not an HTML string) so the
+ * "View Details" button's click listener survives Leaflet re-parenting it into
+ * `.leaflet-popup-content` on open/close, with no need to re-query on `popupopen`. */
+function buildShopPopupContent(
+  shop: Shop,
+  onViewDetails: (customerId: number) => void,
+): HTMLElement {
+  const root = document.createElement("div");
+  root.className = "shop-popup";
+
+  const name = document.createElement("p");
+  name.className = "shop-popup__name";
+  name.textContent = shop.name;
+  root.appendChild(name);
+
+  if (shop.address) {
+    const address = document.createElement("p");
+    address.className = "shop-popup__meta";
+    address.textContent = shop.address;
+    root.appendChild(address);
+  }
+
+  if (shop.phone) {
+    const phone = document.createElement("p");
+    phone.className = "shop-popup__meta";
+    phone.dir = "ltr";
+    phone.textContent = shop.phone;
+    root.appendChild(phone);
+  }
+
+  const button = document.createElement("button");
+  button.type = "button";
+  button.className = "shop-popup__button";
+  button.textContent = "عرض التفاصيل";
+  button.addEventListener("click", (event) => {
+    event.stopPropagation();
+    onViewDetails(shop.customerId);
+  });
+  root.appendChild(button);
+
+  return root;
+}
+
+/** Renders shop pins (with a persistent name label + click popup), the live user (truck) marker, and the location-picking flag. */
 export function useMapMarkers({
   mapRef,
   leafletRef,
@@ -37,6 +82,33 @@ export function useMapMarkers({
   const markersRef = useRef<Record<string, Marker>>({});
   const userMarkerRef = useRef<Marker | null>(null);
   const pickMarkerRef = useRef<Marker | null>(null);
+  // Per-marker "should its label be visible" decision from the last collision pass,
+  // so mouseout can revert to it instead of a raw zoom check.
+  const labelVisibleRef = useRef<Record<string, boolean>>({});
+
+  /** Density-aware label decluttering: an isolated marker always keeps its label,
+   * regardless of zoom. A marker whose label would land within LABEL_MIN_SPACING_PX
+   * (screen px at the current zoom) of an already-accepted label gets hidden instead.
+   * Zooming in spreads markers apart in screen space, so more labels clear the
+   * threshold and reappear on their own — no fixed zoom cutoff needed. */
+  const recomputeLabelVisibility = (map: LeafletMap) => {
+    const zoom = map.getZoom();
+    const accepted: { x: number; y: number }[] = [];
+    const nextVisible: Record<string, boolean> = {};
+
+    Object.entries(markersRef.current).forEach(([id, marker]) => {
+      const point = map.project(marker.getLatLng(), zoom);
+      const collides = accepted.some(
+        (p) => Math.hypot(p.x - point.x, p.y - point.y) < LABEL_MIN_SPACING_PX,
+      );
+      const visible = !collides;
+      nextVisible[id] = visible;
+      if (visible) accepted.push({ x: point.x, y: point.y });
+      marker.getTooltip()?.setOpacity(visible ? 1 : 0);
+    });
+
+    labelVisibleRef.current = nextVisible;
+  };
 
   useEffect(() => {
     if (!mapReady) return;
@@ -72,12 +144,50 @@ export function useMapMarkers({
         existing.setZIndexOffset(active ? 1000 : 0);
       } else {
         const marker = L.marker([shop.lat, shop.lng], { icon }).addTo(map);
+
+        marker.bindTooltip(shop.name, {
+          permanent: true,
+          direction: "top",
+          offset: [0, -6],
+          className: "shop-tooltip",
+          interactive: false,
+        });
+
+        marker.bindPopup(
+          buildShopPopupContent(shop, (customerId) =>
+            callbacksRef.current.onViewDetails(customerId),
+          ),
+          { closeButton: true, autoPan: true, maxWidth: 240, className: "shop-popup-wrapper" },
+        );
+
         marker.on("click", () => callbacksRef.current.onSelect(shop.id));
+        marker.on("mouseover", () => marker.getTooltip()?.setOpacity(1));
+        marker.on("mouseout", () => {
+          marker.getTooltip()?.setOpacity(labelVisibleRef.current[shop.id] ? 1 : 0);
+        });
+
         markersRef.current[shop.id] = marker;
       }
     });
+
+    recomputeLabelVisibility(map);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [shops, selectedId, mapReady]);
+
+  // Re-run the collision pass whenever the zoom changes — markers spread apart in
+  // screen space as you zoom in, so labels that were hidden for crowding can reappear.
+  useEffect(() => {
+    const L = leafletRef.current;
+    const map = mapRef.current;
+    if (!L || !map || !mapReady) return;
+
+    const applyVisibility = () => recomputeLabelVisibility(map);
+    map.on("zoomend", applyVisibility);
+    return () => {
+      map.off("zoomend", applyVisibility);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [mapReady]);
 
   useEffect(() => {
     const L = leafletRef.current;

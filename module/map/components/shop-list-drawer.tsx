@@ -4,7 +4,8 @@ import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerClose } from "@
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { IconRenderer } from "@/assets/icons/iconRenderer";
-import { DayKey, DAYS, ALEPPO_CENTER, distanceKm } from "@/module/map/lib/tour-data";
+import { DayKey, DAYS, getGovernorateCenter, distanceKm } from "@/module/map/lib/tour-data";
+import { useAuthStore } from "@/module/auth/store/auth-store";
 import {
   CustomerListItem,
   WORK_DAYS_LABELS,
@@ -41,12 +42,13 @@ export function ShopListDrawer({
   overlayZ = "z-[2600]",
 }: ShopListDrawerProps) {
   const dayItems = filterListItemsByDay(items, day);
+  const governorate = useAuthStore((s) => s.rep?.company?.governorate);
 
   const getDistance = (item: CustomerListItem): number => {
     if (item.hasCoordinates && item.lat != null && item.lng != null) {
       return distanceKm(origin, [item.lat, item.lng]);
     }
-    return distanceKm(origin, ALEPPO_CENTER);
+    return distanceKm(origin, getGovernorateCenter(governorate));
   };
 
   return (

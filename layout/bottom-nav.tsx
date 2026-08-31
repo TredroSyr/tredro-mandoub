@@ -23,20 +23,20 @@ const TABS: Tab[] = [
   {
     to: "/map",
     label: "الخريطة",
-    filled: "map_filled",
-    outlined: "map_outlined",
+    filled: "location_filled",
+    outlined: "location_outlined",
   },
   {
     to: "/stores",
     label: "المحلات",
-    filled: "category_filled",
-    outlined: "category_outlined",
+    filled: "store_filled",
+    outlined: "store_outlined",
   },
   {
     to: "/orders",
     label: "الطلبات",
-    filled: "checkout_filled",
-    outlined: "checkout_outlined",
+    filled: "receipt_filled",
+    outlined: "receipt_outlined",
   },
   {
     to: "/my-orders",

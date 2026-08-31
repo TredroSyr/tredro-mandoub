@@ -211,6 +211,7 @@ export function CustomerDetailDrawer({
                 const shopItem: Shop = {
                   type: "branch",
                   id: item.id,
+                  customerId: item.customerId,
                   name: item.name,
                   address: "",
                   phone: item.phone,

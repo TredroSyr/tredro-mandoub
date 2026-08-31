@@ -11,7 +11,8 @@ import {
   GeoInsecureContextError,
   GeoPermissionError,
 } from "@/module/map/lib/geo";
-import { ALEPPO_CENTER } from "@/module/map/lib/tour-data";
+import { getGovernorateCenter } from "@/module/map/lib/tour-data";
+import { useAuthStore } from "@/module/auth/store/auth-store";
 import { LocationConfirmDialog } from "./location-confirm-dialog";
 
 export function StoreLocationBanner({ customerId }: { customerId: number }) {
@@ -19,6 +20,7 @@ export function StoreLocationBanner({ customerId }: { customerId: number }) {
   const [dismissed, setDismissed] = useState(false);
   const [choiceOpen, setChoiceOpen] = useState(false);
   const [confirmPoint, setConfirmPoint] = useState<[number, number] | null>(null);
+  const governorate = useAuthStore((s) => s.rep?.company?.governorate);
 
   const handleUseCurrentLocation = () => {
     setIsLocating(true);
@@ -41,7 +43,7 @@ export function StoreLocationBanner({ customerId }: { customerId: number }) {
 
   const handlePickOnMap = () => {
     setChoiceOpen(false);
-    setConfirmPoint(ALEPPO_CENTER);
+    setConfirmPoint(getGovernorateCenter(governorate));
   };
 
   if (dismissed) return null;

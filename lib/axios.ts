@@ -1,4 +1,4 @@
-import { refreshAccessToken } from "@/module/auth/lib/auth";
+import { logout, refreshAccessToken } from "@/module/auth/lib/auth";
 import { useAuthStore } from "@/module/auth/store/auth-store";
 import axios, {
   AxiosError,
@@ -30,6 +30,17 @@ let isRefreshing = false;
 // They get retried once the new token is ready.
 let failedRequestQueue: FailedRequest[] = [];
 
+// Requests that are *about to be sent* while a refresh is already in flight.
+// Held here (instead of going out with a token we already know is stale) and
+// released once the refresh settles, so they pick up the new token instead of
+// making a doomed round trip and having to be retried after their own 401.
+let pendingRequestQueue: Array<() => void> = [];
+
+const releasePendingRequests = () => {
+  pendingRequestQueue.forEach((resolve) => resolve());
+  pendingRequestQueue = [];
+};
+
 const api = axios.create({
   baseURL: process.env.NEXT_PUBLIC_BASE_URL,
   timeout: 15000,
@@ -42,7 +53,18 @@ const api = axios.create({
 // REQUEST INTERCEPTOR
 // Runs before every request is sent.
 // ---------------------------------------------------------------------------
-api.interceptors.request.use((config) => {
+api.interceptors.request.use(async (config) => {
+  const isAuthUrl = AUTH_SKIP_URLS.some((u) => config.url?.includes(u));
+
+  // A refresh is already in flight — hold this request instead of sending it
+  // with a token we already know is stale. It'll be released (and picked up
+  // with whatever token the refresh landed on) once that refresh settles.
+  if (isRefreshing && !isAuthUrl) {
+    await new Promise<void>((resolve) => {
+      pendingRequestQueue.push(resolve);
+    });
+  }
+
   // Attach the access token to every outgoing request, if we have one.
   const token = useAuthStore.getState().accessToken;
   if (token) {
@@ -131,6 +153,14 @@ api.interceptors.response.use(
           // Refresh endpoint responded, but refresh was not successful
           // (e.g. refresh token expired) — reject everything.
           processQueue(error);
+
+          // Only a server-confirmed invalid/expired refresh token warrants a
+          // full logout; a network blip or 5xx should keep the session alive
+          // so the user can simply retry.
+          if (refreshResult.reason !== "network") {
+            void logout();
+          }
+
           return Promise.reject(error);
         }
       } catch (refreshError) {
@@ -140,6 +170,8 @@ api.interceptors.response.use(
       } finally {
         // Always release the lock so future 401s can trigger a new refresh.
         isRefreshing = false;
+        // Let any requests held in the request interceptor proceed now.
+        releasePendingRequests();
       }
     }
 

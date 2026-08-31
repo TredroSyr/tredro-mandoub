@@ -2,7 +2,8 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
-import { ALEPPO_CENTER, Shop, distanceKm } from "./tour-data";
+import { Shop, distanceKm, getGovernorateCenter } from "./tour-data";
+import { useAuthStore } from "@/module/auth/store/auth-store";
 import {
   fetchRoute,
   RouteResult,
@@ -44,7 +45,8 @@ export function useTourNavigation({
   const locMsgTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const lastFollowFlyAt = useRef(0);
 
-  const origin = userPos ?? ALEPPO_CENTER;
+  const governorate = useAuthStore((s) => s.rep?.company?.governorate);
+  const origin = userPos ?? getGovernorateCenter(governorate);
 
   const flashLocationError = useCallback((state: "denied" | "insecure") => {
     setLocState(state);

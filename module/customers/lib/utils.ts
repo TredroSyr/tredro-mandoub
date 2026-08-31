@@ -92,6 +92,7 @@ export function customerToShop(customer: Customer): Shop | null {
   return {
     type: "branch",
     id: `customer-${customer.id}`,
+    customerId: customer.id,
     name: customer.name,
     address: customer.address,
     phone: customer.phone,

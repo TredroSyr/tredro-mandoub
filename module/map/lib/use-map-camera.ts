@@ -17,6 +17,7 @@ export function useMapCamera({
   bearing,
   focus,
   route,
+  routePlanCoords,
   bottomInset,
 }: {
   mapRef: React.MutableRefObject<LeafletMap | null>;
@@ -25,6 +26,7 @@ export function useMapCamera({
   bearing: number;
   focus: Focus;
   route: [number, number][] | null;
+  routePlanCoords?: [number, number][] | null;
   bottomInset: number;
 }) {
   const lastRouteKeyRef = useRef<string | null>(null);
@@ -77,22 +79,25 @@ export function useMapCamera({
   useEffect(() => {
     const L = leafletRef.current;
     const map = mapRef.current;
-    if (!L || !map || !route || route.length < 2 || navMode) return;
+    if (!L || !map || navMode) return;
+
+    const boundsSource = route ?? routePlanCoords;
+    if (!boundsSource || boundsSource.length < 2) return;
 
     const routeKey = [
-      route.length,
-      route[0]?.join(","),
-      route[route.length - 1]?.join(","),
+      boundsSource.length,
+      boundsSource[0]?.join(","),
+      boundsSource[boundsSource.length - 1]?.join(","),
     ].join(":");
     if (lastRouteKeyRef.current === routeKey) return;
     lastRouteKeyRef.current = routeKey;
 
-    const bounds = L.latLngBounds(route);
+    const bounds = L.latLngBounds(boundsSource);
     map.fitBounds(bounds, {
       paddingTopLeft: [40, 120],
       paddingBottomRight: [40, bottomInset + 60],
       animate: false,
     } as any);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [route, navMode]);
+  }, [route, routePlanCoords, navMode]);
 }

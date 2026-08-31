@@ -51,6 +51,12 @@ export const flagSvg = `
   </div>
 `;
 
+export const stopBadgeSvg = (n: number) => `
+  <div style="width:26px;height:26px;border-radius:9999px;background:${PRIMARY};border:2.5px solid var(--card);box-shadow:0 4px 10px ${PRIMARY_SHADOW};display:grid;place-items:center;color:var(--card);font:800 12px var(--font-mono, monospace);">
+    ${n}
+  </div>
+`;
+
 export function closestIndexOnRoute(
   point: [number, number],
   route: [number, number][],

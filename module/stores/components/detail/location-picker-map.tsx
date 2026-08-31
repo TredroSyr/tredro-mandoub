@@ -13,6 +13,7 @@ export interface LocationPickerMapProps {
 export function LocationPickerMap({ point, onPick }: LocationPickerMapProps) {
   const callbacksRef = useRef({
     onSelect: () => {},
+    onViewDetails: () => {},
     onPick,
     picking: true,
     onBearingChange: () => {},

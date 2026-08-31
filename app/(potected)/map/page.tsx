@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 
 import { useGetCustomersQuery } from "@/module/customers/hooks";
@@ -14,8 +14,11 @@ import { DayKey, DAYS, getTodayDayKey } from "@/module/map/lib/tour-data";
 import { getCurrentPosition } from "@/module/map/lib/geo";
 import { useMapFocus } from "@/module/map/lib/use-map-focus";
 import { useTourNavigation } from "@/module/map/lib/use-tour-navigation";
+import { useRoutePlan } from "@/module/map/lib/use-route-plan";
 import { TourMap } from "@/module/map/components/tour-map";
 import { DaySelector } from "@/module/map/components/day-selector";
+import { DetermineRouteButton } from "@/module/map/components/determine-route-button";
+import { RoutePlanDrawer } from "@/module/map/components/route-plan-drawer";
 import { ShopListDrawer } from "@/module/map/components/shop-list-drawer";
 import { AddCustomerDrawer } from "@/module/map/components/add-customer-drawer";
 import { NavigationPanel } from "@/module/map/components/navigation-panel";
@@ -53,12 +56,26 @@ export default function TourPage() {
 
   const { focus, flyTo } = useMapFocus();
   const nav = useTourNavigation({ flyTo });
+  const routePlan = useRoutePlan();
 
   const dayShops = useMemo(
     () => customersToShops(filterCustomersByDay(apiCustomers, day)),
     [apiCustomers, day],
   );
   const overlayOpen = addOpen || listOpen;
+
+  // Route planning and active turn-by-turn navigation are mutually exclusive
+  // in the UI — starting one clears the other, and switching days invalidates
+  // a plan computed for the previous day's shop list.
+  useEffect(() => {
+    if (nav.navShop) routePlan.clearPlan();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [nav.navShop]);
+
+  useEffect(() => {
+    routePlan.clearPlan();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [day]);
 
   const handleAddCustomerSuccess = () => {
     setAddOpen(false);
@@ -98,10 +115,10 @@ export default function TourPage() {
       <TourMap
         shops={dayShops}
         selectedId={null}
-        onSelect={(id) => {
-          const item = listItems.find((x) => x.id === id);
-          if (item) openListItem(item);
-        }}
+        onSelect={() => {}}
+        onViewDetails={(customerId) =>
+          router.push(`/stores/detail?id=${customerId}`)
+        }
         picking={picking}
         onPick={(lat, lng) => {
           setPickedPoint([lat, lng]);
@@ -118,6 +135,7 @@ export default function TourPage() {
         heading={nav.heading}
         navMode={!!nav.navShop}
         overlayOpen={overlayOpen}
+        routePlanTrip={routePlan.trip}
       />
 
       {(nav.locState === "denied" || nav.locState === "insecure") && (
@@ -125,6 +143,15 @@ export default function TourPage() {
           state={nav.locState}
           visible={nav.locMsgVisible}
           onDismiss={() => nav.setLocMsgVisible(false)}
+          panelWidthClass={PANEL_WIDTH_CLASS}
+        />
+      )}
+
+      {routePlan.geoError && (
+        <LocationErrorBanner
+          state={routePlan.geoError}
+          visible={true}
+          onDismiss={routePlan.dismissGeoError}
           panelWidthClass={PANEL_WIDTH_CLASS}
         />
       )}
@@ -138,6 +165,11 @@ export default function TourPage() {
             onDayChange={setDay}
             customers={apiCustomers}
             isLoading={isLoadingCustomers}
+          />
+          <DetermineRouteButton
+            onClick={() => routePlan.planRoute(dayShops)}
+            loading={routePlan.state === "loading"}
+            disabled={dayShops.length === 0}
           />
         </div>
       )}
@@ -194,6 +226,18 @@ export default function TourPage() {
         onUseMyLocation={useMyLocationForShop}
         isLoadingLocation={pickingLocLoading}
         onSuccess={handleAddCustomerSuccess}
+        bottomNavHeight={BOTTOM_NAV_H_CSS}
+        panelWidthClass={PANEL_WIDTH_CLASS}
+        overlayZ={OVERLAY_Z}
+      />
+
+      <RoutePlanDrawer
+        open={!nav.navShop && routePlan.state === "ready"}
+        onOpenChange={(open) => {
+          if (!open) routePlan.clearPlan();
+        }}
+        trip={routePlan.trip}
+        onViewStop={(customerId) => router.push(`/stores/detail?id=${customerId}`)}
         bottomNavHeight={BOTTOM_NAV_H_CSS}
         panelWidthClass={PANEL_WIDTH_CLASS}
         overlayZ={OVERLAY_Z}
