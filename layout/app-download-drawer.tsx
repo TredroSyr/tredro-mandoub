@@ -5,41 +5,47 @@ import { Capacitor } from "@capacitor/core";
 import { IconRenderer } from "@/assets/icons/iconRenderer";
 import { Drawer, DrawerClose, DrawerContent } from "@/components/ui/drawer";
 import { Button } from "@/components/ui/button";
-
-function isRunningInBrowser() {
-  if (typeof window === "undefined") return false;
-
-  if (Capacitor.isNativePlatform()) return false;
-
-  const iosStandalone =
-    (window.navigator as Navigator & { standalone?: boolean }).standalone ===
-    true;
-
-  const isStandaloneDisplay =
-    window.matchMedia?.("(display-mode: standalone)").matches ||
-    window.matchMedia?.("(display-mode: fullscreen)").matches ||
-    window.matchMedia?.("(display-mode: minimal-ui)").matches;
-
-  const isTWA = document.referrer?.startsWith("android-app://");
-
-  return !iosStandalone && !isStandaloneDisplay && !isTWA;
-}
+import Image from "next/image";
 
 export default function AppDownloadDrawer() {
   const [open, setOpen] = useState(false);
 
   useEffect(() => {
-    if (!isRunningInBrowser()) return;
+    if (Capacitor.isNativePlatform()) {
+      return;
+    }
 
     const dismissed = sessionStorage.getItem("app_drawer_dismissed");
 
-    if (dismissed) return;
+    if (dismissed) {
+      return;
+    }
+
+    const iosStandalone =
+      (
+        window.navigator as Navigator & {
+          standalone?: boolean;
+        }
+      ).standalone === true;
+
+    const isStandaloneDisplay =
+      window.matchMedia?.("(display-mode: standalone)").matches ||
+      window.matchMedia?.("(display-mode: fullscreen)").matches ||
+      window.matchMedia?.("(display-mode: minimal-ui)").matches;
+
+    const isTWA = document.referrer?.startsWith("android-app://");
+
+    if (iosStandalone || isStandaloneDisplay || isTWA) {
+      return;
+    }
 
     const isMobile =
       /Android|iPhone|iPad|iPod/i.test(navigator.userAgent) ||
       window.innerWidth < 768;
 
-    if (!isMobile) return;
+    if (!isMobile) {
+      return;
+    }
 
     const timer = window.setTimeout(() => {
       setOpen(true);
@@ -51,14 +57,10 @@ export default function AppDownloadDrawer() {
   const handleOpenChange = (value: boolean) => {
     setOpen(value);
 
-    if (!value && typeof window !== "undefined") {
+    if (!value) {
       sessionStorage.setItem("app_drawer_dismissed", "1");
     }
   };
-
-  if (typeof window !== "undefined" && Capacitor.isNativePlatform()) {
-    return null;
-  }
 
   return (
     <Drawer open={open} onOpenChange={handleOpenChange}>
@@ -77,31 +79,35 @@ export default function AppDownloadDrawer() {
             <span className="absolute inset-0 rounded-2xl bg-primary/10 animate-ping [animation-duration:2s]" />
             <span className="absolute inset-0 rounded-2xl bg-primary/10 animate-pulse" />
 
-            <IconRenderer
-              name="download_outlined"
-              className="relative h-9 w-9 text-primary animate-bounce [animation-duration:2s]"
+            <Image
+              src="/tredro/logo.svg"
+              alt="Tredro"
+              width={36}
+              height={36}
+              className="relative h-9 w-9 animate-bounce object-contain [animation-duration:2s]"
             />
           </div>
 
-          <span className="mb-2 text-sm font-medium text-primary animate-in fade-in slide-in-from-bottom-1 duration-500 [animation-delay:100ms] [animation-fill-mode:backwards]">
-            Tredro
-          </span>
+          <span className="mb-2 text-sm font-medium text-primary">Tredro</span>
 
-          <h2 className="mb-3 text-2xl font-bold leading-snug text-foreground animate-in fade-in slide-in-from-bottom-2 duration-500 [animation-delay:200ms] [animation-fill-mode:backwards]">
-            لعروضٍ أفضل وتجربةٍ أمتع
+          <h2 className="mb-3 text-2xl font-bold leading-snug text-foreground">
+            إدارة أسهل لمندوبيك وطلباتك
           </h2>
 
-          <p className="mb-6 max-w-xs text-sm leading-relaxed text-muted-foreground animate-in fade-in slide-in-from-bottom-2 duration-500 [animation-delay:300ms] [animation-fill-mode:backwards]">
-            حمّل التطبيق والحق العروض أولاً — تصفّح أسرع، إشعارات بالخصومات،
-            وتتبّع طلبك خطوة بخطوة.
+          <p className="mb-6 max-w-xs text-sm leading-relaxed text-muted-foreground">
+            حمّل تطبيق تريدرو وتابع مندوبي المبيعات، الطلبات، والمخزون أينما كنت
+            — إشعارات فورية، وتحكّم كامل من جوالك.
           </p>
 
           <Button
             size="lg"
-            className="group relative mb-4 h-13 w-full overflow-hidden rounded-full bg-primary text-primary-foreground shadow-lg shadow-primary/30 transition-transform duration-300 active:scale-95 hover:scale-[1.02] hover:bg-primary/90 animate-in fade-in slide-in-from-bottom-2 [animation-delay:400ms] [animation-fill-mode:backwards]"
+            className="group relative mb-4 h-13 w-full overflow-hidden rounded-full bg-primary text-primary-foreground shadow-lg shadow-primary/30 transition-transform duration-300 active:scale-95 hover:scale-[1.02] hover:bg-primary/90"
           >
             <a
-              href="#"
+              href="/downloads/tredro-dashborad.apk"
+              download
+              target="_blank"
+              rel="noopener noreferrer"
               className="relative z-10 flex items-center justify-center gap-2 text-base font-semibold"
             >
               حمّل التطبيق الآن
@@ -115,10 +121,7 @@ export default function AppDownloadDrawer() {
           </Button>
 
           <DrawerClose>
-            <button
-              onClick={() => handleOpenChange(false)}
-              className="text-sm font-medium text-foreground/80 underline-offset-4 transition-colors hover:text-foreground hover:underline animate-in fade-in duration-500 [animation-delay:500ms] [animation-fill-mode:backwards]"
-            >
+            <button className="text-sm font-medium text-foreground/80 underline-offset-4 transition-colors hover:text-foreground hover:underline">
               ليس الآن، تابع في المتصفح
             </button>
           </DrawerClose>

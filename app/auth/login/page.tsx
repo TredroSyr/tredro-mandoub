@@ -32,7 +32,7 @@ const loginSchema = z.object({
     .string()
     .min(9, "رقم الهاتف غير صالح")
     .regex(/^[0-9+]+$/, "رقم الهاتف غير صالح"),
-  password: z.string().min(6, "كلمة المرور يجب أن تكون 6 أحرف على الأقل"),
+  password: z.string().min(1, "كلمة المرور مطلوبة"),
 });
 
 type LoginFormValues = z.infer<typeof loginSchema>;

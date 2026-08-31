@@ -1,25 +1,22 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
 
-import {
-  useGetCustomersQuery,
-  useUpdateCustomerMutation,
-} from "@/module/customers/hooks";
+import { useGetCustomersQuery } from "@/module/customers/hooks";
 import {
   customersToShops,
   customersToListItems,
   filterCustomersByDay,
   CustomerListItem,
 } from "@/module/customers/lib/utils";
-import { DayKey, DAYS } from "@/module/map/lib/tour-data";
+import { DayKey, DAYS, getTodayDayKey } from "@/module/map/lib/tour-data";
 import { getCurrentPosition } from "@/module/map/lib/geo";
 import { useMapFocus } from "@/module/map/lib/use-map-focus";
 import { useTourNavigation } from "@/module/map/lib/use-tour-navigation";
 import { TourMap } from "@/module/map/components/tour-map";
 import { DaySelector } from "@/module/map/components/day-selector";
 import { ShopListDrawer } from "@/module/map/components/shop-list-drawer";
-import { CustomerDetailDrawer } from "@/module/map/components/customer-detail-drawer";
 import { AddCustomerDrawer } from "@/module/map/components/add-customer-drawer";
 import { NavigationPanel } from "@/module/map/components/navigation-panel";
 import { LocationErrorBanner } from "@/module/map/components/location-error-banner";
@@ -33,18 +30,11 @@ import {
   NAV_H_ESTIMATE,
 } from "@/module/map/lib/constants";
 
-function todayKey(): DayKey {
-  const map: DayKey[] = ["sun", "mon", "tue", "wed", "thu", "sat", "sat"];
-  return map[new Date().getDay()] ?? "sun";
-}
-
 export default function TourPage() {
+  const router = useRouter();
   const { data: customersData, isLoading: isLoadingCustomers } =
     useGetCustomersQuery();
   const apiCustomers = customersData?.data?.customers ?? [];
-
-  // For map display - only customers with coordinates
-  const shops = useMemo(() => customersToShops(apiCustomers), [apiCustomers]);
 
   // For lists - ALL customers including those without coordinates
   const listItems = useMemo(
@@ -52,13 +42,10 @@ export default function TourPage() {
     [apiCustomers],
   );
 
-  const [day, setDay] = useState<DayKey>(todayKey());
-  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [day, setDay] = useState<DayKey>(getTodayDayKey());
   const [listOpen, setListOpen] = useState(true);
   const [addOpen, setAddOpen] = useState(false);
   const [picking, setPicking] = useState(false);
-  const [pickingForEdit, setPickingForEdit] =
-    useState<CustomerListItem | null>(null);
   const [pickedPoint, setPickedPoint] = useState<[number, number] | null>(
     null,
   );
@@ -71,13 +58,7 @@ export default function TourPage() {
     () => customersToShops(filterCustomersByDay(apiCustomers, day)),
     [apiCustomers, day],
   );
-  const selected = shops.find((s) => s.id === selectedId) ?? null;
-  const selectedListItem =
-    listItems.find((item) => item.id === selectedId) ?? null;
-  const overlayOpen =
-    addOpen || !!selected || !!selectedListItem || listOpen || !!pickingForEdit;
-
-  const updateCustomerLocMutation = useUpdateCustomerMutation();
+  const overlayOpen = addOpen || listOpen;
 
   const handleAddCustomerSuccess = () => {
     setAddOpen(false);
@@ -98,17 +79,8 @@ export default function TourPage() {
       .finally(() => setPickingLocLoading(false));
   }, [nav.reportPosition, nav.handleGeoError, flyTo]);
 
-  useEffect(() => {
-    setSelectedId(null);
-  }, [day]);
-
   const openListItem = (item: CustomerListItem) => {
-    setSelectedId(item.id);
-    // Only fly to if has coordinates
-    if (item.hasCoordinates && item.lat != null && item.lng != null) {
-      flyTo([item.lat, item.lng], 16);
-    }
-    setListOpen(false);
+    router.push(`/stores/detail?id=${item.customerId}`);
   };
 
   // TODO: These values are tied to the drawer heights in the JSX (h-[46svh], h-[75svh]).
@@ -125,37 +97,16 @@ export default function TourPage() {
     >
       <TourMap
         shops={dayShops}
-        selectedId={selectedId}
+        selectedId={null}
         onSelect={(id) => {
           const item = listItems.find((x) => x.id === id);
           if (item) openListItem(item);
         }}
         picking={picking}
         onPick={(lat, lng) => {
-          if (pickingForEdit) {
-            // Update existing customer location
-            updateCustomerLocMutation.mutate(
-              {
-                customerId: pickingForEdit.customerId,
-                data: {
-                  latitude: Number(lat.toFixed(6)),
-                  longitude: Number(lng.toFixed(6)),
-                },
-              },
-              {
-                onSuccess: () => {
-                  setSelectedId(null);
-                  setPickingForEdit(null);
-                  setPicking(false);
-                },
-              },
-            );
-          } else {
-            // Add new customer
-            setPickedPoint([lat, lng]);
-            setPicking(false);
-            setAddOpen(true);
-          }
+          setPickedPoint([lat, lng]);
+          setPicking(false);
+          setAddOpen(true);
         }}
         pickedPoint={pickedPoint}
         userPos={nav.userPos}
@@ -204,11 +155,10 @@ export default function TourPage() {
 
       <LocationPickingBanner
         visible={picking}
-        editingName={pickingForEdit?.name ?? null}
+        editingName={null}
         panelWidthClass={PANEL_WIDTH_CLASS}
         onCancel={() => {
           setPicking(false);
-          setPickingForEdit(null);
           setAddOpen(true);
         }}
       />
@@ -227,26 +177,10 @@ export default function TourPage() {
         onOpenChange={setListOpen}
         day={day}
         items={listItems}
-        selectedId={selectedId}
+        selectedId={null}
         origin={nav.origin}
         onSelectItem={openListItem}
         isLoading={isLoadingCustomers}
-        bottomNavHeight={BOTTOM_NAV_H_CSS}
-        panelWidthClass={PANEL_WIDTH_CLASS}
-        overlayZ={OVERLAY_Z}
-      />
-
-      <CustomerDetailDrawer
-        open={!!selectedListItem && !nav.navShop}
-        onOpenChange={(open) => !open && setSelectedId(null)}
-        item={selectedListItem}
-        origin={nav.origin}
-        onStartNavigation={nav.startNavigation}
-        onEditLocation={(item) => {
-          setSelectedId(null);
-          setPicking(true);
-          setPickingForEdit(item);
-        }}
         bottomNavHeight={BOTTOM_NAV_H_CSS}
         panelWidthClass={PANEL_WIDTH_CLASS}
         overlayZ={OVERLAY_Z}

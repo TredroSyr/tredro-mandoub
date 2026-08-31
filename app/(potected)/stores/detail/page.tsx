@@ -1,20 +1,21 @@
 "use client";
 
 import { Suspense, useState } from "react";
-import Link from "next/link";
-import { useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
+import { ErrorState } from "@/components/tredro/error-state";
 import {
-  Breadcrumb,
-  BreadcrumbItem,
-  BreadcrumbLink,
-  BreadcrumbList,
-  BreadcrumbPage,
-  BreadcrumbSeparator,
-} from "@/components/ui/breadcrumb";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { IconRenderer } from "@/assets/icons/iconRenderer";
-import { Skeleton, SkeletonCard, SkeletonStat } from "@/components/ui/skeleton";
+  StoreDetailHeader,
+  StoreIdentityCard,
+  StoreLocationBanner,
+  StoreFinancialSummary,
+  StoreWhatsappButton,
+  StoreDetailTabs,
+  RequestsTab,
+  InvoicesTab,
+  PaymentsTab,
+  ReturnsTab,
+  type StoreDetailTab,
+} from "@/module/stores/components/detail";
 import {
   useGetCustomerByIdQuery,
   useGetCustomerPaymentsQuery,
@@ -22,21 +23,7 @@ import {
   useGetCustomerReturnInvoicesQuery,
   useGetCustomerSalesInvoicesQuery,
 } from "@/module/customers/hooks";
-import { WORK_DAYS_LABELS, formatCurrency, getCustomerWorkDays } from "@/module/customers/lib/utils";
-import { iconName } from "@/assets/icons/iconRenderer/types";
-import { RequestStatusBadge } from "@/module/orders/components";
-import { formatRequestMoney, formatRequestQuantity } from "@/module/orders/lib/utils";
-import { CreateInvoiceDrawer, CreateReturnDrawer, RecordPaymentDialog } from "@/module/invoices/components";
-import { SalesInvoice } from "@/module/customers/types";
-
-type Tab = "requests" | "invoices" | "payments" | "returns";
-
-const TABS: { key: Tab; label: string; icon: iconName }[] = [
-  { key: "requests", label: "الطلبات", icon: "re_order_filled" },
-  { key: "invoices", label: "الفواتير", icon: "card_filled" },
-  { key: "payments", label: "الدفعات", icon: "money_filled" },
-  { key: "returns", label: "المرتجعات", icon: "undo_filled" },
-];
+import { getCustomerWorkDays } from "@/module/customers/lib/utils";
 
 export default function StoreDetailPage() {
   return (
@@ -47,370 +34,87 @@ export default function StoreDetailPage() {
 }
 
 function StoreDetailContent() {
+  const router = useRouter();
   const searchParams = useSearchParams();
   const id = searchParams.get("id");
   const customerId = id ? Number(id) : null;
 
-  const { data, isLoading, isError, refetch, isFetching } = useGetCustomerByIdQuery(customerId);
+  const { data, isLoading, isError, error, refetch, isFetching } =
+    useGetCustomerByIdQuery(customerId);
   const customer = data?.data?.customer;
 
-  const [tab, setTab] = useState<Tab>("requests");
+  const [tab, setTab] = useState<StoreDetailTab>("requests");
 
   const requestsQuery = useGetCustomerRequestsQuery(customerId);
   const invoicesQuery = useGetCustomerSalesInvoicesQuery(customerId);
   const paymentsQuery = useGetCustomerPaymentsQuery(customerId);
   const returnsQuery = useGetCustomerReturnInvoicesQuery(customerId);
 
+  const goBack = () => router.push("/stores");
+
   if (!customerId) {
     return (
-      <Link href="/stores" className="text-sm font-bold text-primary">
-        العودة لقائمة المحلات
-      </Link>
-    );
-  }
-
-  if (isLoading) {
-    return (
       <>
-        <div className="grid grid-cols-3 gap-2">
-          <SkeletonStat />
-          <SkeletonStat />
-          <SkeletonStat />
-        </div>
-        <div className="mt-4 space-y-2">
-          <SkeletonCard />
-          <SkeletonCard />
-        </div>
+        <StoreDetailHeader title="تفاصيل المحل" onBack={goBack} />
+        <p className="mt-6 text-center text-sm text-muted-foreground">
+          لم يتم تحديد محل صالح لعرض تفاصيله.
+        </p>
       </>
     );
   }
 
-  if (isError || !customer) {
+  if (isError) {
     return (
-      <div className="flex flex-col items-center justify-center gap-3 py-12 text-center">
-        <IconRenderer name="warning_outlined" className="w-12 h-12 text-destructive/60" />
-        <p className="text-sm text-muted-foreground">
-          {isError ? "حدث خطأ أثناء تحميل بيانات المحل." : "هذا المحل غير موجود أو غير معيّن لك."}
-        </p>
-        {isError && (
-          <Button size="sm" variant="secondary" onClick={() => refetch()} disabled={isFetching}>
-            <IconRenderer name="refresh_outlined" className="w-4 h-4" />
-            إعادة المحاولة
-          </Button>
-        )}
-        <Link href="/stores" className="text-xs font-bold text-primary">
-          العودة لقائمة المحلات
-        </Link>
-      </div>
+      <>
+        <StoreDetailHeader title="تفاصيل المحل" onBack={goBack} />
+        <ErrorState
+          error={error}
+          onRetry={() => refetch()}
+          isRetrying={isFetching}
+        />
+      </>
     );
   }
 
-  const workDays = getCustomerWorkDays(customer);
-  const balanceDue = parseFloat(customer.balance_due) || 0;
-  const hasCoords = customer.latitude != null && customer.longitude != null;
+  if (!isLoading && !customer) {
+    return (
+      <>
+        <StoreDetailHeader title="تفاصيل المحل" onBack={goBack} />
+        <p className="mt-6 text-center text-sm text-muted-foreground">
+          هذا المحل غير موجود أو غير معيّن لك.
+        </p>
+      </>
+    );
+  }
 
   return (
     <>
-      <Breadcrumb>
-        <BreadcrumbList>
-          <BreadcrumbItem>
-            <BreadcrumbLink asChild>
-              <Link href="/stores">المحلات</Link>
-            </BreadcrumbLink>
-          </BreadcrumbItem>
-          <BreadcrumbSeparator />
-          <BreadcrumbItem>
-            <BreadcrumbPage>{customer.name}</BreadcrumbPage>
-          </BreadcrumbItem>
-        </BreadcrumbList>
-      </Breadcrumb>
+      {!isLoading &&
+        customer &&
+        customer.latitude == null &&
+        customer.longitude == null && (
+          <StoreLocationBanner customerId={customerId} />
+        )}
+      <StoreDetailHeader
+        title={customer?.name}
+        isLoading={isLoading}
+        workDays={customer ? getCustomerWorkDays(customer) : []}
+        customerId={customerId}
+        onBack={goBack}
+      />
 
-      {/* بطاقة الهوية */}
-      <section className="mt-3 rounded-3xl border border-border bg-card p-4">
-        <div className="flex items-start gap-3">
-          <span
-            className={`grid size-11 shrink-0 place-items-center rounded-2xl ${
-              hasCoords ? "bg-primary/10 text-primary" : "bg-warning/10 text-warning"
-            }`}
-          >
-            <IconRenderer
-              name={hasCoords ? "category_outlined" : "warning_outlined"}
-              className="h-6 w-6"
-            />
-          </span>
-          <div className="min-w-0 flex-1">
-            <h2 className="truncate text-base font-extrabold leading-tight">{customer.name}</h2>
-            <p className="mt-1 truncate text-xs text-muted-foreground" dir="ltr">
-              {customer.phone}
-            </p>
-            <div className="mt-2.5 flex flex-wrap gap-2">
-              {workDays.length > 0 && (
-                <Badge>
-                  <IconRenderer name="calendar_outlined" className="w-4 h-4" />
-                  {workDays.map((d) => WORK_DAYS_LABELS[d] ?? d).join("، ")}
-                </Badge>
-              )}
-              {!hasCoords && (
-                <Badge variant="outline" className="text-warning">
-                  <IconRenderer name="warning_outlined" className="w-4 h-4 ms-1" />
-                  بدون موقع على الخريطة
-                </Badge>
-              )}
-              {!customer.is_active && <Badge variant="secondary">غير نشط</Badge>}
-            </div>
-          </div>
-        </div>
-      </section>
+      <StoreFinancialSummary customer={customer} isLoading={isLoading} />
 
-      {/* الوضع المالي */}
-      <div className="mt-3 grid grid-cols-3 gap-2 text-center">
-        <div className="rounded-2xl border border-border bg-card py-3">
-          <p className="text-[10px] text-muted-foreground">إجمالي الفواتير</p>
-          <p className="mt-1 font-mono text-[11px] font-bold">{formatCurrency(customer.total_invoiced)}</p>
-        </div>
-        <div className="rounded-2xl bg-success/12 py-3">
-          <p className="text-[10px] text-muted-foreground">المدفوع</p>
-          <p className="mt-1 font-mono text-[11px] font-bold text-success">
-            {formatCurrency(customer.paid_amount)}
-          </p>
-        </div>
-        <div className={`rounded-2xl py-3 ${balanceDue > 0 ? "bg-warning/20" : "bg-muted"}`}>
-          <p className="text-[10px] text-muted-foreground">المتبقي</p>
-          <p className="mt-1 font-mono text-[11px] font-bold">{formatCurrency(customer.balance_due)}</p>
-        </div>
-      </div>
+      {!isLoading && customer && <StoreWhatsappButton phone={customer.phone} />}
 
-      <a
-        href={`https://wa.me/${customer.phone.replace(/\D/g, "")}`}
-        target="_blank"
-        rel="noreferrer"
-        className="mt-3 flex items-center justify-center gap-2 rounded-2xl border border-border bg-card py-3 text-xs font-bold text-primary"
-      >
-        <IconRenderer name="whatsapp_outlined" className="size-4" /> <span dir="ltr">{customer.phone}</span>
-      </a>
-
-      {/* تبويبات */}
-      <div className="mt-4 grid grid-cols-4 gap-1 rounded-2xl bg-secondary p-1">
-        {TABS.map(({ key, label, icon }) => (
-          <button
-            key={key}
-            onClick={() => setTab(key)}
-            className={`flex flex-col items-center justify-center gap-1 rounded-xl py-2.5 text-[11px] font-bold transition-colors ${
-              tab === key ? "bg-card text-primary shadow-float" : "text-muted-foreground"
-            }`}
-          >
-            <IconRenderer name={icon} className="size-3.5" /> {label}
-          </button>
-        ))}
-      </div>
+      <StoreDetailTabs value={tab} onChange={setTab} />
 
       {tab === "requests" && <RequestsTab query={requestsQuery} />}
-      {tab === "invoices" && <InvoicesTab query={invoicesQuery} customerId={customerId} />}
+      {tab === "invoices" && (
+        <InvoicesTab query={invoicesQuery} customerId={customerId} />
+      )}
       {tab === "payments" && <PaymentsTab query={paymentsQuery} />}
       {tab === "returns" && <ReturnsTab query={returnsQuery} />}
     </>
-  );
-}
-
-function TabSkeleton() {
-  return (
-    <div className="mt-4 space-y-2">
-      <Skeleton className="h-16 w-full rounded-2xl" />
-      <Skeleton className="h-16 w-full rounded-2xl" />
-    </div>
-  );
-}
-
-function TabError({ onRetry, isRetrying }: { onRetry: () => void; isRetrying: boolean }) {
-  return (
-    <div className="mt-4 flex flex-col items-center justify-center gap-2 rounded-2xl bg-muted/40 p-6 text-center">
-      <IconRenderer name="warning_outlined" className="w-8 h-8 text-destructive/60" />
-      <p className="text-[11px] text-muted-foreground">تعذّر تحميل هذه البيانات.</p>
-      <Button size="sm" variant="secondary" onClick={onRetry} disabled={isRetrying}>
-        <IconRenderer name="refresh_outlined" className="w-4 h-4" />
-        إعادة المحاولة
-      </Button>
-    </div>
-  );
-}
-
-function TabEmpty({ label }: { label: string }) {
-  return (
-    <p className="mt-4 rounded-2xl bg-muted/60 p-4 text-center text-[11px] text-muted-foreground">
-      {label}
-    </p>
-  );
-}
-
-function RequestsTab({ query: q }: { query: ReturnType<typeof useGetCustomerRequestsQuery> }) {
-  if (q.isLoading) return <TabSkeleton />;
-  if (q.isError) return <TabError onRetry={() => q.refetch()} isRetrying={q.isFetching} />;
-  const requests = q.data?.data?.requests ?? [];
-  if (requests.length === 0) return <TabEmpty label="ما في طلبات سابقة." />;
-
-  return (
-    <div className="mt-4 space-y-2">
-      {requests.map((r) => (
-        <article key={r.id} className="rounded-2xl border border-border bg-card p-3.5">
-          <div className="flex items-start justify-between gap-3">
-            <p className="font-mono text-[10px] text-muted-foreground">
-              {new Date(r.created_at).toLocaleDateString("ar-SY")}
-            </p>
-            <RequestStatusBadge status={r.status} />
-          </div>
-          <ul className="mt-2 space-y-1">
-            {r.lines.map((l) => (
-              <li key={l.id} className="flex justify-between gap-3 text-[11px]">
-                <span className="truncate text-muted-foreground">{l.product_name}</span>
-                <span className="shrink-0 font-mono">
-                  ×{formatRequestQuantity(l.desired_quantity)} {l.unit_name}
-                </span>
-              </li>
-            ))}
-          </ul>
-          <div className="mt-2 flex items-center justify-between border-t border-border pt-2">
-            <span className="font-mono text-[11px] font-bold text-primary">
-              {formatRequestMoney(r.estimated_total)}
-            </span>
-            {r.fulfilled_by_invoice_number && (
-              <span className="text-[10px] text-success">نُفِّذ عبر الفاتورة {r.fulfilled_by_invoice_number}</span>
-            )}
-          </div>
-        </article>
-      ))}
-    </div>
-  );
-}
-
-function InvoicesTab({
-  query: q,
-  customerId,
-}: {
-  query: ReturnType<typeof useGetCustomerSalesInvoicesQuery>;
-  customerId: number;
-}) {
-  const [createOpen, setCreateOpen] = useState(false);
-  const [paymentInvoice, setPaymentInvoice] = useState<SalesInvoice | null>(null);
-  const [returnTarget, setReturnTarget] = useState<{ id: number; number: string } | null>(null);
-
-  if (q.isLoading) return <TabSkeleton />;
-  if (q.isError) return <TabError onRetry={() => q.refetch()} isRetrying={q.isFetching} />;
-  const invoices = q.data?.data?.invoices ?? [];
-
-  return (
-    <>
-      <Button size="sm" variant="secondary" className="mt-4 w-full" onClick={() => setCreateOpen(true)}>
-        <IconRenderer name="plus_outlined" className="w-4 h-4" />
-        فاتورة جديدة
-      </Button>
-
-      {invoices.length === 0 ? (
-        <TabEmpty label="ما في فواتير بعد." />
-      ) : (
-        <div className="mt-3 space-y-2">
-          {invoices.map((i) => (
-            <div key={i.id} className="rounded-2xl border border-border bg-card px-3.5 py-3">
-              <div className="flex items-center justify-between gap-3">
-                <div className="min-w-0">
-                  <p className="truncate font-mono text-[11px] font-bold">{i.number}</p>
-                  <p className="font-mono text-[10px] text-muted-foreground">
-                    {new Date(i.date).toLocaleDateString("ar-SY")}
-                  </p>
-                </div>
-                <div className="flex shrink-0 items-center gap-2">
-                  <span className="font-mono text-[11px]">{formatCurrency(i.total_amount)}</span>
-                  <Badge variant={i.status === "fully_paid" ? "success" : "warning"}>
-                    {i.status === "fully_paid" ? "مدفوعة" : "معلّقة"}
-                  </Badge>
-                </div>
-              </div>
-
-              <div className="mt-2 flex items-center gap-2 border-t border-border pt-2">
-                {i.status !== "fully_paid" && (
-                  <button
-                    onClick={() => setPaymentInvoice(i)}
-                    className="flex items-center gap-1 rounded-xl bg-primary/10 px-2.5 py-1.5 text-[10px] font-bold text-primary"
-                  >
-                    <IconRenderer name="money_outlined" className="size-3" /> تسجيل دفعة
-                  </button>
-                )}
-                <button
-                  onClick={() => setReturnTarget({ id: i.id, number: i.number })}
-                  className="flex items-center gap-1 rounded-xl bg-destructive/10 px-2.5 py-1.5 text-[10px] font-bold text-destructive"
-                >
-                  <IconRenderer name="undo_outlined" className="size-3" /> مرتجع
-                </button>
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
-
-      <CreateInvoiceDrawer open={createOpen} onOpenChange={setCreateOpen} customerId={customerId} />
-      <RecordPaymentDialog
-        invoice={paymentInvoice}
-        open={!!paymentInvoice}
-        onOpenChange={(open) => !open && setPaymentInvoice(null)}
-      />
-      <CreateReturnDrawer
-        invoiceId={returnTarget?.id ?? null}
-        invoiceNumber={returnTarget?.number ?? ""}
-        open={!!returnTarget}
-        onOpenChange={(open) => !open && setReturnTarget(null)}
-      />
-    </>
-  );
-}
-
-function PaymentsTab({ query: q }: { query: ReturnType<typeof useGetCustomerPaymentsQuery> }) {
-  if (q.isLoading) return <TabSkeleton />;
-  if (q.isError) return <TabError onRetry={() => q.refetch()} isRetrying={q.isFetching} />;
-  const payments = q.data?.data?.payments ?? [];
-  if (payments.length === 0) return <TabEmpty label="ما في دفعات مسجّلة." />;
-
-  return (
-    <div className="mt-4 space-y-2">
-      {payments.map((p) => (
-        <div
-          key={p.id}
-          className="flex items-center justify-between gap-3 rounded-2xl border border-border bg-card px-3.5 py-3"
-        >
-          <span className="font-mono text-[11px] text-muted-foreground">
-            {new Date(p.date).toLocaleDateString("ar-SY")}
-          </span>
-          <span className="font-mono text-xs font-bold text-success">
-            +{formatCurrency(p.amount)}
-          </span>
-        </div>
-      ))}
-    </div>
-  );
-}
-
-function ReturnsTab({ query: q }: { query: ReturnType<typeof useGetCustomerReturnInvoicesQuery> }) {
-  if (q.isLoading) return <TabSkeleton />;
-  if (q.isError) return <TabError onRetry={() => q.refetch()} isRetrying={q.isFetching} />;
-  const returns = q.data?.data?.return_invoices ?? [];
-  if (returns.length === 0) return <TabEmpty label="ما في مرتجعات." />;
-
-  return (
-    <div className="mt-4 space-y-2">
-      {returns.map((r) => (
-        <div
-          key={r.id}
-          className="flex items-center justify-between gap-3 rounded-2xl border border-border bg-card px-3.5 py-3"
-        >
-          <div className="min-w-0">
-            <p className="truncate font-mono text-[11px] font-bold">{r.number}</p>
-            <p className="font-mono text-[10px] text-muted-foreground">
-              مرتبط بـ {r.sales_invoice_number}
-            </p>
-          </div>
-          <span className="font-mono text-[11px] font-bold text-destructive">
-            -{formatCurrency(r.amount)}
-          </span>
-        </div>
-      ))}
-    </div>
   );
 }

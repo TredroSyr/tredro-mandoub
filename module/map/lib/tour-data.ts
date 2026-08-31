@@ -45,6 +45,12 @@ export const DAYS: { key: DayKey; label: string; short: string }[] = [
   { key: "thu", label: "الخميس", short: "THU" },
 ];
 
+/** Today's DayKey. Friday (no workday in the map) falls back to Saturday. */
+export function getTodayDayKey(): DayKey {
+  const map: DayKey[] = ["sun", "mon", "tue", "wed", "thu", "sat", "sat"];
+  return map[new Date().getDay()] ?? "sun";
+}
+
 export function distanceKm(a: [number, number], b: [number, number]) {
   const R = 6371;
   const dLat = ((b[0] - a[0]) * Math.PI) / 180;
