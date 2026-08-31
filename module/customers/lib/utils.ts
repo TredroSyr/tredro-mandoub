@@ -1,5 +1,5 @@
-import { Customer, RepAssignment } from "../types";
-import { Shop, DayKey, ALEPPO_CENTER } from "@/module/map/lib/tour-data";
+import { Customer } from "../types";
+import { Shop, DayKey } from "@/module/map/lib/tour-data";
 
 export const DAY_KEY_TO_API: Record<DayKey, string> = {
   sun: "sunday",
@@ -51,8 +51,7 @@ export interface CustomerListItem {
  * Convert a customer to a list item (works even without coordinates)
  */
 export function customerToListItem(customer: Customer): CustomerListItem {
-  const repAssignment = customer.assigned_reps_details?.[0];
-  const workDays = repAssignment?.work_days ?? [];
+  const workDays = customer.work_days ?? customer.assigned_reps_details?.[0]?.work_days ?? [];
   const primaryDay = workDays.length > 0
     ? API_DAY_TO_KEY[workDays[0]] ?? "sun"
     : "sun";
@@ -85,8 +84,7 @@ export function customerToShop(customer: Customer): Shop | null {
     return null;
   }
 
-  const repAssignment = customer.assigned_reps_details?.[0];
-  const workDays = repAssignment?.work_days ?? [];
+  const workDays = customer.work_days ?? customer.assigned_reps_details?.[0]?.work_days ?? [];
   const primaryDay = workDays.length > 0
     ? API_DAY_TO_KEY[workDays[0]] ?? "sun"
     : "sun";
@@ -95,7 +93,7 @@ export function customerToShop(customer: Customer): Shop | null {
     type: "branch",
     id: `customer-${customer.id}`,
     name: customer.name,
-    address: ``,
+    address: customer.address,
     phone: customer.phone,
     day: primaryDay,
     lat: customer.latitude,
@@ -116,7 +114,7 @@ export function filterCustomersByDay(
 ): Customer[] {
   const apiDay = DAY_KEY_TO_API[day];
   return customers.filter((c) =>
-    c.assigned_reps_details?.[0]?.work_days?.includes(apiDay)
+    (c.work_days ?? c.assigned_reps_details?.[0]?.work_days)?.includes(apiDay)
   );
 }
 
@@ -131,5 +129,11 @@ export function filterListItemsByDay(
 }
 
 export function getCustomerWorkDays(customer: Customer): string[] {
-  return customer.assigned_reps_details?.[0]?.work_days ?? [];
+  return customer.work_days ?? customer.assigned_reps_details?.[0]?.work_days ?? [];
+}
+
+/** يعرض قيمة نقدية بصيغة string ثابتة الدقة من الـ API كنص عربي منسّق */
+export function formatCurrency(value: string | number) {
+  const n = typeof value === "string" ? parseFloat(value) : value;
+  return `${(Number.isFinite(n) ? n : 0).toLocaleString("ar-SY")} ل.س`;
 }

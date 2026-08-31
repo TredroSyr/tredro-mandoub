@@ -44,12 +44,12 @@ const TABS: Tab[] = [
     filled: "history_filled",
     outlined: "history_outlined",
   },
-  // {
-  //   to: "/settings",
-  //   label: "الإعدادات",
-  //   filled: "settings_filled",
-  //   outlined: "settings_outlined",
-  // },
+  {
+    to: "/settings",
+    label: "الإعدادات",
+    filled: "settings_filled",
+    outlined: "settings_outlined",
+  },
 ];
 
 // Same glass treatment as the Sidebar's ButtonGlassEffect
@@ -126,7 +126,7 @@ export default function BottomNav() {
                         : "text-muted-foreground group-hover:text-fg-brand-primary"
                     }`}
                   >
-                    <IconRenderer name={active ? filled : outlined} size={19} />
+                    <IconRenderer name={active ? filled : outlined} width={19} height={19} />
                   </motion.span>
                 </span>
               </Link>

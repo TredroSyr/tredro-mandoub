@@ -3,25 +3,30 @@ import { AxiosError } from "axios";
 import { toast } from "sonner";
 import { ApiErrorResponse } from "@/module/auth/types";
 import {
-  getCustomers,
+  createCustomer,
   getCustomerById,
-  getCustomerStats,
+  getCustomerPayments,
+  getCustomerRequests,
+  getCustomerReturnInvoices,
+  getCustomers,
+  getCustomerSalesInvoices,
   updateCustomer,
   updateRepWorkDays,
-  createCustomer,
 } from "../api";
 import {
+  CreateCustomerRequest,
+  CustomerDocumentsParams,
   UpdateCustomerRequest,
   UpdateRepWorkDaysRequest,
-  CreateCustomerRequest,
 } from "../types";
 
 export const useGetCustomersQuery = (params?: {
   is_active?: boolean;
   search?: string;
+  work_day?: string;
 }) => {
   return useQuery({
-    queryKey: ["customers", params?.is_active, params?.search],
+    queryKey: ["customers", params?.is_active, params?.search, params?.work_day],
     queryFn: () => getCustomers(params),
   });
 };
@@ -34,13 +39,6 @@ export const useGetCustomerByIdQuery = (customerId: number | null) => {
       return getCustomerById(customerId);
     },
     enabled: !!customerId,
-  });
-};
-
-export const useGetCustomerStatsQuery = () => {
-  return useQuery({
-    queryKey: ["customerStats"],
-    queryFn: getCustomerStats,
   });
 };
 
@@ -111,5 +109,65 @@ export const useCreateCustomerMutation = (options?: {
       toast.error(error.response?.data?.message || "فشل إضافة العميل");
       if (options?.onError) options.onError(error);
     },
+  });
+};
+
+/** الطلبات السابقة (customer-requests) لمحل معيّن */
+export const useGetCustomerRequestsQuery = (
+  customerId: number | null,
+  params?: CustomerDocumentsParams & { status?: string },
+) => {
+  return useQuery({
+    queryKey: ["customerRequests", customerId, params],
+    queryFn: () => {
+      if (!customerId) throw new Error("Customer ID is required");
+      return getCustomerRequests(customerId, params);
+    },
+    enabled: !!customerId,
+  });
+};
+
+/** فواتير المبيعات لمحل معيّن */
+export const useGetCustomerSalesInvoicesQuery = (
+  customerId: number | null,
+  params?: CustomerDocumentsParams,
+) => {
+  return useQuery({
+    queryKey: ["customerSalesInvoices", customerId, params],
+    queryFn: () => {
+      if (!customerId) throw new Error("Customer ID is required");
+      return getCustomerSalesInvoices(customerId, params);
+    },
+    enabled: !!customerId,
+  });
+};
+
+/** الدفعات المسجّلة لمحل معيّن */
+export const useGetCustomerPaymentsQuery = (
+  customerId: number | null,
+  params?: CustomerDocumentsParams,
+) => {
+  return useQuery({
+    queryKey: ["customerPayments", customerId, params],
+    queryFn: () => {
+      if (!customerId) throw new Error("Customer ID is required");
+      return getCustomerPayments(customerId, params);
+    },
+    enabled: !!customerId,
+  });
+};
+
+/** فواتير المرتجعات لمحل معيّن */
+export const useGetCustomerReturnInvoicesQuery = (
+  customerId: number | null,
+  params?: CustomerDocumentsParams,
+) => {
+  return useQuery({
+    queryKey: ["customerReturnInvoices", customerId, params],
+    queryFn: () => {
+      if (!customerId) throw new Error("Customer ID is required");
+      return getCustomerReturnInvoices(customerId, params);
+    },
+    enabled: !!customerId,
   });
 };

@@ -1,15 +1,19 @@
 import api from "@/lib/axios";
 import {
-  CustomersListResponse,
+  Customer,
   CustomerDetailResponse,
-  CustomerStatsResponse,
+  CustomerDocumentsParams,
+  CustomerRequestsResponse,
+  CustomersListResponse,
+  CreateCustomerRequest,
+  CreateCustomerResponse,
+  PaymentsResponse,
+  ReturnInvoicesResponse,
+  SalesInvoicesResponse,
   UpdateCustomerRequest,
   UpdateCustomerResponse,
   UpdateRepWorkDaysRequest,
   UpdateRepWorkDaysResponse,
-  CreateCustomerRequest,
-  CreateCustomerResponse,
-  Customer,
 } from "../types";
 
 /**
@@ -17,7 +21,7 @@ import {
  * - Converts latitude/longitude from string to number
  * - Handles cases where values are null
  */
-function normalizeCustomer(customer: any): Customer {
+function normalizeCustomer(customer: Customer): Customer {
   return {
     ...customer,
     latitude:
@@ -38,13 +42,11 @@ function normalizeCustomer(customer: any): Customer {
 export const getCustomers = async (params?: {
   is_active?: boolean;
   search?: string;
+  work_day?: string;
 }): Promise<CustomersListResponse> => {
-  const response = await api.get("/reps/customers/", {
-    params,
-  });
+  const response = await api.get("/reps/customers/", { params });
   const data = response.data;
 
-  // Normalize the coordinate values
   return {
     ...data,
     data: {
@@ -54,15 +56,10 @@ export const getCustomers = async (params?: {
   };
 };
 
-export const getCustomerById = async (
-  customerId: number,
-): Promise<CustomerDetailResponse> => {
-  const response = await api.get(
-    `/reps/customers/${customerId}/`,
-  );
+export const getCustomerById = async (customerId: number): Promise<CustomerDetailResponse> => {
+  const response = await api.get(`/reps/customers/${customerId}/`);
   const data = response.data;
 
-  // Normalize the coordinate values
   return {
     ...data,
     data: {
@@ -72,24 +69,13 @@ export const getCustomerById = async (
   };
 };
 
-export const getCustomerStats = async (): Promise<CustomerStatsResponse> => {
-  const response = await api.get(
-    "/reps/customers/stats/",
-  );
-  return response.data;
-};
-
 export const updateCustomer = async (
   customerId: number,
   data: UpdateCustomerRequest,
 ): Promise<UpdateCustomerResponse> => {
-  const response = await api.patch(
-    `/reps/customers/${customerId}/`,
-    data,
-  );
+  const response = await api.patch(`/reps/customers/${customerId}/`, data);
   const resData = response.data;
 
-  // Normalize the coordinate values
   return {
     ...resData,
     data: {
@@ -102,23 +88,16 @@ export const updateCustomer = async (
 export const updateRepWorkDays = async (
   data: UpdateRepWorkDaysRequest,
 ): Promise<UpdateRepWorkDaysResponse> => {
-  const response = await api.patch(
-    "/api/reps/profile/",
-    data,
-  );
+  const response = await api.patch("/reps/profile/", data);
   return response.data;
 };
 
 export const createCustomer = async (
   data: CreateCustomerRequest,
 ): Promise<CreateCustomerResponse> => {
-  const response = await api.post(
-    "/reps/customers/",
-    data,
-  );
+  const response = await api.post("/reps/customers/", data);
   const resData = response.data;
 
-  // Normalize the coordinate values
   return {
     ...resData,
     data: {
@@ -126,4 +105,44 @@ export const createCustomer = async (
       customer: normalizeCustomer(resData.data?.customer),
     },
   };
+};
+
+export const getCustomerRequests = async (
+  customerId: number,
+  params?: CustomerDocumentsParams & { status?: string },
+): Promise<CustomerRequestsResponse> => {
+  const response = await api.get("/reps/customer-requests/", {
+    params: { customer: customerId, ...params },
+  });
+  return response.data;
+};
+
+export const getCustomerSalesInvoices = async (
+  customerId: number,
+  params?: CustomerDocumentsParams,
+): Promise<SalesInvoicesResponse> => {
+  const response = await api.get("/reps/sales-invoices/", {
+    params: { customer: customerId, ...params },
+  });
+  return response.data;
+};
+
+export const getCustomerPayments = async (
+  customerId: number,
+  params?: CustomerDocumentsParams,
+): Promise<PaymentsResponse> => {
+  const response = await api.get("/reps/payments/", {
+    params: { customer: customerId, ...params },
+  });
+  return response.data;
+};
+
+export const getCustomerReturnInvoices = async (
+  customerId: number,
+  params?: CustomerDocumentsParams,
+): Promise<ReturnInvoicesResponse> => {
+  const response = await api.get("/reps/return-invoices/", {
+    params: { customer: customerId, ...params },
+  });
+  return response.data;
 };
