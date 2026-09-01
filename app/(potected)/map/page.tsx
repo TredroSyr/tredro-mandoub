@@ -53,6 +53,7 @@ export default function TourPage() {
     null,
   );
   const [pickingLocLoading, setPickingLocLoading] = useState(false);
+  const [routePlanDrawerOpen, setRoutePlanDrawerOpen] = useState(false);
 
   const { focus, flyTo } = useMapFocus();
   const nav = useTourNavigation({ flyTo });
@@ -66,16 +67,27 @@ export default function TourPage() {
 
   // Route planning and active turn-by-turn navigation are mutually exclusive
   // in the UI — starting one clears the other, and switching days invalidates
-  // a plan computed for the previous day's shop list.
+  // a plan computed for the previous day's shop list. Closing the summary
+  // drawer on its own must NOT clear the plan — only this does, so the route
+  // stays drawn on the map while the drawer is collapsed.
   useEffect(() => {
-    if (nav.navShop) routePlan.clearPlan();
+    if (nav.navShop) {
+      routePlan.clearPlan();
+      setRoutePlanDrawerOpen(false);
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [nav.navShop]);
 
   useEffect(() => {
     routePlan.clearPlan();
+    setRoutePlanDrawerOpen(false);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [day]);
+
+  const handleDetermineRoute = async () => {
+    await routePlan.planRoute(dayShops);
+    setRoutePlanDrawerOpen(true);
+  };
 
   const handleAddCustomerSuccess = () => {
     setAddOpen(false);
@@ -167,9 +179,15 @@ export default function TourPage() {
             isLoading={isLoadingCustomers}
           />
           <DetermineRouteButton
-            onClick={() => routePlan.planRoute(dayShops)}
+            hasTrip={!!routePlan.trip}
             loading={routePlan.state === "loading"}
             disabled={dayShops.length === 0}
+            onDetermine={handleDetermineRoute}
+            onShowRoute={() => setRoutePlanDrawerOpen(true)}
+            onClearRoute={() => {
+              routePlan.clearPlan();
+              setRoutePlanDrawerOpen(false);
+            }}
           />
         </div>
       )}
@@ -232,10 +250,8 @@ export default function TourPage() {
       />
 
       <RoutePlanDrawer
-        open={!nav.navShop && routePlan.state === "ready"}
-        onOpenChange={(open) => {
-          if (!open) routePlan.clearPlan();
-        }}
+        open={!nav.navShop && !!routePlan.trip && routePlanDrawerOpen}
+        onOpenChange={setRoutePlanDrawerOpen}
         trip={routePlan.trip}
         onViewStop={(customerId) => router.push(`/stores/detail?id=${customerId}`)}
         bottomNavHeight={BOTTOM_NAV_H_CSS}
