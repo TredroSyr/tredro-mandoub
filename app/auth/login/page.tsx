@@ -146,7 +146,7 @@ const LoginPage = () => {
                 animate={{ height: "auto", opacity: 1 }}
                 exit={{ height: 0, opacity: 0 }}
                 transition={SHEET_TRANSITION}
-                className="flex items-center justify-center overflow-hidden"
+                className="flex items-center justify-center overflow-hidden pt-3"
               >
                 <Image
                   src="/tredro/full_logo.svg"

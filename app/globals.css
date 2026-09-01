@@ -174,9 +174,11 @@
   }
   body {
     @apply bg-background text-foreground;
+    overscroll-behavior-y: contain;
   }
   html {
     @apply font-sans;
+    overscroll-behavior-y: contain;
   }
   h1 {
     font-size: clamp(1.75rem, 1.2rem + 2vw, 3rem);

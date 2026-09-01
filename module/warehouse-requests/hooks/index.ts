@@ -16,10 +16,14 @@ import {
   StockTransfersListParams,
 } from "../types";
 
-export const useGetRepProductsQuery = (params?: RepProductsListParams) => {
+export const useGetRepProductsQuery = (
+  params?: RepProductsListParams,
+  options?: { enabled?: boolean },
+) => {
   return useQuery({
     queryKey: ["repProducts", params],
     queryFn: () => getRepProducts(params),
+    enabled: options?.enabled ?? true,
   });
 };
 
@@ -54,7 +58,7 @@ export const useCreateStockTransferMutation = (options?: {
     mutationFn: (payload: CreateStockTransferPayload) => createStockTransfer(payload),
     onSuccess: (data) => {
       invalidate();
-      toast.success(data.message || "تم إرسال الطلب لأمين المستودع");
+      toast.success(data.message || "تم إرسال الطلب للشركة");
       options?.onSuccess?.();
     },
     onError: (error: AxiosError<ApiErrorResponse>) => {

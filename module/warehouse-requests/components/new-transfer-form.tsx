@@ -5,7 +5,7 @@ import { IconRenderer } from "@/assets/icons/iconRenderer";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useCreateStockTransferMutation, useGetRepProductsQuery } from "../hooks";
-import { formatMoneyValue, formatTransferMoney, formatTransferQuantity } from "../lib/utils";
+import { formatTransferQuantity } from "../lib/utils";
 import { PickupHoursSelector } from "./pickup-hours-selector";
 
 export function NewTransferForm() {
@@ -27,11 +27,6 @@ export function NewTransferForm() {
         .filter((p) => (quantities[p.id] ?? 0) > 0)
         .map((p) => ({ product: p, quantity: quantities[p.id]! })),
     [products, quantities],
-  );
-
-  const total = selectedLines.reduce(
-    (sum, { product, quantity }) => sum + (product.price ? parseFloat(product.price) : 0) * quantity,
-    0,
   );
 
   const submit = () => {
@@ -68,7 +63,7 @@ export function NewTransferForm() {
 
         {!isLoading && products.length === 0 && (
           <p className="rounded-2xl bg-muted/60 p-4 text-center text-[11px] text-muted-foreground">
-            ما في منتجات مطابقة.
+            لا توجد منتجات مطابقة.
           </p>
         )}
 
@@ -80,7 +75,7 @@ export function NewTransferForm() {
             <div className="min-w-0">
               <p className="truncate text-xs font-bold">{p.name}</p>
               <p className="font-mono text-[10px] text-muted-foreground">
-                {formatTransferMoney(p.price)} · بالسيارة {formatTransferQuantity(p.van_quantity)}
+                بالسيارة {formatTransferQuantity(p.van_quantity)}
               </p>
             </div>
             <div className="flex shrink-0 items-center gap-1.5">
@@ -109,17 +104,12 @@ export function NewTransferForm() {
       <p className="mb-1.5 mt-4 text-[11px] font-bold text-primary">وقت الاستلام</p>
       <PickupHoursSelector value={pickupHours} onChange={setPickupHours} />
 
-      <div className="mt-4 flex items-center justify-between rounded-2xl bg-primary px-4 py-3 text-primary-foreground">
-        <span className="text-xs font-bold">الإجمالي</span>
-        <span className="font-mono text-sm font-extrabold">{formatMoneyValue(total)}</span>
-      </div>
-
       <button
         disabled={selectedLines.length === 0 || create.isPending}
         onClick={submit}
         className="mt-3 flex w-full items-center justify-center gap-2 rounded-2xl bg-primary py-3.5 text-sm font-extrabold text-primary-foreground disabled:bg-muted disabled:text-muted-foreground"
       >
-        <IconRenderer name="send_outlined" className="size-4" /> إرسال الطلب لأمين المستودع
+        <IconRenderer name="send_outlined" className="size-4" /> إرسال الطلب للشركة
       </button>
     </section>
   );
