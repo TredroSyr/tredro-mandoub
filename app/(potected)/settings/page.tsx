@@ -1,9 +1,18 @@
 "use client";
 
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useShallow } from "zustand/react/shallow";
 import { IconRenderer } from "@/assets/icons/iconRenderer";
 import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { useAuthStore } from "@/module/auth/store/auth-store";
 import { useThemeStore } from "@/store/use-theme-store";
 
@@ -17,6 +26,12 @@ export default function SettingsPage() {
     })),
   );
   const router = useRouter();
+  const [logoutDialogOpen, setLogoutDialogOpen] = useState(false);
+
+  const handleLogout = () => {
+    clearAuth();
+    router.replace("/auth/login");
+  };
 
   return (
     <>
@@ -70,14 +85,35 @@ export default function SettingsPage() {
 
       <Button
         variant="destructive"
-        onClick={() => {
-          clearAuth();
-          router.replace("/auth/login");
-        }}
+        onClick={() => setLogoutDialogOpen(true)}
         className="mt-3 flex w-full items-center justify-center gap-2 rounded-2xl py-3.5 text-sm font-extrabold"
       >
         <IconRenderer name="logout_outlined" className="size-4" /> تسجيل الخروج
       </Button>
+
+      <Dialog open={logoutDialogOpen} onOpenChange={setLogoutDialogOpen}>
+        <DialogContent className="sm:max-w-sm">
+          <DialogHeader>
+            <DialogTitle>تسجيل الخروج</DialogTitle>
+            <DialogDescription>
+              هل أنت متأكد من تسجيل الخروج؟
+            </DialogDescription>
+          </DialogHeader>
+
+          <DialogFooter>
+            <Button
+              type="button"
+              variant="secondary"
+              onClick={() => setLogoutDialogOpen(false)}
+            >
+              إلغاء
+            </Button>
+            <Button type="button" variant="destructive" onClick={handleLogout}>
+              تسجيل الخروج
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </>
   );
 }

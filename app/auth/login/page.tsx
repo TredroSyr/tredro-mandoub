@@ -117,7 +117,24 @@ const LoginPage = () => {
   return (
     <div className="relative flex flex-col overflow-hidden bg-primary">
       <AnimatePresence mode="wait" initial={false}>
-        {!isKeyboardOpen && (
+        {isKeyboardOpen ? (
+          <motion.div
+            key="logo"
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: "auto", opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={SHEET_TRANSITION}
+            className="flex items-center justify-center bg-primary py-4"
+          >
+            <Image
+              src="/tredro/full_logo.svg"
+              alt="logo"
+              width={140}
+              height={70}
+              className="h-auto w-27.5 object-contain"
+            />
+          </motion.div>
+        ) : (
           <motion.div
             key="truck-scene"
             initial={{ height: 0, opacity: 0 }}
