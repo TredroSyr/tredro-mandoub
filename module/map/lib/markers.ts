@@ -2,29 +2,27 @@ export const PRIMARY = "var(--primary)";
 export const PRIMARY_SOFT = "var(--primary) / 0.35";
 export const PRIMARY_SHADOW = "var(--primary) / 0.45";
 
-export const storeSvg = (active: boolean) => {
-  const s = active ? 1.1 : 0.82;
+const escapeHtml = (s: string) =>
+  s
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
 
-  return `
-    <div class="marker-pin" style="width:${38 * s}px;height:${46 * s}px;">
-      <svg width="${38 * s}" height="${46 * s}" viewBox="0 0 38 46" fill="none">
-        <path
-          d="M19 45C19 45 36 27.5 36 17.6C36 8.4 28.4 1 19 1C9.6 1 2 8.4 2 17.6C2 27.5 19 45 19 45Z"
-          style="fill:${PRIMARY}"
-          stroke="var(--card)"
-          stroke-width="2.5"
-          stroke-linejoin="round"
-        />
-        <g transform="translate(9.5 9)" stroke="var(--card)" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" fill="none">
-          <path d="M0.6 4.2 2.2 0.8h14.6l1.6 3.4"/>
-          <path d="M0.6 4.2c0 1.6 1.2 2.7 2.7 2.7S6 5.8 6 4.2c0 1.6 1.2 2.7 2.7 2.7s2.7-1.1 2.7-2.7c0 1.6 1.2 2.7 2.7 2.7s2.7-1.1 2.7-2.7"/>
-          <path d="M2.3 7v9.4h14.4V7" />
-          <path d="M7 16.4v-5h5v5" />
-        </g>
-      </svg>
-    </div>
-  `;
-};
+/**
+ * The shop marker IS its label: a name chip stacked directly on top of a small
+ * dot, touching with no gap, rather than a pin icon plus a separately-positioned
+ * Leaflet tooltip. The dot marks the exact coordinate; `.shop-marker`'s CSS
+ * `transform: translate(-50%, -100%)` centers the whole stack above it regardless
+ * of the name's length, so the marker never needs to know its own rendered size.
+ */
+export const shopMarkerHtml = (name: string, active: boolean) => `
+  <div class="shop-marker${active ? " shop-marker--active" : ""}">
+    <span class="shop-marker__label">${escapeHtml(name)}</span>
+    <span class="shop-marker__dot"></span>
+  </div>
+`;
 
 export const truckSvg = (rotation: number) => {
   return `

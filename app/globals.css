@@ -94,7 +94,9 @@
   --sidebar-ring: oklch(0.708 0 0);
   --glass: oklch(from var(--card) l c h / 0.95);
   --glass-border: oklch(from var(--border) l c h / 0.8);
-  --bottom-nav-height: calc(3.875rem + max(0.4rem, env(safe-area-inset-bottom)));
+  --bottom-nav-height: calc(
+    3.875rem + max(0.4rem, env(safe-area-inset-bottom))
+  );
   --bottom-nav-bg: oklch(1 0 0 / 0.7);
   --bottom-nav-border: oklch(0.922 0 0 / 0.8);
   --bottom-nav-shadow: 0 -8px 32px oklch(0 0 0 / 0.1);
@@ -301,20 +303,20 @@
   }
 
   & .leaflet-popup-content-wrapper {
-    background: var(--card);
-    color: var(--card-foreground);
+    background: var(--card) !important;
+    color: var(--card-foreground) !important;
     border-radius: 14px;
-    box-shadow: var(--shadow-raised);
+    box-shadow: var(--shadow-raised) !important;
     border: 1px solid var(--border);
   }
 
   & .leaflet-popup-tip {
-    background: var(--card);
+    background: var(--card) !important;
   }
 
   & .leaflet-popup-content {
-    margin: 10px 14px;
-    font-size: 12px;
+    margin: 10px 14px !important;
+    font-size: 12px !important;
     font-weight: 700;
     font-family: var(--font-sans);
   }
@@ -355,7 +357,18 @@
     transform: translateY(1px);
   }
 
-  & .shop-tooltip {
+  & .shop-marker {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 3px;
+    transform: translate(-50%, -100%);
+    cursor: pointer;
+    pointer-events: auto;
+  }
+
+  & .shop-marker__label {
     background: var(--card);
     color: var(--card-foreground);
     border: 1px solid var(--border);
@@ -363,11 +376,34 @@
     padding: 2px 8px;
     font-size: 10px;
     font-weight: 700;
+    white-space: nowrap;
     box-shadow: var(--shadow-raised);
   }
 
-  & .shop-tooltip::before {
+  & .shop-marker--compact .shop-marker__label {
     display: none;
+  }
+
+  & .shop-marker:hover .shop-marker__label {
+    display: block;
+  }
+
+  & .shop-marker__dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 9999px;
+    background: var(--primary);
+    border: 2px solid var(--card);
+    box-shadow: 0 2px 6px oklch(0 0 0 / 0.35);
+  }
+
+  & .shop-marker--active .shop-marker__dot {
+    width: 15px;
+    height: 15px;
+  }
+
+  & .shop-marker--active .shop-marker__label {
+    font-size: 11px;
   }
 }
 
@@ -502,7 +538,7 @@
 }
 ::view-transition-new(root) {
   z-index: 2;
-  animation: theme-wave 3000ms cubic-bezier(0.4, 0, 0.2, 1) forwards;
+  animation: theme-wave 1000ms cubic-bezier(0.4, 0, 0.2, 1) forwards;
 }
 
 @keyframes theme-wave {

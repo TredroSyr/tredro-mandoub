@@ -4,7 +4,7 @@ import { useEffect, useRef } from "react";
 import type { Map as LeafletMap, Marker } from "leaflet";
 
 import { Shop } from "./tour-data";
-import { storeSvg, truckSvg, flagSvg } from "./markers";
+import { shopMarkerHtml, truckSvg, flagSvg } from "./markers";
 import { LABEL_MIN_SPACING_PX } from "./constants";
 
 type MarkerCallbacks = {
@@ -55,7 +55,7 @@ function buildShopPopupContent(
   return root;
 }
 
-/** Renders shop pins (with a persistent name label + click popup), the live user (truck) marker, and the location-picking flag. */
+/** Renders shop markers (a dot + always-attached name label, with a click popup), the live user (truck) marker, and the location-picking flag. */
 export function useMapMarkers({
   mapRef,
   leafletRef,
@@ -82,32 +82,30 @@ export function useMapMarkers({
   const markersRef = useRef<Record<string, Marker>>({});
   const userMarkerRef = useRef<Marker | null>(null);
   const pickMarkerRef = useRef<Marker | null>(null);
-  // Per-marker "should its label be visible" decision from the last collision pass,
-  // so mouseout can revert to it instead of a raw zoom check.
-  const labelVisibleRef = useRef<Record<string, boolean>>({});
 
-  /** Density-aware label decluttering: an isolated marker always keeps its label,
-   * regardless of zoom. A marker whose label would land within LABEL_MIN_SPACING_PX
-   * (screen px at the current zoom) of an already-accepted label gets hidden instead.
-   * Zooming in spreads markers apart in screen space, so more labels clear the
-   * threshold and reappear on their own — no fixed zoom cutoff needed. */
+  /** Density-aware label decluttering: an isolated marker always keeps its name
+   * label, regardless of zoom. A marker whose label would land within
+   * LABEL_MIN_SPACING_PX (screen px at the current zoom) of an already-accepted
+   * label gets collapsed to just its dot instead. Zooming in spreads markers apart
+   * in screen space, so more labels clear the threshold and reappear on their own
+   * — no fixed zoom cutoff needed. Hovering a collapsed marker still reveals its
+   * label, via the plain-CSS `.shop-marker:hover` rule (no JS needed for that part). */
   const recomputeLabelVisibility = (map: LeafletMap) => {
     const zoom = map.getZoom();
     const accepted: { x: number; y: number }[] = [];
-    const nextVisible: Record<string, boolean> = {};
 
-    Object.entries(markersRef.current).forEach(([id, marker]) => {
+    Object.values(markersRef.current).forEach((marker) => {
       const point = map.project(marker.getLatLng(), zoom);
       const collides = accepted.some(
         (p) => Math.hypot(p.x - point.x, p.y - point.y) < LABEL_MIN_SPACING_PX,
       );
       const visible = !collides;
-      nextVisible[id] = visible;
       if (visible) accepted.push({ x: point.x, y: point.y });
-      marker.getTooltip()?.setOpacity(visible ? 1 : 0);
+      marker
+        .getElement()
+        ?.querySelector(".shop-marker")
+        ?.classList.toggle("shop-marker--compact", !visible);
     });
-
-    labelVisibleRef.current = nextVisible;
   };
 
   useEffect(() => {
@@ -129,12 +127,11 @@ export function useMapMarkers({
       if (shop.lat == null || shop.lng == null) return;
 
       const active = shop.id === selectedId;
-      const size: [number, number] = active ? [42, 51] : [31, 38];
       const icon = L.divIcon({
-        html: storeSvg(active),
+        html: shopMarkerHtml(shop.name, active),
         className: "",
-        iconSize: size,
-        iconAnchor: [size[0] / 2, size[1]],
+        iconSize: [0, 0],
+        iconAnchor: [0, 0],
       });
 
       const existing = markersRef.current[shop.id];
@@ -145,14 +142,6 @@ export function useMapMarkers({
       } else {
         const marker = L.marker([shop.lat, shop.lng], { icon }).addTo(map);
 
-        marker.bindTooltip(shop.name, {
-          permanent: true,
-          direction: "top",
-          offset: [0, -6],
-          className: "shop-tooltip",
-          interactive: false,
-        });
-
         marker.bindPopup(
           buildShopPopupContent(shop, (customerId) =>
             callbacksRef.current.onViewDetails(customerId),
@@ -161,10 +150,6 @@ export function useMapMarkers({
         );
 
         marker.on("click", () => callbacksRef.current.onSelect(shop.id));
-        marker.on("mouseover", () => marker.getTooltip()?.setOpacity(1));
-        marker.on("mouseout", () => {
-          marker.getTooltip()?.setOpacity(labelVisibleRef.current[shop.id] ? 1 : 0);
-        });
 
         markersRef.current[shop.id] = marker;
       }

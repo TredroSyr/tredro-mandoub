@@ -81,20 +81,28 @@ export default function BottomNav() {
                       : "w-11 text-muted-foreground"
                   }`}
                 >
-                  <IconRenderer
-                    name={active ? filled : outlined}
-                    width={19}
-                    height={19}
-                  />
+                  <motion.span
+                    key={active ? filled : outlined}
+                    initial={{ opacity: 0, scale: 0.7 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ duration: 0.15, ease: "easeOut" }}
+                    className="flex items-center justify-center"
+                  >
+                    <IconRenderer
+                      name={active ? filled : outlined}
+                      width={19}
+                      height={19}
+                    />
+                  </motion.span>
                   <AnimatePresence initial={false}>
                     {active && (
                       <motion.span
-                        layout
-                        initial={{ opacity: 0, width: 0 }}
-                        animate={{ opacity: 1, width: "auto" }}
-                        exit={{ opacity: 0, width: 0 }}
-                        transition={SPRING}
-                        className="overflow-hidden text-sm font-medium whitespace-nowrap "
+                        key="label"
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        transition={{ duration: 0.18, ease: "easeOut" }}
+                        className="overflow-hidden text-sm font-medium whitespace-nowrap"
                       >
                         {label}
                       </motion.span>

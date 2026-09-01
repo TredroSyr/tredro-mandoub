@@ -5,6 +5,29 @@ import axios, {
   AxiosRequestConfig,
   InternalAxiosRequestConfig,
 } from "axios";
+import { toast } from "sonner";
+
+// CapacitorHttp (Android's native HTTP bridge) doesn't reliably honor
+// axios's `timeout` option, so a stalled request (e.g. a Render free-tier
+// dyno waking up) can hang indefinitely instead of aborting on schedule.
+// These enforce a real ceiling ourselves via AbortController, and surface a
+// hint so the UI doesn't look frozen while a slow-but-working request is
+// still in flight.
+const SLOW_REQUEST_HINT_MS = 5000;
+const HARD_TIMEOUT_MS = 50000;
+const WAKING_UP_TOAST_ID = "slow-request-hint";
+
+type TimedRequestConfig = InternalAxiosRequestConfig & {
+  _hintTimer?: ReturnType<typeof setTimeout>;
+  _hardTimeoutTimer?: ReturnType<typeof setTimeout>;
+};
+
+const clearRequestTimers = (config?: TimedRequestConfig) => {
+  if (!config) return;
+  clearTimeout(config._hintTimer);
+  clearTimeout(config._hardTimeoutTimer);
+  toast.dismiss(WAKING_UP_TOAST_ID);
+};
 
 // Shape of a request that failed with 401 and is waiting in the queue
 // while a token refresh is in progress.
@@ -53,7 +76,7 @@ const api = axios.create({
 // REQUEST INTERCEPTOR
 // Runs before every request is sent.
 // ---------------------------------------------------------------------------
-api.interceptors.request.use(async (config) => {
+api.interceptors.request.use(async (config: TimedRequestConfig) => {
   const isAuthUrl = AUTH_SKIP_URLS.some((u) => config.url?.includes(u));
 
   // A refresh is already in flight — hold this request instead of sending it
@@ -70,6 +93,22 @@ api.interceptors.request.use(async (config) => {
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }
+
+  // Retried requests (401 refresh, network-error retry) reuse this same
+  // config object — clear any timers left over from the previous attempt
+  // before starting a fresh budget for this one.
+  clearRequestTimers(config);
+
+  const controller = new AbortController();
+  config.signal = controller.signal;
+  config._hintTimer = setTimeout(() => {
+    toast.loading("جاري الاتصال بالخادم، قد يستغرق هذا بعض الوقت...", {
+      id: WAKING_UP_TOAST_ID,
+    });
+  }, SLOW_REQUEST_HINT_MS);
+  config._hardTimeoutTimer = setTimeout(() => {
+    controller.abort();
+  }, HARD_TIMEOUT_MS);
 
   return config;
 });
@@ -102,11 +141,17 @@ const processQueue = (error: unknown, token: string | null = null) => {
 // Handles 401 errors by attempting a token refresh, then retrying.
 // ---------------------------------------------------------------------------
 api.interceptors.response.use(
-  (response) => response,
+  (response) => {
+    clearRequestTimers(response.config as TimedRequestConfig);
+    return response;
+  },
   async (error: AxiosError) => {
-    const originalRequest = error.config as InternalAxiosRequestConfig & {
+    const originalRequest = error.config as TimedRequestConfig & {
       _retry?: boolean;
+      _retriedAfterNetworkError?: boolean;
     };
+
+    clearRequestTimers(originalRequest);
 
     // If there's no config at all, we can't retry anything.
     if (!originalRequest) {
@@ -173,6 +218,23 @@ api.interceptors.response.use(
         // Let any requests held in the request interceptor proceed now.
         releasePendingRequests();
       }
+    }
+
+    // Transport-level failure (timeout, or the request never got a response
+    // at all — e.g. a cold-launch IPv6/DNS stall on the first connection to
+    // a fresh host). A GET is safe to replay automatically, and evidence
+    // from investigating cold-launch delays shows an immediate retry after
+    // one of these failures reliably succeeds fast, so one auto-retry turns
+    // a 15-45s hang/error into a normal-looking load.
+    const isTransportFailure = !error.response;
+    const isGet = (originalRequest.method ?? "get").toLowerCase() === "get";
+    if (
+      isTransportFailure &&
+      isGet &&
+      !originalRequest._retriedAfterNetworkError
+    ) {
+      originalRequest._retriedAfterNetworkError = true;
+      return api(originalRequest);
     }
 
     // Any other error (not 401, already retried, or an auth URL) — just reject.
