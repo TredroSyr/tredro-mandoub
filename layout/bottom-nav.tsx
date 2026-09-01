@@ -46,7 +46,7 @@ const TABS: Tab[] = [
   },
 ];
 
-const SPRING = { type: "spring", stiffness: 420, damping: 34 } as const;
+const SPRING = { type: "spring", stiffness: 300, damping: 30, mass: 0.8 } as const;
 
 export default function BottomNav() {
   const pathname = usePathname();
@@ -57,9 +57,9 @@ export default function BottomNav() {
       initial={{ y: 24, opacity: 0 }}
       animate={{ y: 0, opacity: 1 }}
       transition={{ type: "spring", stiffness: 300, damping: 28 }}
-      className="fixed inset-x-0 bottom-0 z-2100  pt-1.5"
+      className="fixed inset-x-0 bottom-0 z-2100 pt-1.5"
     >
-      <ul className="mx-auto flex max-w-md items-center justify-between gap-1 border border-border bg-card px-1.5 py-3 shadow-(--shadow-raised)">
+      <ul className="bottom-nav-glass mx-auto flex max-w-md items-center justify-between gap-1 px-1.5 py-3">
         {TABS.map(({ to, label, filled, outlined }) => {
           const active =
             to === "/" ? pathname === "/" : pathname?.startsWith(to);
@@ -75,17 +75,17 @@ export default function BottomNav() {
                   layout
                   transition={SPRING}
                   whileTap={{ scale: 0.94 }}
-                  className={`flex h-11 items-center justify-center rounded-full ${
+                  className={`flex h-11 items-center justify-center rounded-full transition-colors duration-300 ease-out ${
                     active
-                      ? "gap-2 bg-primary px-4 text-primary-foreground"
+                      ? "gap-2 bg-primary px-4 text-white"
                       : "w-11 text-muted-foreground"
                   }`}
                 >
                   <motion.span
                     key={active ? filled : outlined}
-                    initial={{ opacity: 0, scale: 0.7 }}
+                    initial={{ opacity: 0, scale: 0.75 }}
                     animate={{ opacity: 1, scale: 1 }}
-                    transition={{ duration: 0.15, ease: "easeOut" }}
+                    transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
                     className="flex items-center justify-center"
                   >
                     <IconRenderer
@@ -98,10 +98,10 @@ export default function BottomNav() {
                     {active && (
                       <motion.span
                         key="label"
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        exit={{ opacity: 0 }}
-                        transition={{ duration: 0.18, ease: "easeOut" }}
+                        initial={{ opacity: 0, x: -4 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        exit={{ opacity: 0, x: -4 }}
+                        transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
                         className="overflow-hidden text-sm font-medium whitespace-nowrap"
                       >
                         {label}

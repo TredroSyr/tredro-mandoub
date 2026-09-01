@@ -7,6 +7,7 @@ import {
   createReturnInvoice,
   createSalesInvoice,
   getSalesInvoiceDetail,
+  getSalesInvoices,
   issueReturnInvoice,
 } from "../api";
 import {
@@ -14,8 +15,16 @@ import {
   CreateReturnInvoicePayload,
   CreateSalesInvoicePayload,
   IssueReturnInvoicePayload,
+  SalesInvoicesListParams,
 } from "../types";
 import { isRefundMethodRequiredError } from "../lib/utils";
+
+export const useGetSalesInvoicesQuery = (params?: SalesInvoicesListParams) => {
+  return useQuery({
+    queryKey: ["salesInvoices", params],
+    queryFn: () => getSalesInvoices(params),
+  });
+};
 
 export const useGetSalesInvoiceDetailQuery = (
   invoiceId: number | null,

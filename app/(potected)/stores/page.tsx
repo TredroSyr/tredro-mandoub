@@ -8,6 +8,8 @@ import { useGetCustomersQuery } from "@/module/customers/hooks";
 import { Customer } from "@/module/customers/types";
 import { getTodayDayKey } from "@/module/map/lib/tour-data";
 import { filterCustomersByDay } from "@/module/customers/lib/utils";
+import { useGetDashboardQuery } from "@/module/dashboard/hooks";
+import { toISODate } from "@/lib/rep-tour-data";
 
 function matchesSearch(customer: Customer, query: string) {
   const q = query.trim().toLowerCase();
@@ -41,6 +43,15 @@ export default function StoresPage() {
     return byDay.filter((c) => matchesSearch(c, search));
   }, [allCustomers, day, search]);
 
+  // "Visited today" has no dedicated backend field — derived from today's sales invoices, since
+  // issuing an invoice is the only recorded signal that the rep actually reached that store today.
+  const today = toISODate(new Date());
+  const { data: dashboardData } = useGetDashboardQuery({ date_from: today, date_to: today });
+  const visitedTodayIds = useMemo(
+    () => new Set((dashboardData?.data.sales.invoices ?? []).map((invoice) => invoice.customer)),
+    [dashboardData],
+  );
+
   if (isError) {
     return <ErrorState error={error} onRetry={() => refetch()} isRetrying={isFetching} />;
   }
@@ -58,6 +69,7 @@ export default function StoresPage() {
 
       <StoresList
         customers={filteredCustomers}
+        visitedTodayIds={visitedTodayIds}
         isLoading={isLoading}
         isEmpty={allCustomers.length === 0}
         hasFilters={hasFilters}

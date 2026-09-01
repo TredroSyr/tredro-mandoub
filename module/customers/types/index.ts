@@ -156,15 +156,18 @@ export interface SalesInvoicesResponse {
   };
 }
 
+/** Shape confirmed against the live `/reps/payments/` response — not the guessed contract this used to carry. */
 export interface Payment {
   id: number;
-  customer: number;
-  customer_name: string;
-  rep: number;
+  sales_invoice: number;
+  sales_invoice_number: string;
   amount: string;
-  date: string;
-  method: string;
-  notes: string;
+  collected_by: number | null;
+  collected_by_name: string | null;
+  collected_at: string;
+  source: string;
+  applied_credit: number | null;
+  note: string;
   created_at: string;
 }
 

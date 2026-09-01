@@ -1,6 +1,13 @@
-import type { ReturnInvoice, SalesInvoice } from "@/module/customers/types";
+import type { ReturnInvoice, SalesInvoice, SalesInvoicesResponse } from "@/module/customers/types";
 
-export type { SalesInvoice, ReturnInvoice };
+export type { SalesInvoice, ReturnInvoice, SalesInvoicesResponse };
+
+export interface SalesInvoicesListParams {
+  date_from?: string;
+  date_to?: string;
+  page?: number;
+  page_size?: number;
+}
 
 export interface SalesInvoiceLine {
   id: number;
@@ -78,9 +85,10 @@ export type CreateSalesInvoiceResponse = SalesInvoiceDetailResponse;
 
 export interface CreateInvoicePaymentPayload {
   amount: string;
-  note?: string;
+  /** Optional — defaults server-side to the requesting user when omitted. */
+  collected_by?: number;
   collected_at?: string;
-  // no `collected_by` — that's admin-only; implicit from the rep's JWT here
+  note?: string;
 }
 
 export interface CreateInvoicePaymentResponse {

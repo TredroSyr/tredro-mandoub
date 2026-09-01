@@ -1,16 +1,19 @@
 import { AxiosError } from "axios";
 import { ApiErrorResponse } from "@/module/auth/types";
 
+/** Latin (Western) digits everywhere, even inside Arabic-locale formatting — matches lib/format.ts. */
+const NUMBERING_SYSTEM = { numberingSystem: "latn" } as const;
+
 /** Money strings from the API can be null — never render null as 0. */
 export function formatInvoiceMoney(value: string | null): string {
   if (value == null) return "بدون سعر";
   const n = parseFloat(value);
-  return `${(Number.isFinite(n) ? n : 0).toLocaleString("ar-SY")} ل.س`;
+  return `${(Number.isFinite(n) ? n : 0).toLocaleString("ar-SY", NUMBERING_SYSTEM)} ل.س`;
 }
 
 export function formatInvoiceQuantity(value: string): string {
   const n = parseFloat(value);
-  return Number.isFinite(n) ? n.toLocaleString("ar-SY") : value;
+  return Number.isFinite(n) ? n.toLocaleString("ar-SY", NUMBERING_SYSTEM) : value;
 }
 
 /** The server asks for a refund method only when a return would overdraw the invoice's remaining balance. */

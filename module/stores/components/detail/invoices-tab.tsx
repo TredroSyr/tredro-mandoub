@@ -7,7 +7,12 @@ import { ErrorState } from "@/components/tredro/error-state";
 import { EmptyState } from "@/components/tredro/empty-state";
 import { formatCurrency, formatDate } from "@/lib/format";
 import { useGetCustomerSalesInvoicesQuery } from "@/module/customers/hooks";
-import { CreateInvoiceDrawer, CreateReturnDrawer, RecordPaymentDialog } from "@/module/invoices/components";
+import {
+  CreateInvoiceDrawer,
+  CreateReturnDrawer,
+  InvoiceDetailDrawer,
+  RecordPaymentDialog,
+} from "@/module/invoices/components";
 import { SalesInvoice } from "@/module/customers/types";
 
 const SALES_STATUS_LABEL: Record<string, string> = {
@@ -25,6 +30,7 @@ export function InvoicesTab({
   const [createOpen, setCreateOpen] = useState(false);
   const [paymentInvoice, setPaymentInvoice] = useState<SalesInvoice | null>(null);
   const [returnTarget, setReturnTarget] = useState<{ id: number; number: string } | null>(null);
+  const [detailInvoiceId, setDetailInvoiceId] = useState<number | null>(null);
 
   const invoices = q.data?.data?.invoices ?? [];
 
@@ -59,7 +65,11 @@ export function InvoicesTab({
         <div className="mt-3 space-y-2">
           {invoices.map((i) => (
             <div key={i.id} className="rounded-2xl border border-border bg-card px-3.5 py-3">
-              <div className="flex items-center justify-between gap-3">
+              <button
+                type="button"
+                onClick={() => setDetailInvoiceId(i.id)}
+                className="flex w-full items-center justify-between gap-3 text-right"
+              >
                 <div className="min-w-0">
                   <p className="truncate font-mono text-[11px] font-bold">{i.number}</p>
                   <p className="font-mono text-[10px] text-muted-foreground">{formatDate(i.date)}</p>
@@ -70,7 +80,7 @@ export function InvoicesTab({
                     {SALES_STATUS_LABEL[i.status] ?? "معلّقة"}
                   </Badge>
                 </div>
-              </div>
+              </button>
 
               <div className="mt-2 flex items-center gap-2 border-t border-border pt-2">
                 {i.status !== "fully_paid" && (
@@ -104,6 +114,11 @@ export function InvoicesTab({
         invoiceNumber={returnTarget?.number ?? ""}
         open={!!returnTarget}
         onOpenChange={(open) => !open && setReturnTarget(null)}
+      />
+      <InvoiceDetailDrawer
+        invoiceId={detailInvoiceId}
+        open={detailInvoiceId != null}
+        onOpenChange={(open) => !open && setDetailInvoiceId(null)}
       />
     </>
   );

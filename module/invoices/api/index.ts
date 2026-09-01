@@ -9,7 +9,17 @@ import {
   IssueReturnInvoicePayload,
   IssueReturnInvoiceResponse,
   SalesInvoiceDetailResponse,
+  SalesInvoicesListParams,
+  SalesInvoicesResponse,
 } from "../types";
+
+/** Unscoped — omitting `customer` (unlike the per-store list) returns every sales invoice for the rep. */
+export const getSalesInvoices = async (
+  params?: SalesInvoicesListParams,
+): Promise<SalesInvoicesResponse> => {
+  const response = await api.get("/reps/sales-invoices/", { params });
+  return response.data;
+};
 
 /** Confirmed (frontend4.md §10). */
 export const createSalesInvoice = async (
@@ -28,15 +38,12 @@ export const getSalesInvoiceDetail = async (
   return response.data;
 };
 
-/**
- * Path unverified on the rep prefix — mirrors the confirmed admin contract at
- * companies/sales-invoices/{id}/payments/ (see tredro-dashborad/module/invoices).
- */
+/** Confirmed contract: POST /invoices/{invoice_id}/payments/. */
 export const createInvoicePayment = async (
   invoiceId: number,
   payload: CreateInvoicePaymentPayload,
 ): Promise<CreateInvoicePaymentResponse> => {
-  const response = await api.post(`/reps/sales-invoices/${invoiceId}/payments/`, payload, {
+  const response = await api.post(`/invoices/${invoiceId}/payments/`, payload, {
     headers: { "Idempotency-Key": crypto.randomUUID() },
   });
   return response.data;

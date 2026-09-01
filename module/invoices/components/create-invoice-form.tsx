@@ -1,7 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
-import { IconRenderer } from "@/assets/icons/iconRenderer";
+import { forwardRef, useEffect, useImperativeHandle, useMemo, useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useGetRepProductsQuery } from "@/module/warehouse-requests/hooks";
@@ -15,15 +14,25 @@ export interface InvoiceRequestPrefill {
   lines: { product_id: number; quantity: string }[];
 }
 
-export function CreateInvoiceForm({
-  customerId,
-  prefill,
-  onSuccess,
-}: {
-  customerId: number;
-  prefill?: InvoiceRequestPrefill;
-  onSuccess?: (invoice: SalesInvoiceDetail) => void;
-}) {
+/** Imperative handle so the drawer's header Save button can trigger submission from outside the form. */
+export interface CreateInvoiceFormHandle {
+  submit: () => void;
+}
+
+export interface CreateInvoiceFormState {
+  canSubmit: boolean;
+  isPending: boolean;
+}
+
+export const CreateInvoiceForm = forwardRef<
+  CreateInvoiceFormHandle,
+  {
+    customerId: number;
+    prefill?: InvoiceRequestPrefill;
+    onSuccess?: (invoice: SalesInvoiceDetail) => void;
+    onStateChange?: (state: CreateInvoiceFormState) => void;
+  }
+>(function CreateInvoiceForm({ customerId, prefill, onSuccess, onStateChange }, ref) {
   const [search, setSearch] = useState("");
   const [quantities, setQuantities] = useState<Record<number, number>>(() =>
     Object.fromEntries((prefill?.lines ?? []).map((l) => [l.product_id, parseFloat(l.quantity) || 0])),
@@ -73,6 +82,8 @@ export function CreateInvoiceForm({
     (sum, { product, quantity }) => sum + (product.price ? parseFloat(product.price) : 0) * quantity,
     0,
   );
+  const collected = parseFloat(paymentAmount) || 0;
+  const remaining = Math.max(0, total - collected);
 
   const shortageProductName = shortage ? products.find((p) => p.id === shortage.productId)?.name : null;
 
@@ -90,6 +101,14 @@ export function CreateInvoiceForm({
       fulfils_request_ids: prefill ? [prefill.requestId] : undefined,
     });
   };
+
+  useImperativeHandle(ref, () => ({ submit }));
+
+  const canSubmit = selectedLines.length > 0;
+  useEffect(() => {
+    onStateChange?.({ canSubmit, isPending: create.isPending });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [canSubmit, create.isPending]);
 
   return (
     <div>
@@ -129,20 +148,20 @@ export function CreateInvoiceForm({
         />
       </div>
 
-      <div className="mt-4 flex items-center justify-between rounded-2xl bg-primary px-4 py-3 text-primary-foreground">
-        <span className="text-xs font-bold">الإجمالي</span>
-        <span className="font-mono text-sm font-extrabold">{formatInvoiceMoney(String(total))}</span>
+      <div className="mt-4 space-y-1.5 rounded-2xl bg-muted/50 p-3">
+        <div className="flex items-center justify-between px-1 text-xs">
+          <span className="font-bold text-muted-foreground">الإجمالي</span>
+          <span className="font-mono font-bold">{formatInvoiceMoney(String(total))}</span>
+        </div>
+        <div className="flex items-center justify-between px-1 text-xs">
+          <span className="font-bold text-muted-foreground">المبلغ المحصَّل (ل.س)</span>
+          <span className="font-mono font-bold text-primary">{formatInvoiceMoney(String(collected))}</span>
+        </div>
+        <div className="mt-1 flex items-center justify-between rounded-xl bg-primary px-3 py-2.5 text-primary-foreground">
+          <span className="text-xs font-bold">المتبقي</span>
+          <span className="font-mono text-sm font-extrabold">{formatInvoiceMoney(String(remaining))}</span>
+        </div>
       </div>
-
-      <button
-        type="button"
-        disabled={selectedLines.length === 0 || create.isPending}
-        onClick={submit}
-        className="mt-3 flex w-full items-center justify-center gap-2 rounded-2xl bg-primary py-3.5 text-sm font-extrabold text-primary-foreground disabled:bg-muted disabled:text-muted-foreground"
-      >
-        <IconRenderer name="checkout_outlined" className="size-4" />
-        {create.isPending ? "جارٍ الحفظ..." : "إنشاء الفاتورة"}
-      </button>
     </div>
   );
-}
+});

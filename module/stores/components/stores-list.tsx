@@ -10,6 +10,8 @@ import type { Customer } from "@/module/customers/types";
 
 export interface StoresListProps {
   customers: Customer[];
+  /** Customer IDs with a sales invoice issued today — the only recorded "the rep was here" signal. */
+  visitedTodayIds: Set<number>;
   isLoading: boolean;
   isEmpty: boolean;
   hasFilters: boolean;
@@ -19,6 +21,7 @@ export interface StoresListProps {
 
 export function StoresList({
   customers,
+  visitedTodayIds,
   isLoading,
   isEmpty,
   hasFilters,
@@ -63,16 +66,53 @@ export function StoresList({
     );
   }
 
+  const notVisited = customers.filter((c) => !visitedTodayIds.has(c.id));
+  const visited = customers.filter((c) => visitedTodayIds.has(c.id));
+
   return (
-    <div className="mt-4 space-y-2">
-      {customers.map((customer) => (
-        <StoreCard key={customer.id} customer={customer} onSelect={() => onSelect(customer.id)} />
-      ))}
+    <div className="mt-4 space-y-4">
+      {notVisited.length > 0 && (
+        <div className="space-y-2">
+          {visited.length > 0 && (
+            <h3 className="px-1 text-xs font-bold text-muted-foreground">لم تتم زيارتها اليوم</h3>
+          )}
+          {notVisited.map((customer) => (
+            <StoreCard
+              key={customer.id}
+              customer={customer}
+              visitedToday={false}
+              onSelect={() => onSelect(customer.id)}
+            />
+          ))}
+        </div>
+      )}
+
+      {visited.length > 0 && (
+        <div className="space-y-2">
+          <h3 className="px-1 text-xs font-bold text-muted-foreground">المحلات المزارة اليوم</h3>
+          {visited.map((customer) => (
+            <StoreCard
+              key={customer.id}
+              customer={customer}
+              visitedToday={true}
+              onSelect={() => onSelect(customer.id)}
+            />
+          ))}
+        </div>
+      )}
     </div>
   );
 }
 
-function StoreCard({ customer, onSelect }: { customer: Customer; onSelect: () => void }) {
+function StoreCard({
+  customer,
+  visitedToday,
+  onSelect,
+}: {
+  customer: Customer;
+  visitedToday: boolean;
+  onSelect: () => void;
+}) {
   const workDays = getCustomerWorkDays(customer);
   const dayLabel = workDays.length > 0 ? WORK_DAYS_LABELS[workDays[0]] ?? workDays[0] : "—";
   const balanceDue = parseFloat(customer.balance_due) || 0;
@@ -92,6 +132,9 @@ function StoreCard({ customer, onSelect }: { customer: Customer; onSelect: () =>
           <div className="flex items-center gap-2">
             <h4 className="truncate text-sm font-bold">{customer.name}</h4>
             {!customer.is_active && <Badge variant="secondary">غير نشط</Badge>}
+            <Badge variant={visitedToday ? "success" : "secondary"}>
+              {visitedToday ? "تمت الزيارة" : "لم تتم الزيارة"}
+            </Badge>
           </div>
           {customer.address ? (
             <p className="mt-0.5 truncate text-[11px] text-muted-foreground">{customer.address}</p>
