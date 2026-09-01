@@ -239,10 +239,6 @@ const LoginPage = () => {
             </form>
           </Form>
 
-          <p className="mt-4 text-center text-[11px] text-muted-foreground">
-            ما عندك حساب؟ تواصل مع الإدارة لإضافتك.
-          </p>
-
           {/* Diagnostic only — remove before store release. */}
           <Button
             type="button"

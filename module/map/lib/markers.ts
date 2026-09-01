@@ -2,6 +2,21 @@ export const PRIMARY = "var(--primary)";
 export const PRIMARY_SOFT = "var(--primary) / 0.35";
 export const PRIMARY_SHADOW = "var(--primary) / 0.45";
 
+/**
+ * Canvas 2D's strokeStyle/fillStyle can't resolve `var(--x)` — it needs a literal
+ * CSS color. Reading the custom property's own computed value (already resolved
+ * against `:root`/`.dark` by the browser) gives a literal color string Canvas
+ * accepts directly, so route lines pick up the actual theme color instead of
+ * silently falling back to black.
+ */
+export function resolveThemeColor(varName: string, fallback: string): string {
+  if (typeof window === "undefined") return fallback;
+  const value = getComputedStyle(document.documentElement)
+    .getPropertyValue(varName)
+    .trim();
+  return value || fallback;
+}
+
 const escapeHtml = (s: string) =>
   s
     .replace(/&/g, "&amp;")

@@ -3,7 +3,7 @@
 import { useEffect, useRef } from "react";
 import type { Map as LeafletMap, Marker, Polyline } from "leaflet";
 
-import { PRIMARY, stopBadgeSvg } from "./markers";
+import { resolveThemeColor, stopBadgeSvg } from "./markers";
 import { TripResult } from "./routing";
 
 /** Draws the "Determine Route" plan (multi-stop polyline + numbered stop badges) as a
@@ -38,10 +38,12 @@ export function useMapRoutePlan({
     if (!trip || trip.coords.length < 2) return;
 
     const renderer = L.canvas({ padding: 0.6 });
+    const casingColor = resolveThemeColor("--card", "#ffffff");
+    const lineColor = resolveThemeColor("--primary", "#2563eb");
 
     const casing = L.polyline(trip.coords, {
       renderer,
-      color: "var(--card)",
+      color: casingColor,
       weight: 10,
       opacity: 0.9,
       lineCap: "round",
@@ -50,7 +52,7 @@ export function useMapRoutePlan({
 
     const line = L.polyline(trip.coords, {
       renderer,
-      color: PRIMARY,
+      color: lineColor,
       weight: 5,
       opacity: 0.95,
       lineCap: "round",

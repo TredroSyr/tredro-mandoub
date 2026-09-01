@@ -13,8 +13,10 @@ export default function AppHeader() {
   const unread = useRepTourStore(
     (s) => s.notifications.filter((n) => !n.read).length,
   );
-  const repName = useAuthStore((s) => s.rep?.name);
+  const rep = useAuthStore((s) => s.rep);
   const [notificationsOpen, setNotificationsOpen] = useState(false);
+  const [logoError, setLogoError] = useState(false);
+  const companyLogo = rep?.company?.logo;
 
   return (
     <header className="sticky top-0 z-30 border-b border-glass-border bg-glass px-4 pb-3 pt-[max(0.85rem,env(safe-area-inset-top))] backdrop-blur-2xl">
@@ -46,10 +48,15 @@ export default function AppHeader() {
             aria-label="الملف الشخصي"
             className="grid size-9 shrink-0 place-items-center overflow-hidden rounded-2xl bg-primary/12 text-primary active:scale-95"
           >
-            {repName ? (
-              <span className="text-xs font-extrabold">
-                {repName.trim().charAt(0)}
-              </span>
+            {companyLogo && !logoError ? (
+              <Image
+                src={companyLogo}
+                alt="الملف الشخصي"
+                width={36}
+                height={36}
+                className="size-full object-cover"
+                onError={() => setLogoError(true)}
+              />
             ) : (
               <IconRenderer name="user_filled" className="size-4" />
             )}

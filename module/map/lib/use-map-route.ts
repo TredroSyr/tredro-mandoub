@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import type { Map as LeafletMap, Polyline } from "leaflet";
 
-import { PRIMARY } from "./markers";
+import { resolveThemeColor } from "./markers";
 import { closestIndexOnRoute } from "./markers";
 
 /** Trims the route to the driver's current position while navigating, and draws it as a two-layer polyline (casing + line). */
@@ -57,10 +57,12 @@ export function useMapRoute({
     }
 
     const renderer = L.canvas({ padding: 0.6 });
+    const casingColor = resolveThemeColor("--card", "#ffffff");
+    const lineColor = resolveThemeColor("--primary", "#2563eb");
 
     const casing = L.polyline(displayRoute, {
       renderer,
-      color: "var(--card)",
+      color: casingColor,
       weight: 12,
       opacity: 0.95,
       lineCap: "round",
@@ -69,7 +71,7 @@ export function useMapRoute({
 
     const line = L.polyline(displayRoute, {
       renderer,
-      color: PRIMARY,
+      color: lineColor,
       weight: 7,
       opacity: 1,
       lineCap: "round",
