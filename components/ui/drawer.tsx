@@ -4,6 +4,8 @@ import * as React from "react";
 import { Drawer as DrawerPrimitive } from "@base-ui/react/drawer";
 
 import { cn } from "@/lib/utils";
+import { useIsMobile } from "@/hooks/use-mobile";
+import { NAV_H } from "@/layout/bottom-nav";
 
 type DrawerContextProps = {
   hasSnapPoints: boolean;
@@ -100,11 +102,19 @@ function DrawerSwipeHandle({
 function DrawerContent({
   className,
   children,
+  style,
+  avoidBottomNav = false,
   ...props
-}: DrawerPrimitive.Popup.Props) {
+}: DrawerPrimitive.Popup.Props & {
+  /** Keep the drawer's bottom edge above the app's fixed bottom nav bar on mobile. */
+  avoidBottomNav?: boolean;
+}) {
   const { hasSnapPoints, modal, showSwipeHandle, swipeDirection } = useDrawer();
+  const isMobile = useIsMobile();
   const swipeAxis =
     swipeDirection === "down" || swipeDirection === "up" ? "y" : "x";
+  const popupStyle =
+    avoidBottomNav && isMobile ? { ...style, bottom: NAV_H } : style;
 
   return (
     <DrawerPortal data-slot="drawer-portal">
@@ -136,6 +146,7 @@ function DrawerContent({
             className,
           )}
           {...props}
+          style={popupStyle}
         >
           {showSwipeHandle && <DrawerSwipeHandle />}
           <DrawerPrimitive.Content

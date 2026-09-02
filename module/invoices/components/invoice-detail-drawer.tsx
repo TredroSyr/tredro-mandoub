@@ -9,7 +9,6 @@ import { Drawer, DrawerClose, DrawerContent, DrawerHeader, DrawerTitle } from "@
 import { Skeleton } from "@/components/ui/skeleton";
 import { formatDate } from "@/lib/format";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { NAV_H } from "@/layout/bottom-nav";
 import { useGetSalesInvoiceDetailQuery } from "../hooks";
 import { renderNodeToPdfBlob } from "../lib/pdf";
 import { openWhatsAppChat, shareInvoicePdf } from "../lib/share";
@@ -74,8 +73,8 @@ export function InvoiceDetailDrawer({
   return (
     <Drawer open={open} onOpenChange={onOpenChange} swipeDirection={isMobile ? "down" : "left"}>
       <DrawerContent
+        avoidBottomNav
         className="flex h-[92dvh] max-h-[92dvh] w-full flex-col rounded-t-2xl sm:h-full sm:max-h-screen sm:w-full sm:max-w-lg sm:rounded-none md:max-w-xl"
-        style={isMobile ? { bottom: NAV_H } : undefined}
       >
         <DrawerHeader className="sticky top-0 z-10 flex-row items-center justify-between gap-3 border-b border-border bg-background px-4 pb-3 pt-6 sm:px-6 sm:pt-4">
           <DrawerTitle className="truncate text-right text-base sm:text-lg">

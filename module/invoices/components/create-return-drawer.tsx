@@ -8,7 +8,6 @@ import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Textarea } from "@/components/ui/textarea";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { NAV_H } from "@/layout/bottom-nav";
 import { useCreateReturnInvoiceMutation, useGetSalesInvoiceDetailQuery, useIssueReturnInvoiceMutation } from "../hooks";
 import {
   REFUND_METHOD_OPTIONS,
@@ -98,8 +97,8 @@ export function CreateReturnDrawer({
   return (
     <Drawer open={open} onOpenChange={onOpenChange} swipeDirection={isMobile ? "down" : "left"}>
       <DrawerContent
+        avoidBottomNav
         className="flex h-[92dvh] max-h-[92dvh] w-full flex-col rounded-t-2xl sm:h-full sm:max-h-screen sm:w-full sm:max-w-lg sm:rounded-none md:max-w-xl"
-        style={isMobile ? { bottom: NAV_H } : undefined}
       >
         <DrawerHeader className="sticky top-0 z-10 flex-row items-center justify-between gap-3 border-b border-border bg-background px-4 pb-3 pt-6 sm:px-6 sm:pt-4">
           <DrawerTitle className="text-right text-base sm:text-lg">مرتجع — {invoiceNumber}</DrawerTitle>
