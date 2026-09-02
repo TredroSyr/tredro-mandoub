@@ -23,13 +23,17 @@ import {
   WORK_DAYS_API,
   WORK_DAYS_LABELS,
 } from "@/module/customers/schema";
-import { useCreateCustomerMutation } from "@/module/customers/hooks";
+import { useCreateCustomerMutation, useUpdateCustomerMutation } from "@/module/customers/hooks";
+import { UpdateCustomerRequest } from "@/module/customers/types";
+import type { Customer } from "@/module/customers/types";
 import { ApiErrorResponse } from "@/module/auth/types";
 import { useAuthStore } from "@/module/auth/store/auth-store";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 
 interface CustomerFormProps {
+  /** When provided, the form edits this customer instead of creating a new one. */
+  customer?: Customer;
   pickedPoint: [number, number] | null;
   onPickLocation: () => void;
   onUseMyLocation: () => void;
@@ -39,6 +43,7 @@ interface CustomerFormProps {
 }
 
 export function CustomerForm({
+  customer,
   pickedPoint,
   onPickLocation,
   onUseMyLocation,
@@ -47,15 +52,20 @@ export function CustomerForm({
   onCancel,
 }: CustomerFormProps) {
   const rep = useAuthStore((state) => state.rep);
+  const isEdit = !!customer;
 
   const form = useForm<CreateCustomerValues>({
     resolver: zodResolver(createCustomerSchema),
     defaultValues: {
-      name: "",
-      phone: "",
-      email: "",
-      address: "",
-      work_days: rep?.work_days?.length ? (rep.work_days as any) : undefined,
+      name: customer?.name ?? "",
+      phone: customer?.phone ?? "",
+      email: customer?.email ?? "",
+      address: customer?.address ?? "",
+      work_days: customer?.work_days?.length
+        ? (customer.work_days as any)
+        : rep?.work_days?.length
+          ? (rep.work_days as any)
+          : undefined,
       latitude: pickedPoint?.[0],
       longitude: pickedPoint?.[1],
     },
@@ -97,7 +107,49 @@ export function CustomerForm({
     },
   });
 
+  // The update endpoint only accepts address/location/work_days — name, phone
+  // and email can't be changed once the customer exists.
+  const updateCustomerMutation = useUpdateCustomerMutation({
+    onSuccess: () => {
+      onSuccess?.();
+    },
+    onError: (error: AxiosError<ApiErrorResponse>) => {
+      const errors = error.response?.data?.errors;
+      if (errors) {
+        Object.entries(errors).forEach(([field, messages]) => {
+          const fieldMap: Record<string, keyof CreateCustomerValues> = {
+            address: "address",
+            work_days: "work_days",
+            latitude: "latitude",
+            location: "latitude",
+          };
+          const mapped = fieldMap[field];
+          if (mapped) {
+            form.setError(mapped, { message: messages[0] });
+          }
+        });
+      }
+    },
+  });
+
+  const isPending = isEdit ? updateCustomerMutation.isPending : createCustomerMutation.isPending;
+
   const onSubmit = (values: CreateCustomerValues) => {
+    if (isEdit && customer) {
+      const requestData: UpdateCustomerRequest = {
+        address: values.address?.trim() ?? "",
+      };
+      if (values.latitude !== undefined && values.longitude !== undefined) {
+        requestData.latitude = Number(values.latitude.toFixed(6));
+        requestData.longitude = Number(values.longitude.toFixed(6));
+      }
+      if (values.work_days && values.work_days.length > 0) {
+        requestData.work_days = values.work_days;
+      }
+      updateCustomerMutation.mutate({ customerId: customer.id, data: requestData });
+      return;
+    }
+
     const requestData: any = {
       name: values.name.trim(),
       phone: values.phone,
@@ -145,11 +197,18 @@ export function CustomerForm({
               <FormControl>
                 <Input
                   placeholder="مثال: أحمد محمد"
+                  disabled={isEdit}
                   {...field}
                   value={field.value || ""}
                 />
               </FormControl>
-              <FormMessage className="text-[11px] font-bold" />
+              {isEdit ? (
+                <p className="text-[10px] text-muted-foreground">
+                  لا يمكن تعديل اسم العميل ورقم الهاتف والبريد الإلكتروني
+                </p>
+              ) : (
+                <FormMessage className="text-[11px] font-bold" />
+              )}
             </FormItem>
           )}
         />
@@ -157,20 +216,31 @@ export function CustomerForm({
         <FormField
           control={form.control}
           name="phone"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel className="text-[11px] font-bold text-primary">
-                رقم الهاتف
-              </FormLabel>
-              <FormControl>
-                <PhoneInput
-                  value={field.value || ""}
-                  onChange={field.onChange}
-                />
-              </FormControl>
-              <FormMessage className="text-[11px] font-bold" />
-            </FormItem>
-          )}
+          render={({ field }) =>
+            isEdit ? (
+              <FormItem>
+                <FormLabel className="text-[11px] font-bold text-primary">
+                  رقم الهاتف
+                </FormLabel>
+                <FormControl>
+                  <PhoneInput value={field.value || ""} readOnly />
+                </FormControl>
+              </FormItem>
+            ) : (
+              <FormItem>
+                <FormLabel className="text-[11px] font-bold text-primary">
+                  رقم الهاتف
+                </FormLabel>
+                <FormControl>
+                  <PhoneInput
+                    value={field.value || ""}
+                    onChange={field.onChange}
+                  />
+                </FormControl>
+                <FormMessage className="text-[11px] font-bold" />
+              </FormItem>
+            )
+          }
         />
 
         <FormField
@@ -185,11 +255,12 @@ export function CustomerForm({
                 <Input
                   type="email"
                   placeholder="example@email.com"
+                  disabled={isEdit}
                   {...field}
                   value={field.value || ""}
                 />
               </FormControl>
-              <FormMessage className="text-[11px] font-bold" />
+              {!isEdit && <FormMessage className="text-[11px] font-bold" />}
             </FormItem>
           )}
         />
@@ -297,15 +368,15 @@ export function CustomerForm({
           )}
           <Button
             type="submit"
-            disabled={createCustomerMutation.isPending}
+            disabled={isPending}
             className="flex-1 py-3.5 text-sm"
           >
-            {createCustomerMutation.isPending ? (
+            {isPending ? (
               <IconRenderer name="activity_log_outlined" className="w-6 h-6 animate-spin" />
             ) : (
               <IconRenderer name="tick_outlined" className="w-6 h-6" />
             )}
-            {createCustomerMutation.isPending ? "جاري الحفظ…" : "حفظ العميل"}
+            {isPending ? "جاري الحفظ…" : isEdit ? "حفظ التعديلات" : "حفظ العميل"}
           </Button>
         </div>
       </form>

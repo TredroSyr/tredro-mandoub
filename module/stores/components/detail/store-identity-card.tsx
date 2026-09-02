@@ -3,6 +3,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { IconRenderer } from "@/assets/icons/iconRenderer";
 import { PhoneInput } from "@/components/tredro/phone-input";
 import type { Customer } from "@/module/customers/types";
+import { StoreEditCustomerDrawer } from "./store-edit-customer-drawer";
 
 export interface StoreIdentityCardProps {
   customer?: Customer;
@@ -38,12 +39,16 @@ export function StoreIdentityCard({ customer, isLoading }: StoreIdentityCardProp
         </span>
         <div className="min-w-0 flex-1">
           <PhoneInput value={customer.phone} readOnly />
+          {customer.address && (
+            <p className="mt-1.5 truncate text-xs text-muted-foreground">{customer.address}</p>
+          )}
           {!customer.is_active && (
             <div className="mt-2.5 flex flex-wrap gap-2">
               <Badge variant="secondary">غير نشط</Badge>
             </div>
           )}
         </div>
+        <StoreEditCustomerDrawer customer={customer} />
       </div>
     </section>
   );

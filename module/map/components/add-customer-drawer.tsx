@@ -3,11 +3,14 @@
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerClose } from "@/components/ui/drawer";
 import { Button } from "@/components/ui/button";
 import { IconRenderer } from "@/assets/icons/iconRenderer";
+import type { Customer } from "@/module/customers/types";
 import { CustomerForm } from "./customer-form";
 
 interface AddCustomerDrawerProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  /** When provided, the drawer edits this customer instead of creating a new one. */
+  customer?: Customer;
   pickedPoint: [number, number] | null;
   onPickLocation: () => void;
   onUseMyLocation: () => void;
@@ -21,6 +24,7 @@ interface AddCustomerDrawerProps {
 export function AddCustomerDrawer({
   open,
   onOpenChange,
+  customer,
   pickedPoint,
   onPickLocation,
   onUseMyLocation,
@@ -37,7 +41,9 @@ export function AddCustomerDrawer({
         style={{ bottom: bottomNavHeight }}
       >
         <DrawerHeader className="flex justify-between flex-row w-full items-center gap-3 px-5 pb-3 pt-1 text-start">
-          <DrawerTitle className="truncate text-base">محل جديد</DrawerTitle>
+          <DrawerTitle className="truncate text-base">
+            {customer ? "تعديل بيانات المحل" : "محل جديد"}
+          </DrawerTitle>
           <DrawerClose>
             <Button variant="secondary" size="icon-sm">
               <IconRenderer name="close_outlined" className="w-3 h-3" />
@@ -46,6 +52,7 @@ export function AddCustomerDrawer({
         </DrawerHeader>
         <div className="flex-1 space-y-4 overflow-y-auto px-5 py-4">
           <CustomerForm
+            customer={customer}
             pickedPoint={pickedPoint}
             onPickLocation={() => {
               onOpenChange(false);

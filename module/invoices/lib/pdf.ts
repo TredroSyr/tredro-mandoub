@@ -6,7 +6,7 @@ import { jsPDF } from "jspdf";
  * drawn as normal HTML/CSS on screen and captured as an image instead — what you see is what ships.
  */
 export async function renderNodeToPdfBlob(node: HTMLElement): Promise<Blob> {
-  const { default: html2canvas } = await import("html2canvas");
+  const { default: html2canvas } = await import("html2canvas-pro");
   // html2canvas clones the page into a hidden offscreen iframe to read computed styles; tearing
   // that iframe down can log a harmless "Permissions policy violation: unload" warning on newer
   // Chrome (a deprecation notice from the cloned frame, not a real error) — the render still succeeds.

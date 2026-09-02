@@ -1,5 +1,6 @@
 export { StoreDetailHeader } from "./store-detail-header";
 export { StoreIdentityCard } from "./store-identity-card";
+export { StoreEditCustomerDrawer } from "./store-edit-customer-drawer";
 export { StoreLocationBanner } from "./store-location-banner";
 export { StoreFinancialSummary } from "./store-financial-summary";
 export { StoreWhatsappButton } from "./store-whatsapp-button";
