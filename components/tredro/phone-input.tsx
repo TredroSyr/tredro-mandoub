@@ -101,25 +101,6 @@ export const PhoneInput = React.forwardRef<HTMLInputElement, PhoneInputProps>(
     const [copied, setCopied] = React.useState(false);
     const fullNumber = `+${country.dialCode}${inputValue}`;
 
-    const handlePaste = React.useCallback(
-      (e: React.ClipboardEvent<HTMLInputElement>) => {
-        const pasted = e.clipboardData.getData("text");
-        const digits = pasted.replace(/\D/g, "");
-        if (!digits) return;
-        e.preventDefault();
-        const national = digits.startsWith(country.dialCode)
-          ? digits.slice(country.dialCode.length)
-          : digits;
-        onChange?.(
-          stripNationalLeadingZero(
-            `+${country.dialCode}${national}`,
-            country.dialCode,
-          ),
-        );
-      },
-      [country.dialCode, onChange],
-    );
-
     const handleAction = React.useCallback(async () => {
       if (isMobileDevice()) {
         window.location.href = `tel:${fullNumber}`;
@@ -195,7 +176,6 @@ export const PhoneInput = React.forwardRef<HTMLInputElement, PhoneInputProps>(
           placeholder={dynamicPlaceholder}
           value={inputValue}
           onChange={handlePhoneValueChange}
-          onPaste={handlePaste}
           onBlur={onBlur}
           className="h-full flex-1 rounded-none border-0 bg-transparent text-left tabular-nums shadow-none focus-visible:ring-0"
         />

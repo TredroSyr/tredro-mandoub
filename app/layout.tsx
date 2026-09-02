@@ -93,8 +93,9 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
           <ErudaLoader />
           <NetworkControlPing />
           <Toaster
-            position="bottom-center"
+            position="top-center"
             dir="rtl"
+            richColors
             offset={{ bottom: "calc(var(--bottom-nav-height) + 12px)" }}
             mobileOffset={{ bottom: "calc(var(--bottom-nav-height) + 12px)" }}
           />

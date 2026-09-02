@@ -9,6 +9,7 @@ import { toast } from "sonner";
 import TruckScene from "@/module/auth/components/truck-scene";
 import { IconRenderer } from "@/assets/icons/iconRenderer";
 import { useKeyboardOpen } from "@/hooks/use-keyboard-open";
+import { Drawer, DrawerContent } from "@/components/ui/drawer";
 
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -31,7 +32,10 @@ const loginSchema = z.object({
   phone: z
     .string()
     .min(9, "رقم الهاتف غير صالح")
-    .regex(/^[0-9+]+$/, "رقم الهاتف غير صالح"),
+    .regex(/^[0-9+]+$/, "رقم الهاتف غير صالح")
+    .refine((val) => val.startsWith("+963"), {
+      message: "فقط أرقام الهواتف السورية مسموح بها (تبدأ بـ +963)",
+    }),
   password: z.string().min(1, "كلمة المرور مطلوبة"),
 });
 
@@ -132,12 +136,11 @@ const LoginPage = () => {
         )}
       </AnimatePresence>
 
-      <motion.section
-        layout
-        transition={SHEET_TRANSITION}
-        className="relative z-10 -mt-6 rounded-t-[2rem] bg-card px-6 pb-[max(1.5rem,env(safe-area-inset-bottom))] pt-6 shadow-sheet"
-      >
-        <div className="mx-auto max-w-md">
+      <Drawer open={true} modal={false} swipeDirection="down">
+        <DrawerContent
+          className="relative z-10 -mt-6 max-w-none rounded-t-[2rem] border-0 bg-card px-6 pb-[max(1.5rem,env(safe-area-inset-bottom))] pt-6 shadow-sheet focus:outline-none"
+        >
+          <div className="mx-auto max-w-md">
           <AnimatePresence initial={false}>
             <motion.div
               key="logo"
@@ -254,7 +257,8 @@ const LoginPage = () => {
               : "اختبار تسجيل الدخول عبر auth-kadnya"}
           </Button>
         </div>
-      </motion.section>
+        </DrawerContent>
+      </Drawer>
     </div>
   );
 };

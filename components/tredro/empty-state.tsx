@@ -1,7 +1,8 @@
 import type { ReactNode } from "react";
 import { cn } from "@/lib/utils";
-import { IllustrationHalo, stateButtonStyles } from "./state-shell";
+import { stateButtonStyles } from "./state-shell";
 import { emptyStatePresets, EmptyStateVariant } from "@/lib/illustrations";
+import { IconRenderer } from "@/assets/icons/iconRenderer";
 
 export interface EmptyStateProps {
   variant: EmptyStateVariant;
@@ -33,11 +34,19 @@ export function EmptyState({
         className,
       )}
     >
-      <IllustrationHalo
-        src={preset.image}
-        alt={preset.alt}
-        className={size === "sm" ? "w-36" : "w-56 sm:w-64"}
-      />
+      <div className="relative flex items-center justify-center">
+        <div
+          aria-hidden
+          className="absolute inset-0 rounded-full bg-primary/10 blur-xl dark:bg-primary/20"
+        />
+        <IconRenderer
+          name={preset.icon}
+          className={cn(
+            "relative text-primary/80",
+            size === "sm" ? "w-16 h-16" : "w-24 h-24",
+          )}
+        />
+      </div>
 
       <h2
         className={cn(

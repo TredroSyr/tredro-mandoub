@@ -5,7 +5,6 @@ import axios, {
   AxiosRequestConfig,
   InternalAxiosRequestConfig,
 } from "axios";
-import { toast } from "sonner";
 
 // CapacitorHttp (Android's native HTTP bridge) doesn't reliably honor
 // axios's `timeout` option, so a stalled request (e.g. a Render free-tier
@@ -26,7 +25,7 @@ const clearRequestTimers = (config?: TimedRequestConfig) => {
   if (!config) return;
   clearTimeout(config._hintTimer);
   clearTimeout(config._hardTimeoutTimer);
-  toast.dismiss(WAKING_UP_TOAST_ID);
+
 };
 
 // Shape of a request that failed with 401 and is waiting in the queue
@@ -101,11 +100,7 @@ api.interceptors.request.use(async (config: TimedRequestConfig) => {
 
   const controller = new AbortController();
   config.signal = controller.signal;
-  config._hintTimer = setTimeout(() => {
-    toast.loading("جاري الاتصال بالخادم، قد يستغرق هذا بعض الوقت...", {
-      id: WAKING_UP_TOAST_ID,
-    });
-  }, SLOW_REQUEST_HINT_MS);
+
   config._hardTimeoutTimer = setTimeout(() => {
     controller.abort();
   }, HARD_TIMEOUT_MS);

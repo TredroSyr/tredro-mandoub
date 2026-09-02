@@ -26,7 +26,11 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 
-export default function AppHeader() {
+interface AppHeaderProps {
+  onRefresh?: () => void;
+}
+
+export default function AppHeader({ onRefresh }: AppHeaderProps) {
   const unread = useRepTourStore(
     (s) => s.notifications.filter((n) => !n.read).length,
   );
@@ -219,13 +223,15 @@ export default function AppHeader() {
             </PopoverContent>
           </Popover>
         </div>
-        <Image
-          src="/tredro/full_logo.svg"
-          alt="logo"
-          width={140}
-          height={70}
-          className="h-auto w-[140px] cursor-pointer object-contain transition-all duration-200"
-        />
+        <button type="button" onClick={onRefresh}>
+          <Image
+            src="/tredro/full_logo.svg"
+            alt="logo"
+            width={140}
+            height={70}
+            className="h-auto w-[140px] cursor-pointer object-contain transition-all duration-200 hover:scale-105 active:scale-95"
+          />
+        </button>
       </div>
 
       <NotificationsDrawer
