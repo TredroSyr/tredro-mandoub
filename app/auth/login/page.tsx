@@ -139,24 +139,22 @@ const LoginPage = () => {
       >
         <div className="mx-auto max-w-md">
           <AnimatePresence initial={false}>
-            {isKeyboardOpen && (
-              <motion.div
-                key="logo"
-                initial={{ height: 0, opacity: 0 }}
-                animate={{ height: "auto", opacity: 1 }}
-                exit={{ height: 0, opacity: 0 }}
-                transition={SHEET_TRANSITION}
-                className="flex items-center justify-center overflow-hidden pt-3"
-              >
-                <Image
-                  src="/tredro/full_logo.svg"
-                  alt="logo"
-                  width={140}
-                  height={70}
-                  className="h-auto w-27.5 object-contain pb-3"
-                />
-              </motion.div>
-            )}
+            <motion.div
+              key="logo"
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: "auto", opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              transition={SHEET_TRANSITION}
+              className="flex items-center justify-center overflow-hidden pt-3"
+            >
+              <Image
+                src="/tredro/full_logo.svg"
+                alt="logo"
+                width={140}
+                height={70}
+                className="h-auto w-27.5 object-contain pb-3"
+              />
+            </motion.div>
           </AnimatePresence>
 
           <h1 className="mt-1 text-2xl font-extrabold leading-tight">

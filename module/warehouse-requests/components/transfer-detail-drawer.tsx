@@ -61,7 +61,7 @@ export function TransferDetailDrawer({
 
   return (
     <Drawer open={open} onOpenChange={onOpenChange}>
-      <DrawerContent className="mt-0 flex h-[85svh] flex-col rounded-t-[1.75rem] border-t border-border bg-card">
+      <DrawerContent className="mt-0 flex h-[85svh] max-h-[85svh] flex-col rounded-t-[1.75rem] border-t border-border bg-card">
         <DrawerHeader className="flex shrink-0 flex-col gap-3 border-b border-border pb-4 text-start">
           <div className="flex flex-row items-start justify-between gap-3">
             <div className="min-w-0">
