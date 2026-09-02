@@ -1,7 +1,13 @@
 import { forwardRef, type CSSProperties } from "react";
 import { formatDate } from "@/lib/format";
+import { useAuthStore } from "@/module/auth/store/auth-store";
 import { formatInvoiceMoney, formatInvoiceQuantity } from "../lib/utils";
 import type { SalesInvoiceDetail } from "../types";
+
+// Matches the --primary fallback used elsewhere for off-DOM rendering (module/map/lib/markers.ts)
+// rather than reading the CSS var at render time, so the off-screen template never depends on
+// client-side style resolution (and can't hydration-mismatch against the server render).
+const PRIMARY = "#2563eb";
 
 const STATUS_LABEL: Record<string, string> = {
   fully_paid: "مدفوعة بالكامل",
@@ -15,23 +21,36 @@ const STATUS_LABEL: Record<string, string> = {
  */
 export const InvoicePrintTemplate = forwardRef<HTMLDivElement, { invoice: SalesInvoiceDetail }>(
   function InvoicePrintTemplate({ invoice }, ref) {
+    const rep = useAuthStore((state) => state.rep);
+    const companyLogo = rep?.company?.logo;
+
     return (
       <div
         ref={ref}
         dir="rtl"
         style={{ width: 760, padding: 32, backgroundColor: "#ffffff", color: "#111827", fontFamily: "sans-serif" }}
       >
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", borderBottom: "2px solid #111827", paddingBottom: 16 }}>
-          <div>
-            <div style={{ fontSize: 20, fontWeight: 800 }}>{invoice.company_name}</div>
-            {invoice.tax_registration_no && (
-              <div style={{ fontSize: 12, color: "#6b7280", marginTop: 4 }}>
-                الرقم الضريبي: {invoice.tax_registration_no}
-              </div>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", borderBottom: `2px solid ${PRIMARY}`, paddingBottom: 16 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+            {companyLogo && (
+              // eslint-disable-next-line @next/next/no-img-element -- captured by html2canvas off-screen, next/image adds nothing here
+              <img
+                src={companyLogo}
+                alt=""
+                style={{ width: 44, height: 44, borderRadius: 10, objectFit: "cover" }}
+              />
             )}
+            <div>
+              <div style={{ fontSize: 20, fontWeight: 800 }}>{invoice.company_name}</div>
+              {invoice.tax_registration_no && (
+                <div style={{ fontSize: 12, color: "#6b7280", marginTop: 4 }}>
+                  الرقم الضريبي: {invoice.tax_registration_no}
+                </div>
+              )}
+            </div>
           </div>
           <div style={{ textAlign: "left" }}>
-            <div style={{ fontSize: 16, fontWeight: 800 }}>فاتورة مبيعات</div>
+            <div style={{ fontSize: 16, fontWeight: 800, color: PRIMARY }}>فاتورة مبيعات</div>
             <div style={{ fontSize: 13, marginTop: 4, direction: "ltr" }}>{invoice.number}</div>
             <div style={{ fontSize: 12, color: "#6b7280", marginTop: 2 }}>{formatDate(invoice.date)}</div>
           </div>
@@ -51,7 +70,7 @@ export const InvoicePrintTemplate = forwardRef<HTMLDivElement, { invoice: SalesI
 
         <table style={{ width: "100%", marginTop: 20, borderCollapse: "collapse", fontSize: 12 }}>
           <thead>
-            <tr style={{ backgroundColor: "#f3f4f6" }}>
+            <tr style={{ backgroundColor: `${PRIMARY}1a` }}>
               <th style={cellStyle("right")}>المنتج</th>
               <th style={cellStyle("center")}>الكمية</th>
               <th style={cellStyle("center")}>سعر الوحدة</th>
@@ -75,7 +94,7 @@ export const InvoicePrintTemplate = forwardRef<HTMLDivElement, { invoice: SalesI
             <div style={{ fontSize: 13, fontWeight: 700, marginBottom: 6 }}>الدفعات المحصَّلة</div>
             <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 12 }}>
               <thead>
-                <tr style={{ backgroundColor: "#f3f4f6" }}>
+                <tr style={{ backgroundColor: `${PRIMARY}1a` }}>
                   <th style={cellStyle("right")}>التاريخ</th>
                   <th style={cellStyle("right")}>ملاحظة</th>
                   <th style={cellStyle("left")}>المبلغ</th>
@@ -110,9 +129,11 @@ export const InvoicePrintTemplate = forwardRef<HTMLDivElement, { invoice: SalesI
           </div>
         )}
 
-        <div style={{ marginTop: 32, borderTop: "1px solid #e5e7eb", paddingTop: 12, fontSize: 10, color: "#9ca3af", textAlign: "center" }}>
-          صدرت هذه الفاتورة عبر تطبيق تريدرو للمندوبين
-        </div>
+        {rep?.name && (
+          <div style={{ marginTop: 32, borderTop: "1px solid #e5e7eb", paddingTop: 12, fontSize: 11, color: "#6b7280", textAlign: "center" }}>
+            مندوب المبيعات: {rep.name}
+          </div>
+        )}
       </div>
     );
   },
@@ -127,7 +148,7 @@ function SummaryRow({ label, value, strong }: { label: string; value: string; st
         padding: "6px 10px",
         fontSize: strong ? 14 : 12,
         fontWeight: strong ? 800 : 600,
-        backgroundColor: strong ? "#111827" : "transparent",
+        backgroundColor: strong ? PRIMARY : "transparent",
         color: strong ? "#ffffff" : "#111827",
         borderRadius: strong ? 8 : 0,
         marginTop: strong ? 6 : 0,

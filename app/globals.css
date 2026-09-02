@@ -221,6 +221,49 @@
   box-shadow: var(--bottom-nav-shadow);
 }
 
+/* =========================================================
+   SONNER TOASTER
+   Bottom-center, offset above the bottom nav bar (--bottom-nav-height)
+   via the offset/mobileOffset props on <Toaster>, so it never gets
+   covered by it. Theme-aware via app CSS variables; success/error/
+   warning/info toasts render as a colored border + colored text on a
+   muted background instead of solid rich-colors fills.
+========================================================= */
+[data-sonner-toast][data-styled="true"] {
+  background: var(--muted) !important;
+  border-color: var(--border) !important;
+  color: var(--muted-foreground) !important;
+}
+
+[data-sonner-toast][data-styled="true"] [data-description] {
+  color: inherit !important;
+  opacity: 0.8;
+}
+
+[data-sonner-toast][data-type="success"] {
+  background: var(--muted) !important;
+  border-color: var(--success) !important;
+  color: var(--success) !important;
+}
+
+[data-sonner-toast][data-type="error"] {
+  background: var(--muted) !important;
+  border-color: var(--destructive) !important;
+  color: var(--destructive) !important;
+}
+
+[data-sonner-toast][data-type="warning"] {
+  background: var(--muted) !important;
+  border-color: var(--warning) !important;
+  color: var(--warning) !important;
+}
+
+[data-sonner-toast][data-type="info"] {
+  background: var(--muted) !important;
+  border-color: var(--primary) !important;
+  color: var(--primary) !important;
+}
+
 /* --- Leaflet look & feel: blue cartographic theme --- */
 /* =========================================================
    LEAFLET

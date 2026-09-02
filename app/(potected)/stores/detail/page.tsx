@@ -103,6 +103,8 @@ function StoreDetailContent() {
         onBack={goBack}
       />
 
+      <StoreIdentityCard customer={customer} isLoading={isLoading} />
+
       <StoreFinancialSummary customer={customer} isLoading={isLoading} />
 
       {!isLoading && customer && <StoreWhatsappButton phone={customer.phone} />}

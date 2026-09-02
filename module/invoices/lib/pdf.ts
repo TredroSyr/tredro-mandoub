@@ -10,7 +10,7 @@ export async function renderNodeToPdfBlob(node: HTMLElement): Promise<Blob> {
   // html2canvas clones the page into a hidden offscreen iframe to read computed styles; tearing
   // that iframe down can log a harmless "Permissions policy violation: unload" warning on newer
   // Chrome (a deprecation notice from the cloned frame, not a real error) — the render still succeeds.
-  const canvas = await html2canvas(node, { scale: 2, useCORS: true, backgroundColor: "#ffffff" });
+  const canvas = await html2canvas(node, { scale: 1.5, useCORS: true, backgroundColor: "#ffffff" });
 
   const pdf = new jsPDF({ unit: "pt", format: "a4" });
   const pageWidth = pdf.internal.pageSize.getWidth();
@@ -43,9 +43,11 @@ export async function renderNodeToPdfBlob(node: HTMLElement): Promise<Blob> {
     );
 
     if (pageIndex > 0) pdf.addPage();
+    // JPEG at high quality keeps the rasterized page legible while cutting the file size the
+    // lossless PNG encoder produced by several times over — the invoice has no transparency to lose.
     pdf.addImage(
-      pageCanvas.toDataURL("image/png"),
-      "PNG",
+      pageCanvas.toDataURL("image/jpeg", 0.82),
+      "JPEG",
       0,
       0,
       imgWidth,
