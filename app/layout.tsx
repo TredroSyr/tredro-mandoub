@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
 
 import AppDownloadDrawer from "@/layout/app-download-drawer";
 import { thmanyahSans } from "@/lib/fonts";
@@ -8,7 +7,6 @@ import "leaflet/dist/leaflet.css";
 import { Toaster } from "sonner";
 import { QueryProvider } from "@/components/provider/QueryClientProvider";
 import ErudaLoader from "@/components/tredro/ErudaLoader";
-import NetworkControlPing from "@/components/tredro/NetworkControlPing";
 
 export const metadata: Metadata = {
   title: "Tredro | إدارة مندوبي المبيعات، الطلبات، والعملاء",
@@ -91,7 +89,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
           <AppDownloadDrawer />
 
           <ErudaLoader />
-          <NetworkControlPing />
+
           <Toaster
             position="top-center"
             dir="rtl"

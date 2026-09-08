@@ -2,9 +2,8 @@
 
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { SkeletonCard } from "@/components/ui/skeleton";
 import { IconRenderer } from "@/assets/icons/iconRenderer";
-import { RequestCard, RequestFilterTabs } from "@/module/orders/components";
+import { RequestCard, RequestCardSkeleton, RequestFilterTabs } from "@/module/orders/components";
 import { useGetCustomerRequestsQuery } from "@/module/orders/hooks";
 import { CustomerRequestStatus } from "@/module/orders/types";
 
@@ -23,9 +22,9 @@ export default function OrdersPage() {
       <div className="mt-2 space-y-2.5">
         {isLoading && (
           <>
-            <SkeletonCard />
-            <SkeletonCard />
-            <SkeletonCard />
+            <RequestCardSkeleton />
+            <RequestCardSkeleton />
+            <RequestCardSkeleton />
           </>
         )}
 

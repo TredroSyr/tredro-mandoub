@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { IconRenderer } from "@/assets/icons/iconRenderer";
+import { Skeleton } from "@/components/ui/skeleton";
 import { CreateInvoiceDrawer } from "@/module/invoices/components";
 import { useAcceptCustomerRequestMutation, useRejectCustomerRequestMutation } from "../hooks";
 import { CustomerRequest } from "../types";
@@ -111,6 +112,34 @@ export function RequestCard({ request }: { request: CustomerRequest }) {
           lines: request.lines.map((l) => ({ product_id: l.product, quantity: l.desired_quantity })),
         }}
       />
+    </article>
+  );
+}
+
+export function RequestCardSkeleton() {
+  return (
+    <article className="rounded-2xl border border-border bg-card p-4">
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0 space-y-1.5">
+          <Skeleton className="h-3.5 w-28" />
+          <Skeleton className="h-2.5 w-24" />
+          <Skeleton className="h-2.5 w-16" />
+        </div>
+        <Skeleton className="h-5 w-16 rounded-full" />
+      </div>
+
+      <div className="mt-3 space-y-1.5">
+        <Skeleton className="h-3 w-full" />
+        <Skeleton className="h-3 w-full" />
+      </div>
+
+      <div className="mt-3 flex items-center justify-between border-t border-border pt-3">
+        <Skeleton className="h-3 w-14" />
+        <div className="flex items-center gap-1.5">
+          <Skeleton className="h-8 w-16 rounded-xl" />
+          <Skeleton className="h-8 w-16 rounded-xl" />
+        </div>
+      </div>
     </article>
   );
 }

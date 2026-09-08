@@ -23,8 +23,8 @@ export interface CustomerRequest {
   customer: number;
   customer_name: string;
   customer_phone: string;
-  rep: number;
-  rep_name: string;
+  rep: number | null;
+  rep_name: string | null;
   status: CustomerRequestStatus;
   fulfilled_by_invoice: number | null;
   fulfilled_by_invoice_number: string | null;
