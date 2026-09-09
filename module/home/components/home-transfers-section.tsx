@@ -1,7 +1,6 @@
 "use client";
 
 import { IconRenderer } from "@/assets/icons/iconRenderer";
-import { SkeletonCard } from "@/components/ui/skeleton";
 import { useGetStockTransfersQuery } from "@/module/warehouse-requests/hooks";
 import { TransferCard } from "@/module/warehouse-requests/components/transfer-card";
 import type { StockTransferStatus } from "@/module/warehouse-requests/types";
@@ -13,20 +12,10 @@ export function HomeTransfersSection() {
   const { data, isLoading } = useGetStockTransfersQuery({ page_size: 50 });
   const transfers = (data?.data?.transfers ?? []).filter((t) => NEEDS_ACTION_STATUSES.includes(t.status));
 
-  if (isLoading) {
-    return (
-      <section className="mt-6">
-        <h2 className="mb-2.5 flex items-center gap-2 text-sm font-extrabold">
-          <IconRenderer name="warning_outlined" className="size-4 text-primary" /> طلبات تحتاج إجراء منك
-        </h2>
-        <div className="space-y-2">
-          <SkeletonCard />
-        </div>
-      </section>
-    );
-  }
-
-  if (transfers.length === 0) return null;
+  // No skeleton here: this section is conditional (may end up empty). A
+  // local skeleton would flash in and then collapse, causing a layout jump.
+  // Stay hidden until we know there's something to render.
+  if (isLoading || transfers.length === 0) return null;
 
   return (
     <section className="mt-6">
