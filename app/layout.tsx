@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 
 import AppDownloadDrawer from "@/layout/app-download-drawer";
 import { thmanyahSans } from "@/lib/fonts";
@@ -7,6 +8,7 @@ import "leaflet/dist/leaflet.css";
 import { Toaster } from "sonner";
 import { QueryProvider } from "@/components/provider/QueryClientProvider";
 import ErudaLoader from "@/components/tredro/ErudaLoader";
+import HardwareBackButton from "@/components/tredro/HardwareBackButton";
 
 export const metadata: Metadata = {
   title: "Tredro | إدارة مندوبي المبيعات، الطلبات، والعملاء",
@@ -89,6 +91,9 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
           <AppDownloadDrawer />
 
           <ErudaLoader />
+          <Suspense fallback={null}>
+            <HardwareBackButton />
+          </Suspense>
 
           <Toaster
             position="top-center"
