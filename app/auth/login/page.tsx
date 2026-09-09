@@ -4,7 +4,7 @@ import { useState } from "react";
 import Image from "next/image";
 import { AnimatePresence, motion } from "framer-motion";
 import axios, { AxiosError } from "axios";
-import { toast } from "sonner";
+import { toast } from "@/components/ui/toast";
 
 import TruckScene from "@/module/auth/components/truck-scene";
 import { IconRenderer } from "@/assets/icons/iconRenderer";

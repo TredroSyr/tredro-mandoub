@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { toast } from "sonner";
+import { toast } from "@/components/ui/toast";
 import { LocateFixed, Loader2, MapPin } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { IconRenderer } from "@/assets/icons/iconRenderer";

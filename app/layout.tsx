@@ -5,7 +5,7 @@ import AppDownloadDrawer from "@/layout/app-download-drawer";
 import { thmanyahSans } from "@/lib/fonts";
 import "./globals.css";
 import "leaflet/dist/leaflet.css";
-import { Toaster } from "sonner";
+import { Toaster } from "@/components/ui/toast";
 import { QueryProvider } from "@/components/provider/QueryClientProvider";
 import ErudaLoader from "@/components/tredro/ErudaLoader";
 import HardwareBackButton from "@/components/tredro/HardwareBackButton";
@@ -95,13 +95,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
             <HardwareBackButton />
           </Suspense>
 
-          <Toaster
-            position="top-center"
-            dir="rtl"
-            richColors
-            offset={{ bottom: "calc(var(--bottom-nav-height) + 12px)" }}
-            mobileOffset={{ bottom: "calc(var(--bottom-nav-height) + 12px)" }}
-          />
+          <Toaster />
         </QueryProvider>
       </body>
     </html>

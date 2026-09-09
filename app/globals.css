@@ -221,15 +221,6 @@
   box-shadow: var(--bottom-nav-shadow);
 }
 
-/* =========================================================
-   SONNER TOASTER
-   Bottom-center, offset above the bottom nav bar (--bottom-nav-height)
-   via the offset/mobileOffset props on <Toaster>, so it never gets
-   covered by it. Theme-aware via app CSS variables; success/error/
-   warning/info toasts render as a colored border + colored text on a
-   muted background instead of solid rich-colors fills.
-/* ========================================================= */
-
 
 /* --- Leaflet look & feel: blue cartographic theme --- */
 /* =========================================================

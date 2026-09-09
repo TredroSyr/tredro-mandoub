@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useState } from "react";
-import { toast } from "sonner";
+import { toast } from "@/components/ui/toast";
 import { Button } from "@/components/ui/button";
 import { IconRenderer } from "@/assets/icons/iconRenderer";
 import { AddCustomerDrawer } from "@/module/map/components/add-customer-drawer";
