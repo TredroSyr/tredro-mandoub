@@ -44,6 +44,12 @@ const TABS: Tab[] = [
     filled: "history_filled",
     outlined: "history_outlined",
   },
+  {
+    to: "/sales",
+    label: "الفواتير",
+    filled: "card_filled",
+    outlined: "card_outlined",
+  },
 ];
 
 const SPRING = { type: "spring", stiffness: 300, damping: 30, mass: 0.8 } as const;

@@ -3,7 +3,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { IconRenderer } from "@/assets/icons/iconRenderer";
-import { SkeletonCard } from "@/components/ui/skeleton";
 import { toISODate } from "@/lib/rep-tour-data";
 import { useGetCustomersQuery } from "@/module/customers/hooks";
 import { useGetDashboardQuery } from "@/module/dashboard/hooks";
@@ -59,20 +58,11 @@ export function HomeNearbyCustomersSection() {
 
   const isLoading = locating || isLoadingCustomers || isLoadingDashboard;
 
-  if (isLoading) {
-    return (
-      <section className="mt-6">
-        <h2 className="mb-2.5 flex items-center gap-2 text-sm font-extrabold">
-          <IconRenderer name="location_filled" className="size-4 text-primary" /> أقرب المحلات غير المُزارة
-        </h2>
-        <div className="space-y-2">
-          <SkeletonCard />
-        </div>
-      </section>
-    );
-  }
-
-  if (nearest.length === 0) return null;
+  // No dedicated skeleton here: this section depends on geolocation and may
+  // resolve to "nothing to show" (no permission / no nearby customers). A
+  // local skeleton would flash in and then collapse, causing a layout jump.
+  // Stay hidden until we know there's something to render.
+  if (isLoading || nearest.length === 0) return null;
 
   return (
     <section className="mt-6">
