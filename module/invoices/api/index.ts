@@ -1,7 +1,7 @@
 import api from "@/lib/axios";
 import {
-  CreateInvoicePaymentPayload,
-  CreateInvoicePaymentResponse,
+  CreatePaymentPayload,
+  CreatePaymentResponse,
   CreateReturnInvoicePayload,
   CreateReturnInvoiceResponse,
   CreateSalesInvoicePayload,
@@ -38,12 +38,11 @@ export const getSalesInvoiceDetail = async (
   return response.data;
 };
 
-/** Confirmed contract: POST /invoices/{invoice_id}/payments/. */
-export const createInvoicePayment = async (
-  invoiceId: number,
-  payload: CreateInvoicePaymentPayload,
-): Promise<CreateInvoicePaymentResponse> => {
-  const response = await api.post(`/invoices/${invoiceId}/payments/`, payload, {
+/** Confirmed contract: POST /reps/payments/. */
+export const createPayment = async (
+  payload: CreatePaymentPayload,
+): Promise<CreatePaymentResponse> => {
+  const response = await api.post("/reps/payments/", payload, {
     headers: { "Idempotency-Key": crypto.randomUUID() },
   });
   return response.data;

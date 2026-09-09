@@ -14,7 +14,7 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { useCreateInvoicePaymentMutation } from "../hooks";
+import { useCreatePaymentMutation } from "../hooks";
 import { formatInvoiceMoney } from "../lib/utils";
 import type { SalesInvoice } from "../types";
 
@@ -30,7 +30,7 @@ export function RecordPaymentDialog({
   const [amount, setAmount] = useState("");
   const [note, setNote] = useState("");
 
-  const record = useCreateInvoicePaymentMutation({
+  const record = useCreatePaymentMutation({
     onSuccess: () => {
       setAmount("");
       setNote("");
@@ -42,7 +42,7 @@ export function RecordPaymentDialog({
 
   const submit = () => {
     if (!amount || Number(amount) <= 0) return;
-    record.mutate({ invoiceId: invoice.id, payload: { amount, note: note || undefined } });
+    record.mutate({ sales_invoice: invoice.id, amount, note: note || undefined });
   };
 
   return (

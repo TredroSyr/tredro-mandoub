@@ -83,18 +83,17 @@ export interface CreateSalesInvoicePayload {
 
 export type CreateSalesInvoiceResponse = SalesInvoiceDetailResponse;
 
-export interface CreateInvoicePaymentPayload {
+export interface CreatePaymentPayload {
+  sales_invoice: number;
   amount: string;
-  /** Optional — defaults server-side to the requesting user when omitted. */
-  collected_by?: number;
   collected_at?: string;
   note?: string;
 }
 
-export interface CreateInvoicePaymentResponse {
+export interface CreatePaymentResponse {
   success: boolean;
   message: string;
-  data: { payment: InvoicePayment; invoice: SalesInvoiceDetail };
+  data: { payment: InvoicePayment };
 }
 
 export type RefundMethod = "cash_refunded_by_rep" | "deferred_customer_credit" | string;

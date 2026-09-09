@@ -3,7 +3,7 @@ import { AxiosError } from "axios";
 import { toast } from "sonner";
 import { ApiErrorResponse } from "@/module/auth/types";
 import {
-  createInvoicePayment,
+  createPayment,
   createReturnInvoice,
   createSalesInvoice,
   getSalesInvoiceDetail,
@@ -11,7 +11,7 @@ import {
   issueReturnInvoice,
 } from "../api";
 import {
-  CreateInvoicePaymentPayload,
+  CreatePaymentPayload,
   CreateReturnInvoicePayload,
   CreateSalesInvoicePayload,
   IssueReturnInvoicePayload,
@@ -80,21 +80,15 @@ export const useCreateSalesInvoiceMutation = (options?: {
   });
 };
 
-export const useCreateInvoicePaymentMutation = (options?: {
+export const useCreatePaymentMutation = (options?: {
   onSuccess?: () => void;
   onError?: (error: AxiosError<ApiErrorResponse>) => void;
 }) => {
   const invalidate = useInvalidateInvoiceRelated();
 
   return useMutation({
-    mutationKey: ["createInvoicePayment"],
-    mutationFn: ({
-      invoiceId,
-      payload,
-    }: {
-      invoiceId: number;
-      payload: CreateInvoicePaymentPayload;
-    }) => createInvoicePayment(invoiceId, payload),
+    mutationKey: ["createPayment"],
+    mutationFn: (payload: CreatePaymentPayload) => createPayment(payload),
     onSuccess: (data) => {
       invalidate();
       toast.success(data.message || "تم تسجيل الدفعة");

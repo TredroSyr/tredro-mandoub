@@ -12,6 +12,7 @@ export default function OrdersPage() {
 
   const { data, isLoading, isError, isFetching, refetch } = useGetCustomerRequestsQuery(
     filter === "all" ? undefined : { status: filter },
+    { refetchOnMount: "always" },
   );
   const requests = data?.data?.requests ?? [];
 
@@ -41,7 +42,7 @@ export default function OrdersPage() {
 
         {!isLoading && !isError && requests.length === 0 && (
           <p className="rounded-2xl bg-muted/60 p-4 text-center text-[11px] text-muted-foreground">
-            ما في طلبات ضمن هذا التصنيف.
+            لا توجد طلبات ضمن هذا التصنيف.
           </p>
         )}
 

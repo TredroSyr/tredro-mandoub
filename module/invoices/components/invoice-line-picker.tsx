@@ -40,7 +40,7 @@ export function InvoiceLinePicker({
 
         {!isLoading && products.length === 0 && (
           <p className="rounded-2xl bg-muted/60 p-4 text-center text-[11px] text-muted-foreground">
-            ما في منتجات قابلة للبيع مطابقة.
+            لا توجد منتجات قابلة للبيع مطابقة.
           </p>
         )}
 

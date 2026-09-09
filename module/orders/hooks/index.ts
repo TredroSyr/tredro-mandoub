@@ -10,10 +10,14 @@ import {
 } from "../api";
 import { CustomerRequestsListParams, RejectCustomerRequestPayload } from "../types";
 
-export const useGetCustomerRequestsQuery = (params?: CustomerRequestsListParams) => {
+export const useGetCustomerRequestsQuery = (
+  params?: CustomerRequestsListParams,
+  options?: { refetchOnMount?: boolean | "always" },
+) => {
   return useQuery({
     queryKey: ["customerRequests", params],
     queryFn: () => getCustomerRequests(params),
+    refetchOnMount: options?.refetchOnMount,
   });
 };
 
