@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "449012214500",
+    "project_id": "tredro-70442",
+    "storage_bucket": "tredro-70442.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:449012214500:android:5d06c8d072315ec6d21af1",
+        "android_client_info": {
+          "package_name": "com.tredro.dashboard"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBCoJpOm7Q8pGOZt0CrWvSOgpTKb_LmtmI"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:449012214500:android:cfae9613cbbd91abd21af1",
+        "android_client_info": {
+          "package_name": "com.tredromandoub.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBCoJpOm7Q8pGOZt0CrWvSOgpTKb_LmtmI"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

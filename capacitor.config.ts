@@ -12,6 +12,11 @@ const config: CapacitorConfig = {
     CapacitorHttp: {
       enabled: true,
     },
+    PushNotifications: {
+      // Ensures Android/iOS show the system tray notification (with sound) even
+      // while the app is in the foreground, instead of only firing the JS listener.
+      presentationOptions: ["badge", "sound", "alert", "banner", "list"],
+    },
   },
 };
 

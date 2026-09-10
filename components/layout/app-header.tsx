@@ -6,11 +6,15 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useShallow } from "zustand/react/shallow";
 import { IconRenderer } from "@/assets/icons/iconRenderer";
-import { useRepTourStore } from "@/store/use-rep-tour-store";
 import { useAuthStore } from "@/module/auth/store/auth-store";
 import { useThemeStore } from "@/store/use-theme-store";
 import { formatNum } from "@/lib/rep-tour-data";
 import { NotificationsDrawer } from "@/components/layout/notifications-drawer";
+import {
+  useUnreadNotificationsCountQuery,
+  useUnregisterNotificationDeviceMutation,
+} from "@/module/notifications/hooks";
+import { FCM_TOKEN_STORAGE_KEY } from "@/module/notifications/hooks/use-register-push-notifications";
 import { Button } from "@/components/ui/button";
 import {
   Popover,
@@ -31,9 +35,9 @@ interface AppHeaderProps {
 }
 
 export default function AppHeader({ onRefresh }: AppHeaderProps) {
-  const unread = useRepTourStore(
-    (s) => s.notifications.filter((n) => !n.read).length,
-  );
+  const { data: unreadCountData } = useUnreadNotificationsCountQuery();
+  const unread = unreadCountData?.data?.unread_count ?? 0;
+  const { mutate: unregisterDevice } = useUnregisterNotificationDeviceMutation();
   const rep = useAuthStore((s) => s.rep);
   const clearAuth = useAuthStore((s) => s.clearAuth);
   const { theme, toggleTheme } = useThemeStore(
@@ -52,6 +56,17 @@ export default function AppHeader({ onRefresh }: AppHeaderProps) {
 
   const handleLogout = () => {
     setMenuOpen(false);
+
+    // This device's push token belongs to whoever is signed in on it (backend
+    // §4.3) — unregister it now, and clear the dedup cache so the next sign-in
+    // (possibly a different rep) always re-registers instead of assuming
+    // "same token = already registered".
+    const fcmToken = window.localStorage.getItem(FCM_TOKEN_STORAGE_KEY);
+    if (fcmToken) {
+      unregisterDevice(fcmToken);
+      window.localStorage.removeItem(FCM_TOKEN_STORAGE_KEY);
+    }
+
     clearAuth();
     router.replace("/auth/login");
   };

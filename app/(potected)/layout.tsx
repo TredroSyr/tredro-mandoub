@@ -8,11 +8,13 @@ import BottomNav, { NAV_H } from "@/layout/bottom-nav";
 import AppHeader from "@/components/layout/app-header";
 import { PullToRefresh } from "@/components/tredro/pull-to-refresh";
 import { useAuthInit } from "@/module/auth/hook/use-token-guard";
+import { useRegisterPushNotifications } from "@/module/notifications/hooks/use-register-push-notifications";
 
 const MIN_SPIN_MS = 500;
 
 export default function ProtectedLayout({ children }: { children: ReactNode }) {
-  useAuthInit();
+  const { isAuthenticated } = useAuthInit();
+  useRegisterPushNotifications(isAuthenticated);
 
   const pathname = usePathname();
   const isFullScreen = pathname?.startsWith("/map") ?? false;

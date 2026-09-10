@@ -13,8 +13,32 @@ import {
 import {
   CreateStockTransferPayload,
   RepProductsListParams,
+  StockTransfer,
   StockTransfersListParams,
+  StockTransfersResponse,
 } from "../types";
+
+/** Patches the freshly confirmed/rejected/received transfer into every cached list immediately, instead of waiting on the background refetch from invalidate(). */
+function usePatchStockTransferCache() {
+  const queryClient = useQueryClient();
+  return (updated: StockTransfer) => {
+    queryClient.setQueriesData<StockTransfersResponse>(
+      { queryKey: ["stockTransfers"] },
+      (old) =>
+        old
+          ? {
+              ...old,
+              data: {
+                ...old.data,
+                transfers: old.data.transfers.map((t) =>
+                  t.id === updated.id ? updated : t,
+                ),
+              },
+            }
+          : old,
+    );
+  };
+}
 
 export const useGetRepProductsQuery = (
   params?: RepProductsListParams,
@@ -73,11 +97,13 @@ export const useConfirmStockTransferMutation = (options?: {
   onError?: (error: AxiosError<ApiErrorResponse>) => void;
 }) => {
   const invalidate = useInvalidateStockTransfers();
+  const patchCache = usePatchStockTransferCache();
 
   return useMutation({
     mutationKey: ["confirmStockTransfer"],
     mutationFn: (transferId: number) => confirmStockTransfer(transferId),
     onSuccess: (data) => {
+      if (data.data?.transfer) patchCache(data.data.transfer);
       invalidate();
       toast.success(data.message || "تم قبول الكميات المعدّلة");
       options?.onSuccess?.();
