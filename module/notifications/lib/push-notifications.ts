@@ -25,7 +25,7 @@ const buildPayload = (
   title,
   body,
   notificationId: data?.notification_id ? String(data.notification_id) : undefined,
-  url: resolveNotificationUrl(data?.event_key as string | undefined),
+  url: resolveNotificationUrl(data?.event_key as string | undefined, data),
 });
 
 export interface PushHandlers {

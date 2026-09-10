@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { Suspense, useEffect, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { SkeletonCard } from "@/components/ui/skeleton";
 import { IconRenderer } from "@/assets/icons/iconRenderer";
@@ -23,10 +24,35 @@ const STATUS_FILTERS: { label: string; statuses: StockTransferStatus[] }[] = [
 ];
 
 export default function MyOrdersPage() {
-  const [tab, setTab] = useState<"orders" | "received">("orders");
+  return (
+    <Suspense fallback={<SkeletonCard />}>
+      <MyOrdersContent />
+    </Suspense>
+  );
+}
+
+function MyOrdersContent() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  // Captured once on mount: a notification tap lands here with ?transferId=
+  // to jump straight into that transfer's detail drawer.
+  const [openTransferId] = useState<number | null>(() => {
+    const id = searchParams.get("transferId");
+    return id ? Number(id) : null;
+  });
+
+  const [tab, setTab] = useState<"orders" | "received">(
+    openTransferId ? "received" : "orders",
+  );
   const [statusFilter, setStatusFilter] = useState<
     StockTransferStatus[] | null
   >(null);
+
+  useEffect(() => {
+    if (openTransferId != null) router.replace("/my-orders");
+    // Only meant to strip the query param once, right after reading it above.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const received = useGetStockTransfersQuery();
 
@@ -140,7 +166,11 @@ export default function MyOrdersPage() {
             {!received.isLoading &&
               !received.isError &&
               filteredList.map((transfer) => (
-                <TransferCard key={transfer.id} transfer={transfer} />
+                <TransferCard
+                  key={transfer.id}
+                  transfer={transfer}
+                  autoOpen={transfer.id === openTransferId}
+                />
               ))}
           </div>
         </>

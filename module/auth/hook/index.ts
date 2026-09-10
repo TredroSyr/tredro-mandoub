@@ -19,11 +19,8 @@ export const useLoginMutation = (options?: {
     onSuccess: (response) => {
       if (response?.success && response.data?.tokens) {
         setAuth(response.data.rep, response.data.tokens);
-        if (!response.data.rep.company.onboarding_completed) {
-          router.push("/auth/onboarding");
-        } else {
-          router.push("/");
-        }
+
+        router.push("/");
       } else {
         toast.error(response?.message || "فشل تسجيل الدخول");
       }

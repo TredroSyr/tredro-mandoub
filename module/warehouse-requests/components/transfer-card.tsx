@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { IconRenderer } from "@/assets/icons/iconRenderer";
 import {
   useConfirmStockTransferMutation,
@@ -23,11 +23,24 @@ import { TransferDetailDrawer } from "./transfer-detail-drawer";
 
 const MAX_VISIBLE_LINES = 3;
 
-export function TransferCard({ transfer }: { transfer: StockTransfer }) {
+export function TransferCard({
+  transfer,
+  autoOpen,
+}: {
+  transfer: StockTransfer;
+  /** Opens the detail drawer on mount — used to jump straight to this transfer from a notification. */
+  autoOpen?: boolean;
+}) {
   const [detailOpen, setDetailOpen] = useState(false);
   const confirm = useConfirmStockTransferMutation();
   const reject = useRejectStockTransferMutation();
   const receive = useReceiveStockTransferMutation();
+
+  useEffect(() => {
+    if (autoOpen) setDetailOpen(true);
+    // Only meant to fire once, when this card is targeted by a notification.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const visibleLines = transfer.lines.slice(0, MAX_VISIBLE_LINES);
   const hasMoreLines = transfer.lines.length > MAX_VISIBLE_LINES;

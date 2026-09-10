@@ -1,10 +1,41 @@
 import { logout, refreshAccessToken } from "@/module/auth/lib/auth";
 import { useAuthStore } from "@/module/auth/store/auth-store";
+import { playActionErrorSound, playActionSuccessSound } from "@/lib/action-sound";
 import axios, {
   AxiosError,
   AxiosRequestConfig,
   InternalAxiosRequestConfig,
 } from "axios";
+
+// Methods that represent a user-initiated create/update/delete action.
+// Only these get a success/fail sound — GET requests (page loads, polling,
+// react-query refetches, and the auto-retry-on-network-error below) fire far
+// too often to play a sound for.
+const MUTATING_METHODS = ["post", "put", "patch", "delete"];
+
+// Endpoints that are technically mutating but happen passively/in the
+// background (e.g. marking a notification read as soon as it's opened) —
+// not a deliberate user action, so they shouldn't get a sound either.
+const SILENT_URL_PATTERNS = [/notifications\/.*read/i];
+
+const isMutatingRequest = (method?: string) =>
+  !!method && MUTATING_METHODS.includes(method.toLowerCase());
+
+const shouldPlaySound = (method?: string, url?: string) =>
+  isMutatingRequest(method) &&
+  !SILENT_URL_PATTERNS.some((pattern) => pattern.test(url ?? ""));
+
+// Rejects with `error`, playing the action-fail sound first if the request
+// that caused it was a create/update/delete call. Use this instead of a bare
+// `Promise.reject(error)` for every *final* rejection below (i.e. not for
+// requests just queued for retry, and not for the retried request itself —
+// that retry gets its own success/error outcome through this same interceptor).
+const rejectWithSound = (error: AxiosError, rejectValue: unknown = error) => {
+  if (shouldPlaySound(error.config?.method, error.config?.url)) {
+    playActionErrorSound();
+  }
+  return Promise.reject(rejectValue);
+};
 
 // CapacitorHttp (Android's native HTTP bridge) doesn't reliably honor
 // axios's `timeout` option, so a stalled request (e.g. a Render free-tier
@@ -42,6 +73,7 @@ const AUTH_SKIP_URLS = [
   "/auth/company/signup",
   "/auth/token/refresh",
   "/auth/company/signin",
+  "/auth/rep/signin",
 ];
 
 // Global flag: true while a refresh request is in flight.
@@ -138,6 +170,9 @@ const processQueue = (error: unknown, token: string | null = null) => {
 api.interceptors.response.use(
   (response) => {
     clearRequestTimers(response.config as TimedRequestConfig);
+    if (shouldPlaySound(response.config.method, response.config.url)) {
+      playActionSuccessSound();
+    }
     return response;
   },
   async (error: AxiosError) => {
@@ -150,7 +185,7 @@ api.interceptors.response.use(
 
     // If there's no config at all, we can't retry anything.
     if (!originalRequest) {
-      return Promise.reject(error);
+      return rejectWithSound(error);
     }
 
     // Don't attempt refresh logic on auth endpoints themselves
@@ -201,12 +236,12 @@ api.interceptors.response.use(
             void logout();
           }
 
-          return Promise.reject(error);
+          return rejectWithSound(error);
         }
       } catch (refreshError) {
         // Refresh call itself threw (network error, etc.) — reject everything.
         processQueue(refreshError);
-        return Promise.reject(refreshError);
+        return rejectWithSound(error, refreshError);
       } finally {
         // Always release the lock so future 401s can trigger a new refresh.
         isRefreshing = false;
@@ -233,7 +268,7 @@ api.interceptors.response.use(
     }
 
     // Any other error (not 401, already retried, or an auth URL) — just reject.
-    return Promise.reject(error);
+    return rejectWithSound(error);
   },
 );
 

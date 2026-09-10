@@ -23,7 +23,10 @@ import {
   WORK_DAYS_API,
   WORK_DAYS_LABELS,
 } from "@/module/customers/schema";
-import { useCreateCustomerMutation, useUpdateCustomerMutation } from "@/module/customers/hooks";
+import {
+  useCreateCustomerMutation,
+  useUpdateCustomerMutation,
+} from "@/module/customers/hooks";
 import { UpdateCustomerRequest } from "@/module/customers/types";
 import type { Customer } from "@/module/customers/types";
 import { ApiErrorResponse } from "@/module/auth/types";
@@ -40,6 +43,10 @@ interface CustomerFormProps {
   isLoadingLocation: boolean;
   onSuccess?: () => void;
   onCancel?: () => void;
+  /** DOM id assigned to the <form>, so a submit button outside it (e.g. in a drawer header) can trigger it via `form={formId}`. */
+  formId?: string;
+  /** Notified whenever the save/create mutation's pending state changes, so a header save button can reflect it. */
+  onPendingChange?: (pending: boolean) => void;
 }
 
 export function CustomerForm({
@@ -50,6 +57,8 @@ export function CustomerForm({
   isLoadingLocation,
   onSuccess,
   onCancel,
+  formId,
+  onPendingChange,
 }: CustomerFormProps) {
   const rep = useAuthStore((state) => state.rep);
   const isEdit = !!customer;
@@ -64,8 +73,8 @@ export function CustomerForm({
       work_days: customer?.work_days?.length
         ? (customer.work_days as any)
         : rep?.work_days?.length
-          ? (rep.work_days as any)
-          : undefined,
+        ? (rep.work_days as any)
+        : undefined,
       latitude: pickedPoint?.[0],
       longitude: pickedPoint?.[1],
     },
@@ -132,7 +141,13 @@ export function CustomerForm({
     },
   });
 
-  const isPending = isEdit ? updateCustomerMutation.isPending : createCustomerMutation.isPending;
+  const isPending = isEdit
+    ? updateCustomerMutation.isPending
+    : createCustomerMutation.isPending;
+
+  useEffect(() => {
+    onPendingChange?.(isPending);
+  }, [isPending, onPendingChange]);
 
   const onSubmit = (values: CreateCustomerValues) => {
     if (isEdit && customer) {
@@ -146,7 +161,10 @@ export function CustomerForm({
       if (values.work_days && values.work_days.length > 0) {
         requestData.work_days = values.work_days;
       }
-      updateCustomerMutation.mutate({ customerId: customer.id, data: requestData });
+      updateCustomerMutation.mutate({
+        customerId: customer.id,
+        data: requestData,
+      });
       return;
     }
 
@@ -173,7 +191,7 @@ export function CustomerForm({
     createCustomerMutation.mutate(requestData);
   };
 
-  const toggleWorkDay = (day: typeof WORK_DAYS_API[number]) => {
+  const toggleWorkDay = (day: (typeof WORK_DAYS_API)[number]) => {
     const current = form.getValues("work_days") || [];
     const newDays = current.includes(day)
       ? current.filter((d) => d !== day)
@@ -185,7 +203,11 @@ export function CustomerForm({
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+      <form
+        id={formId}
+        onSubmit={form.handleSubmit(onSubmit)}
+        className="space-y-4"
+      >
         <FormField
           control={form.control}
           name="name"
@@ -299,7 +321,9 @@ export function CustomerForm({
                     <Button
                       key={day}
                       type="button"
-                      variant={selectedWorkDays.includes(day) ? "default" : "secondary"}
+                      variant={
+                        selectedWorkDays.includes(day) ? "default" : "secondary"
+                      }
                       size="sm"
                       className="rounded-xl"
                       onClick={() => toggleWorkDay(day)}
@@ -312,7 +336,10 @@ export function CustomerForm({
               <FormMessage className="text-[11px] font-bold" />
               {rep?.work_days?.length && selectedWorkDays.length === 0 && (
                 <p className="text-[10px] text-muted-foreground">
-                  سيتم استخدام أيام عملك الافتراضية: {rep.work_days.map((d) => WORK_DAYS_LABELS[d] || d).join(", ")}
+                  سيتم استخدام أيام عملك الافتراضية:{" "}
+                  {rep.work_days
+                    .map((d) => WORK_DAYS_LABELS[d] || d)
+                    .join(", ")}
                 </p>
               )}
             </FormItem>
@@ -341,7 +368,9 @@ export function CustomerForm({
               className="w-full py-3 text-xs"
             >
               <IconRenderer
-                name={isLoadingLocation ? "refresh_outlined" : "cursor_outlined"}
+                name={
+                  isLoadingLocation ? "refresh_outlined" : "cursor_outlined"
+                }
                 className={cn("w-6 h-6", isLoadingLocation && "animate-spin")}
               />
               {isLoadingLocation ? "جاري جلب موقعك…" : "استخدم موقعي الحالي"}
@@ -353,31 +382,6 @@ export function CustomerForm({
               : "لم يتم تحديد الموقع بعد"}
           </p>
           <FormMessage className="text-[11px] font-bold" />
-        </div>
-
-        <div className="flex gap-2">
-          {onCancel && (
-            <Button
-              type="button"
-              variant="secondary"
-              onClick={onCancel}
-              className="flex-1 py-3.5 text-sm"
-            >
-              إلغاء
-            </Button>
-          )}
-          <Button
-            type="submit"
-            disabled={isPending}
-            className="flex-1 py-3.5 text-sm"
-          >
-            {isPending ? (
-              <IconRenderer name="activity_log_outlined" className="w-6 h-6 animate-spin" />
-            ) : (
-              <IconRenderer name="tick_outlined" className="w-6 h-6" />
-            )}
-            {isPending ? "جاري الحفظ…" : isEdit ? "حفظ التعديلات" : "حفظ العميل"}
-          </Button>
         </div>
       </form>
     </Form>

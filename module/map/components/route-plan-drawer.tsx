@@ -1,10 +1,20 @@
 "use client";
 
-import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerClose } from "@/components/ui/drawer";
+import {
+  Drawer,
+  DrawerContent,
+  DrawerHeader,
+  DrawerTitle,
+  DrawerClose,
+} from "@/components/ui/drawer";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { IconRenderer } from "@/assets/icons/iconRenderer";
-import { TripResult, formatDistance, formatDuration } from "@/module/map/lib/routing";
+import {
+  TripResult,
+  formatDistance,
+  formatDuration,
+} from "@/module/map/lib/routing";
 
 interface RoutePlanDrawerProps {
   open: boolean;
@@ -21,18 +31,12 @@ export function RoutePlanDrawer({
   onOpenChange,
   trip,
   onViewStop,
-  bottomNavHeight = "var(--bottom-nav-height)",
-  panelWidthClass = "md:inset-x-auto md:left-1/2 md:w-full md:max-w-md md:-translate-x-1/2",
-  overlayZ = "z-[2600]",
 }: RoutePlanDrawerProps) {
   if (!trip) return null;
 
   return (
     <Drawer open={open} onOpenChange={onOpenChange} modal={false}>
-      <DrawerContent
-        className={`${overlayZ} mt-0 h-[46svh] ${panelWidthClass}`}
-        style={{ bottom: bottomNavHeight }}
-      >
+      <DrawerContent>
         <DrawerHeader className="flex justify-between flex-row w-full items-center gap-3 px-5 pb-3 pt-1 text-start">
           <div className="min-w-0">
             <DrawerTitle className="truncate text-base font-extrabold">
@@ -71,7 +75,9 @@ export function RoutePlanDrawer({
                   {i + 1}
                 </span>
                 <div className="min-w-0">
-                  <h4 className="truncate text-sm font-bold">{stop.shop.name}</h4>
+                  <h4 className="truncate text-sm font-bold">
+                    {stop.shop.name}
+                  </h4>
                   <p className="mt-0.5 truncate text-xs text-muted-foreground">
                     {stop.shop.address}
                   </p>

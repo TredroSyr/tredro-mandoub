@@ -1,10 +1,20 @@
 "use client";
 
-import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerClose } from "@/components/ui/drawer";
+import { useState } from "react";
+import {
+  Drawer,
+  DrawerContent,
+  DrawerHeader,
+  DrawerTitle,
+  DrawerClose,
+} from "@/components/ui/drawer";
 import { Button } from "@/components/ui/button";
 import { IconRenderer } from "@/assets/icons/iconRenderer";
+import { cn } from "@/lib/utils";
 import type { Customer } from "@/module/customers/types";
 import { CustomerForm } from "./customer-form";
+
+const CUSTOMER_FORM_ID = "add-customer-drawer-form";
 
 interface AddCustomerDrawerProps {
   open: boolean;
@@ -16,9 +26,6 @@ interface AddCustomerDrawerProps {
   onUseMyLocation: () => void;
   isLoadingLocation: boolean;
   onSuccess: () => void;
-  bottomNavHeight?: string;
-  panelWidthClass?: string;
-  overlayZ?: string;
 }
 
 export function AddCustomerDrawer({
@@ -30,28 +37,39 @@ export function AddCustomerDrawer({
   onUseMyLocation,
   isLoadingLocation,
   onSuccess,
-  bottomNavHeight = "var(--bottom-nav-height)",
-  panelWidthClass = "md:inset-x-auto md:left-1/2 md:w-full md:max-w-md md:-translate-x-1/2",
-  overlayZ = "z-[2600]",
 }: AddCustomerDrawerProps) {
+  const [isSaving, setIsSaving] = useState(false);
+
   return (
     <Drawer open={open} onOpenChange={onOpenChange}>
-      <DrawerContent
-        className={`${overlayZ} mt-0 h-[75svh] rounded-t-[1.75rem] border-t border-glass-border bg-card/95 shadow-sheet backdrop-blur-xl ${panelWidthClass} md:rounded-b-[1.75rem]`}
-        style={{ bottom: bottomNavHeight }}
-      >
-        <DrawerHeader className="flex justify-between flex-row w-full items-center gap-3 px-5 pb-3 pt-1 text-start">
+      <DrawerContent>
+        <DrawerHeader className="flex justify-between flex-row w-full items-center gap-3 px-5 text-start">
           <DrawerTitle className="truncate text-base">
             {customer ? "تعديل بيانات المحل" : "محل جديد"}
           </DrawerTitle>
-          <DrawerClose>
-            <Button variant="secondary" size="icon-sm">
-              <IconRenderer name="close_outlined" className="w-3 h-3" />
+          <div className="flex items-center gap-2">
+            <Button
+              type="submit"
+              form={CUSTOMER_FORM_ID}
+              size="sm"
+              disabled={isSaving}
+            >
+              <IconRenderer
+                name={isSaving ? "activity_log_outlined" : "tick_outlined"}
+                className={cn("w-3.5 h-3.5", isSaving && "animate-spin")}
+              />
+              {isSaving ? "جاري الحفظ…" : "حفظ"}
             </Button>
-          </DrawerClose>
+            <DrawerClose>
+              <Button variant="secondary" size="icon-sm">
+                <IconRenderer name="close_outlined" className="w-3 h-3" />
+              </Button>
+            </DrawerClose>
+          </div>
         </DrawerHeader>
         <div className="flex-1 space-y-4 overflow-y-auto px-5 py-4">
           <CustomerForm
+            formId={CUSTOMER_FORM_ID}
             customer={customer}
             pickedPoint={pickedPoint}
             onPickLocation={() => {
@@ -62,6 +80,7 @@ export function AddCustomerDrawer({
             isLoadingLocation={isLoadingLocation}
             onSuccess={onSuccess}
             onCancel={() => onOpenChange(false)}
+            onPendingChange={setIsSaving}
           />
         </div>
       </DrawerContent>

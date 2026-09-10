@@ -52,7 +52,12 @@ const TABS: Tab[] = [
   },
 ];
 
-const SPRING = { type: "spring", stiffness: 300, damping: 30, mass: 0.8 } as const;
+const SPRING = {
+  type: "spring",
+  stiffness: 300,
+  damping: 30,
+  mass: 0.8,
+} as const;
 
 export default function BottomNav() {
   const pathname = usePathname();
@@ -60,12 +65,12 @@ export default function BottomNav() {
   return (
     <motion.nav
       dir="rtl"
-      initial={{ y: 24, opacity: 0 }}
-      animate={{ y: 0, opacity: 1 }}
+      initial={{ y: 24 }}
+      animate={{ y: 0 }}
       transition={{ type: "spring", stiffness: 300, damping: 28 }}
-      className="fixed inset-x-0 bottom-0 z-2100 pt-1.5"
+      className="fixed inset-x-0 bottom-0 z-40 pt-1.5"
     >
-      <ul className="bottom-nav-glass mx-auto flex max-w-md items-center justify-between gap-1 px-1.5 py-3">
+      <ul className="bg-card mx-auto flex max-w-md items-center justify-between gap-1 px-1.5 py-3 shadow-(--bottom-nav-shadow)">
         {TABS.map(({ to, label, filled, outlined }) => {
           const active =
             to === "/" ? pathname === "/" : pathname?.startsWith(to);
@@ -107,7 +112,10 @@ export default function BottomNav() {
                         initial={{ opacity: 0, x: -4 }}
                         animate={{ opacity: 1, x: 0 }}
                         exit={{ opacity: 0, x: -4 }}
-                        transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
+                        transition={{
+                          duration: 0.25,
+                          ease: [0.22, 1, 0.36, 1],
+                        }}
                         className="overflow-hidden text-sm font-medium whitespace-nowrap"
                       >
                         {label}

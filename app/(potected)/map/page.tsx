@@ -49,11 +49,10 @@ export default function TourPage() {
   const [listOpen, setListOpen] = useState(true);
   const [addOpen, setAddOpen] = useState(false);
   const [picking, setPicking] = useState(false);
-  const [pickedPoint, setPickedPoint] = useState<[number, number] | null>(
-    null,
-  );
+  const [pickedPoint, setPickedPoint] = useState<[number, number] | null>(null);
   const [pickingLocLoading, setPickingLocLoading] = useState(false);
   const [routePlanDrawerOpen, setRoutePlanDrawerOpen] = useState(false);
+  const [shopListHeight, setShopListHeight] = useState<number | null>(null);
 
   const { focus, flyTo } = useMapFocus();
   const nav = useTourNavigation({ flyTo });
@@ -117,7 +116,11 @@ export default function TourPage() {
   // 46svh ≈ 340px on typical mobile, 100px = minimal offset when closed.
   // The nav height is approx 64px (4rem) + safe area, but Leaflet needs a static number.
   const bottomInset = (listOpen ? 340 : 100) + NAV_H_ESTIMATE;
-  const floatingBottom = listOpen ? `calc(46svh + 0.7rem)` : `0rem`;
+  const floatingBottom = listOpen
+    ? shopListHeight != null
+      ? `calc(${shopListHeight}px + 0.7rem)`
+      : `calc(46svh + 0.7rem)`
+    : `0rem`;
 
   return (
     <main
@@ -231,9 +234,7 @@ export default function TourPage() {
         origin={nav.origin}
         onSelectItem={openListItem}
         isLoading={isLoadingCustomers}
-        bottomNavHeight={BOTTOM_NAV_H_CSS}
-        panelWidthClass={PANEL_WIDTH_CLASS}
-        overlayZ={OVERLAY_Z}
+        onHeightChange={setShopListHeight}
       />
 
       <AddCustomerDrawer
@@ -244,25 +245,20 @@ export default function TourPage() {
         onUseMyLocation={useMyLocationForShop}
         isLoadingLocation={pickingLocLoading}
         onSuccess={handleAddCustomerSuccess}
-        bottomNavHeight={BOTTOM_NAV_H_CSS}
-        panelWidthClass={PANEL_WIDTH_CLASS}
-        overlayZ={OVERLAY_Z}
       />
 
       <RoutePlanDrawer
         open={!nav.navShop && !!routePlan.trip && routePlanDrawerOpen}
         onOpenChange={setRoutePlanDrawerOpen}
         trip={routePlan.trip}
-        onViewStop={(customerId) => router.push(`/stores/detail?id=${customerId}`)}
-        bottomNavHeight={BOTTOM_NAV_H_CSS}
-        panelWidthClass={PANEL_WIDTH_CLASS}
-        overlayZ={OVERLAY_Z}
+        onViewStop={(customerId) =>
+          router.push(`/stores/detail?id=${customerId}`)
+        }
       />
 
       {nav.navShop && (
         <NavigationPanel
           shop={nav.navShop}
-          origin={nav.origin}
           route={nav.route}
           routeLoading={nav.routeLoading}
           routeError={nav.routeError}
@@ -270,8 +266,6 @@ export default function TourPage() {
           follow={nav.follow}
           onStopNavigation={nav.stopNavigation}
           onCenterOnUser={nav.centerOnUser}
-          panelWidthClass={PANEL_WIDTH_CLASS}
-          bottomNavHeight={BOTTOM_NAV_H_CSS}
         />
       )}
     </main>

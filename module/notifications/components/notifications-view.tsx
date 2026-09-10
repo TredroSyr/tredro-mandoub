@@ -44,6 +44,9 @@ import { Notification } from "../types";
 
 type ReadStatus = "unread" | "read";
 
+/** Sentinel never equal to a real query result — see its use below for why. */
+const NOT_YET_SEEN = Symbol("not-yet-seen");
+
 /** Latin (Western) digits everywhere, even inside Arabic-locale formatting — mirrors lib/format.ts. */
 const NUMBERING_SYSTEM = { numberingSystem: "latn" } as const;
 
@@ -123,8 +126,8 @@ function getSenderInfo(payload: Record<string, unknown>): {
     typeof payload.sender_avatar === "string"
       ? payload.sender_avatar
       : typeof payload.avatar_url === "string"
-        ? payload.avatar_url
-        : undefined;
+      ? payload.avatar_url
+      : undefined;
   return { name, avatar };
 }
 
@@ -518,7 +521,16 @@ export function NotificationsView() {
   // deriving state from a changing prop, see the notification-list-based
   // implementation this file replaces) rather than in an effect, since
   // react-hooks/set-state-in-effect flags a plain setState-in-useEffect here.
-  const [lastSeenData, setLastSeenData] = React.useState(data);
+  //
+  // Seeded with a sentinel (never `data` itself) so the sync below always runs
+  // on mount at least once — otherwise, when this query is already cached from
+  // a previous visit (e.g. navigating away to open a notification and back),
+  // `data` is non-undefined on the very first render and would already equal
+  // an initializer of `React.useState(data)`, permanently skipping the sync
+  // and leaving `items` stuck at its initial `[]`.
+  const [lastSeenData, setLastSeenData] = React.useState<
+    typeof data | typeof NOT_YET_SEEN
+  >(NOT_YET_SEEN);
   if (data !== lastSeenData) {
     setLastSeenData(data);
     const fetched = data?.data.notifications;
@@ -556,7 +568,9 @@ export function NotificationsView() {
 
   const openNotification = (notification: Notification) => {
     if (!notification.is_read) markRead(notification.id);
-    router.push(resolveNotificationUrl(notification.event_key));
+    router.push(
+      resolveNotificationUrl(notification.event_key, notification.payload),
+    );
   };
 
   const handleConfirmClear = () => {
@@ -585,7 +599,7 @@ export function NotificationsView() {
           is already "sticky top-0" at a higher z-index. Stacking a second sticky
           header at top-0 here would render underneath/behind AppHeader instead of
           below it, so this section just scrolls normally with the page. */}
-      <div className="bg-card">
+      <div className="bg-card ">
         <div
           role="tablist"
           className="flex border-b [&>button:not(:last-child)]:border-e"
@@ -606,7 +620,7 @@ export function NotificationsView() {
           />
         </div>
 
-        <div className="flex flex-wrap items-center justify-between gap-2 border-b py-2">
+        <div className="flex flex-wrap items-center justify-between gap-2 border-b p-4">
           <div className="flex min-w-0 items-center gap-1.5">
             <Popover>
               <PopoverTrigger>
@@ -698,8 +712,7 @@ export function NotificationsView() {
           </Button>
         </div>
       </div>
-
-      <div>
+      <div className="p-4">
         {isLoading ? (
           <NotificationsSkeleton />
         ) : isInboxZero ? (

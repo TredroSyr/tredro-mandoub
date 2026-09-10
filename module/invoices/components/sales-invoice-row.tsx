@@ -13,7 +13,7 @@ function RowContent({ invoice }: { invoice: SalesInvoice }) {
     <>
       <div className="min-w-0">
         <p className="truncate text-sm font-bold">{invoice.customer_name}</p>
-        <p className="font-mono text-[10px] text-muted-foreground">
+        <p dir="ltr" className="truncate font-mono text-[10px] text-muted-foreground">
           {invoice.number} · {formatDate(invoice.date)}
         </p>
       </div>

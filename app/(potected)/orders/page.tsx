@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { Suspense, useEffect, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { IconRenderer } from "@/assets/icons/iconRenderer";
 import { RequestCard, RequestCardSkeleton, RequestFilterTabs } from "@/module/orders/components";
@@ -8,7 +9,30 @@ import { useGetCustomerRequestsQuery } from "@/module/orders/hooks";
 import { CustomerRequestStatus } from "@/module/orders/types";
 
 export default function OrdersPage() {
+  return (
+    <Suspense fallback={<RequestCardSkeleton />}>
+      <OrdersContent />
+    </Suspense>
+  );
+}
+
+function OrdersContent() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  // Captured once on mount: a notification tap lands here with ?requestId=
+  // to jump straight into that request's detail drawer.
+  const [openRequestId] = useState<number | null>(() => {
+    const id = searchParams.get("requestId");
+    return id ? Number(id) : null;
+  });
+
   const [filter, setFilter] = useState<CustomerRequestStatus | "all">("all");
+
+  useEffect(() => {
+    if (openRequestId != null) router.replace("/orders");
+    // Only meant to strip the query param once, right after reading it above.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const { data, isLoading, isError, isFetching, refetch } = useGetCustomerRequestsQuery(
     filter === "all" ? undefined : { status: filter },
@@ -46,7 +70,11 @@ export default function OrdersPage() {
           </p>
         )}
 
-        {!isLoading && !isError && requests.map((request) => <RequestCard key={request.id} request={request} />)}
+        {!isLoading &&
+          !isError &&
+          requests.map((request) => (
+            <RequestCard key={request.id} request={request} autoOpen={request.id === openRequestId} />
+          ))}
       </div>
     </>
   );

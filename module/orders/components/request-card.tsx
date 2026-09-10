@@ -1,29 +1,54 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { IconRenderer } from "@/assets/icons/iconRenderer";
 import { Skeleton } from "@/components/ui/skeleton";
 import { CreateInvoiceDrawer } from "@/module/invoices/components";
-import { useAcceptCustomerRequestMutation, useRejectCustomerRequestMutation } from "../hooks";
+import {
+  useAcceptCustomerRequestMutation,
+  useRejectCustomerRequestMutation,
+} from "../hooks";
 import { CustomerRequest } from "../types";
-import { formatRequestDate, formatRequestMoney, isRequestAnswerable, isRequestDeliverable } from "../lib/utils";
+import {
+  formatRequestDate,
+  formatRequestMoney,
+  isRequestAnswerable,
+  isRequestDeliverable,
+} from "../lib/utils";
 import { RequestStatusBadge } from "./request-status-badge";
 import { RejectReasonDialog } from "./reject-reason-dialog";
 import { RequestDetailDrawer } from "./request-detail-drawer";
 
-export function RequestCard({ request }: { request: CustomerRequest }) {
+export function RequestCard({
+  request,
+  autoOpen,
+}: {
+  request: CustomerRequest;
+  /** Opens the detail drawer on mount — used to jump straight to this request from a notification. */
+  autoOpen?: boolean;
+}) {
   const [rejectOpen, setRejectOpen] = useState(false);
   const [invoiceOpen, setInvoiceOpen] = useState(false);
   const [detailOpen, setDetailOpen] = useState(false);
   const accept = useAcceptCustomerRequestMutation();
-  const reject = useRejectCustomerRequestMutation({ onSuccess: () => setRejectOpen(false) });
+  const reject = useRejectCustomerRequestMutation({
+    onSuccess: () => setRejectOpen(false),
+  });
+
+  useEffect(() => {
+    if (autoOpen) setDetailOpen(true);
+    // Only meant to fire once, when this card is targeted by a notification.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return (
     <article className="flex h-43 flex-col justify-between rounded-2xl border border-border bg-card p-4">
       <div>
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0">
-            <h2 className="truncate text-sm font-bold">{request.customer_name}</h2>
+            <h2 className="truncate text-sm font-bold">
+              {request.customer_name}
+            </h2>
             <p dir="ltr" className="truncate text-[11px] text-muted-foreground">
               {request.customer_phone}
             </p>
@@ -35,7 +60,9 @@ export function RequestCard({ request }: { request: CustomerRequest }) {
         </div>
 
         <div className="mt-3 flex items-center justify-between">
-          <span className="text-[11px] text-muted-foreground">{request.line_count} صنف</span>
+          <span className="text-[11px] text-muted-foreground">
+            {request.line_count} صنف
+          </span>
           <span className="font-mono text-xs font-extrabold text-primary">
             {formatRequestMoney(request.estimated_total)}
           </span>
@@ -47,7 +74,8 @@ export function RequestCard({ request }: { request: CustomerRequest }) {
           onClick={() => setDetailOpen(true)}
           className="flex items-center gap-1 rounded-xl bg-secondary px-3 py-2 text-[11px] font-bold text-muted-foreground"
         >
-          <IconRenderer name="plus_circle_outlined" className="size-3.5" /> التفاصيل
+          <IconRenderer name="plus_circle_outlined" className="size-3.5" />{" "}
+          التفاصيل
         </button>
 
         <div className="flex items-center gap-1.5">
@@ -73,21 +101,28 @@ export function RequestCard({ request }: { request: CustomerRequest }) {
           {isRequestDeliverable(request.status) && (
             <button
               onClick={() => setInvoiceOpen(true)}
-              className="flex items-center gap-1 rounded-xl bg-primary px-3 py-2 text-[11px] font-bold text-primary-foreground"
+              className="flex items-center text-white gap-1 rounded-xl bg-primary px-3 py-2 text-[11px] font-bold text-primary-foreground"
             >
-              <IconRenderer name="checkout_outlined" className="size-3.5" /> إنشاء فاتورة
+              <IconRenderer name="checkout_outlined" className="size-3.5" />{" "}
+              إنشاء فاتورة
             </button>
           )}
         </div>
       </div>
 
-      <RequestDetailDrawer open={detailOpen} onOpenChange={setDetailOpen} request={request} />
+      <RequestDetailDrawer
+        open={detailOpen}
+        onOpenChange={setDetailOpen}
+        request={request}
+      />
 
       <RejectReasonDialog
         open={rejectOpen}
         onOpenChange={setRejectOpen}
         isPending={reject.isPending}
-        onConfirm={(reason) => reject.mutate({ requestId: request.id, payload: { reason } })}
+        onConfirm={(reason) =>
+          reject.mutate({ requestId: request.id, payload: { reason } })
+        }
       />
 
       <CreateInvoiceDrawer
@@ -96,7 +131,10 @@ export function RequestCard({ request }: { request: CustomerRequest }) {
         customerId={request.customer}
         prefill={{
           requestId: request.id,
-          lines: request.lines.map((l) => ({ product_id: l.product, quantity: l.desired_quantity })),
+          lines: request.lines.map((l) => ({
+            product_id: l.product,
+            quantity: l.desired_quantity,
+          })),
         }}
       />
     </article>

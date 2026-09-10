@@ -14,6 +14,9 @@ export function formatQuantity(value: string) {
   });
 }
 
+/** ar-SY date formatting embeds bidi control chars (LRM/RLM/ALM) around each segment even with Latin digits, which scrambles visual order regardless of container `dir` — strip them. */
+const BIDI_CONTROL_CHARS = /[‎‏؜]/g;
+
 export function formatDate(value: string) {
-  return new Date(value).toLocaleDateString("ar-SY", NUMBERING_SYSTEM);
+  return new Date(value).toLocaleDateString("ar-SY", NUMBERING_SYSTEM).replace(BIDI_CONTROL_CHARS, "");
 }
