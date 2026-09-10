@@ -9,7 +9,6 @@ import { IconRenderer } from "@/assets/icons/iconRenderer";
 import { useAuthStore } from "@/module/auth/store/auth-store";
 import { useThemeStore } from "@/store/use-theme-store";
 import { formatNum } from "@/lib/rep-tour-data";
-import { NotificationsDrawer } from "@/components/layout/notifications-drawer";
 import {
   useUnreadNotificationsCountQuery,
   useUnregisterNotificationDeviceMutation,
@@ -47,7 +46,6 @@ export default function AppHeader({ onRefresh }: AppHeaderProps) {
     })),
   );
   const router = useRouter();
-  const [notificationsOpen, setNotificationsOpen] = useState(false);
   const [logoError, setLogoError] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [referralInfoOpen, setReferralInfoOpen] = useState(false);
@@ -77,7 +75,7 @@ export default function AppHeader({ onRefresh }: AppHeaderProps) {
         <div className="flex shrink-0 items-center gap-2">
           <button
             type="button"
-            onClick={() => setNotificationsOpen(true)}
+            onClick={() => router.push("/notifications")}
             aria-label="الإشعارات"
             className="relative grid size-9 shrink-0 place-items-center rounded-2xl bg-secondary text-primary active:scale-95"
           >
@@ -248,11 +246,6 @@ export default function AppHeader({ onRefresh }: AppHeaderProps) {
           />
         </button>
       </div>
-
-      <NotificationsDrawer
-        open={notificationsOpen}
-        onOpenChange={setNotificationsOpen}
-      />
 
       <Dialog open={referralInfoOpen} onOpenChange={setReferralInfoOpen}>
         <DialogContent className="sm:max-w-sm">
