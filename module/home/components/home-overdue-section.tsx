@@ -45,8 +45,8 @@ export function HomeOverdueSection() {
               <span className="font-mono text-xs font-bold text-destructive">
                 {formatCurrency(invoice.balance_due)}
               </span>
-              {invoice.days_overdue != null && (
-                <span className="text-[10px] text-muted-foreground">متأخرة {invoice.days_overdue} يوم</span>
+              {invoice.line_count != null && (
+                <span className="text-[10px] text-muted-foreground">{invoice.line_count} أصناف</span>
               )}
             </div>
           </button>
