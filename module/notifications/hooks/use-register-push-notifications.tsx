@@ -3,6 +3,7 @@ import { useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { useQueryClient } from "@tanstack/react-query";
 import { Capacitor } from "@capacitor/core";
+import { EyeIcon } from "lucide-react";
 import { toast } from "@/components/ui/toast";
 import {
   useMarkNotificationReadMutation,
@@ -45,7 +46,9 @@ export const useRegisterPushNotifications = (enabled: boolean) => {
         description: payload.body,
         timeout: 6000,
         actionProps: {
-          children: "عرض",
+          "aria-label": "عرض",
+          className: "px-2",
+          children: <EyeIcon aria-hidden="true" />,
           onClick: () => {
             if (payload.notificationId) markRead(payload.notificationId);
             router.push(payload.url);
