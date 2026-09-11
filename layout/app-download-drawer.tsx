@@ -91,11 +91,11 @@ export default function AppDownloadDrawer() {
           <span className="mb-2 text-sm font-medium text-primary">Tredro</span>
 
           <h2 className="mb-3 text-2xl font-bold leading-snug text-foreground">
-            إدارة أسهل لمندوبيك وطلباتك
+            إدارة أسهل لطلباتك ومهامك اليومية
           </h2>
 
           <p className="mb-6 max-w-xs text-sm leading-relaxed text-muted-foreground">
-            حمّل تطبيق تريدرو وتابع مندوبي المبيعات، الطلبات، والمخزون أينما كنت
+            حمّل تطبيق Tredro وتابع طلباتك، زياراتك، وتحصيلاتك أينما كنت
             — إشعارات فورية، وتحكّم كامل من جوالك.
           </p>
 
@@ -104,7 +104,7 @@ export default function AppDownloadDrawer() {
             className="group relative mb-4 h-13 w-full overflow-hidden rounded-full bg-primary text-primary-foreground shadow-lg shadow-primary/30 transition-transform duration-300 active:scale-95 hover:scale-[1.02] hover:bg-primary/90"
           >
             <a
-              href="/downloads/tredro-dashborad.apk"
+              href="https://mandoub.tredro.online/download/tredro-mandoub.apk"
               download
               target="_blank"
               rel="noopener noreferrer"
