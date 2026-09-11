@@ -28,6 +28,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { useQueryClient } from "@tanstack/react-query";
 
 interface AppHeaderProps {
   onRefresh?: () => void;
@@ -52,7 +53,7 @@ export default function AppHeader({ onRefresh }: AppHeaderProps) {
   const [referralInfoOpen, setReferralInfoOpen] = useState(false);
   const [logoutDialogOpen, setLogoutDialogOpen] = useState(false);
   const companyLogo = rep?.company?.logo;
-
+  const queryClient = useQueryClient();
   const handleLogout = () => {
     setMenuOpen(false);
 
@@ -67,7 +68,8 @@ export default function AppHeader({ onRefresh }: AppHeaderProps) {
     }
 
     clearAuth();
-    router.replace("/auth/login");
+    queryClient.clear();
+    router.push("/auth/login");
   };
 
   return (
