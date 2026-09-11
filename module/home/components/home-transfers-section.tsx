@@ -23,9 +23,14 @@ export function HomeTransfersSection() {
         <IconRenderer name="warning_outlined" className="size-4 text-primary" /> طلبات تحتاج إجراء منك
         <span className="font-mono text-[11px] text-muted-foreground">{transfers.length}</span>
       </h2>
-      <div className="space-y-2">
+      <div
+        className="flex gap-3 overflow-x-auto scroll-smooth snap-x snap-mandatory [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
+        dir="rtl"
+      >
         {transfers.map((transfer) => (
-          <TransferCard key={transfer.id} transfer={transfer} />
+          <div key={transfer.id} className="w-[85%] shrink-0 snap-start xs:w-[65%] sm:w-96">
+            <TransferCard transfer={transfer} />
+          </div>
         ))}
       </div>
     </section>

@@ -21,16 +21,27 @@ export function HomeSalesSection() {
       </h2>
 
       {isLoading ? (
-        <div className="space-y-2">
-          <SkeletonCard />
-          <SkeletonCard />
+        <div
+          className="flex gap-3 overflow-x-auto scroll-smooth [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
+          dir="rtl"
+        >
+          {Array.from({ length: PREVIEW_COUNT }).map((_, i) => (
+            <div key={i} className="w-[65%] shrink-0 xs:w-[45%] sm:w-72">
+              <SkeletonCard />
+            </div>
+          ))}
         </div>
       ) : invoices.length === 0 ? (
         <EmptyState variant="sales" size="sm" />
       ) : (
-        <div className="space-y-2">
+        <div
+          className="flex gap-3 overflow-x-auto scroll-smooth snap-x snap-mandatory [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
+          dir="rtl"
+        >
           {invoices.map((invoice) => (
-            <SalesInvoiceRow key={invoice.id} invoice={invoice} onClick={() => setDetailInvoiceId(invoice.id)} />
+            <div key={invoice.id} className="w-[65%] shrink-0 snap-start xs:w-[45%] sm:w-72">
+              <SalesInvoiceRow invoice={invoice} onClick={() => setDetailInvoiceId(invoice.id)} />
+            </div>
           ))}
         </div>
       )}

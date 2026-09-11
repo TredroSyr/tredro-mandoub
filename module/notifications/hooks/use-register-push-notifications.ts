@@ -46,7 +46,10 @@ export const useRegisterPushNotifications = (enabled: boolean) => {
         timeout: 6000,
         actionProps: {
           children: "عرض",
-          onClick: () => router.push(payload.url),
+          onClick: () => {
+            if (payload.notificationId) markRead(payload.notificationId);
+            router.push(payload.url);
+          },
         },
       });
 

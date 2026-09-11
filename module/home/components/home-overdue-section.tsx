@@ -27,13 +27,16 @@ export function HomeOverdueSection() {
         <span className="font-mono text-[11px] text-muted-foreground">{totalCount}</span>
       </h2>
 
-      <div className="space-y-2">
+      <div
+        className="flex gap-3 overflow-x-auto scroll-smooth snap-x snap-mandatory [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
+        dir="rtl"
+      >
         {invoices.map((invoice) => (
           <button
             key={invoice.id}
             type="button"
             onClick={() => setDetailInvoiceId(invoice.id)}
-            className="flex w-full items-center justify-between gap-3 rounded-2xl border border-border bg-card p-3.5 text-start"
+            className="flex w-[65%] shrink-0 snap-start items-center justify-between gap-3 rounded-2xl border border-border bg-card p-3.5 text-start xs:w-[45%] sm:w-72"
           >
             <div className="min-w-0">
               <p className="truncate text-sm font-bold">{invoice.customer_name}</p>

@@ -69,7 +69,10 @@ export function HomeNearbyCustomersSection() {
       <h2 className="mb-2.5 flex items-center gap-2 text-sm font-extrabold">
         <IconRenderer name="location_filled" className="size-4 text-primary" /> أقرب المحلات غير المُزارة
       </h2>
-      <div className="space-y-2">
+      <div
+        className="flex gap-3 overflow-x-auto scroll-smooth snap-x snap-mandatory [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
+        dir="rtl"
+      >
         {nearest.map(({ customer, distance }) => {
           const workDays = getCustomerWorkDays(customer);
           const dayLabel = workDays.length > 0 ? WORK_DAYS_LABELS[workDays[0]] ?? workDays[0] : "—";
@@ -77,7 +80,7 @@ export function HomeNearbyCustomersSection() {
             <button
               key={customer.id}
               onClick={() => router.push(`/stores/detail?id=${customer.id}`)}
-              className="grid w-full grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-3 rounded-2xl border border-border bg-card p-3.5 text-start"
+              className="grid w-[65%] shrink-0 snap-start grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-3 rounded-2xl border border-border bg-card p-3.5 text-start xs:w-[45%] sm:w-80"
             >
               <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-primary/12 text-primary">
                 <IconRenderer name="store_filled" className="size-5" />

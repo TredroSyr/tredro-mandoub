@@ -22,9 +22,14 @@ export function HomeNewRequestsSection() {
       <h2 className="mb-2.5 flex items-center gap-2 text-sm font-extrabold">
         <IconRenderer name="cart_filled" className="size-4 text-primary" /> أحدث الطلبات الجديدة
       </h2>
-      <div className="space-y-2">
+      <div
+        className="flex gap-3 overflow-x-auto scroll-smooth snap-x snap-mandatory [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
+        dir="rtl"
+      >
         {requests.map((request) => (
-          <RequestCard key={request.id} request={request} />
+          <div key={request.id} className="w-[75%] shrink-0 snap-start xs:w-[55%] sm:w-80">
+            <RequestCard request={request} />
+          </div>
         ))}
       </div>
     </section>
