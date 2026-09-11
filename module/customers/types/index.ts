@@ -145,6 +145,8 @@ export interface SalesInvoice {
   notes: string;
   created_at: string;
   updated_at: string;
+  /** Present when listed via `?overdue=true` (invoicing spec §5) — unconfirmed on other list endpoints. */
+  days_overdue?: number;
 }
 
 export interface SalesInvoicesResponse {

@@ -15,6 +15,7 @@ export type NotificationEventKey =
   | "stock_transfer.confirmed"
   | "stock_transfer.received"
   | "stock_transfer.cancelled"
+  | "sales_invoice.overdue"
   | string;
 
 export interface Notification {

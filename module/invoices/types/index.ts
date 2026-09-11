@@ -7,6 +7,8 @@ export interface SalesInvoicesListParams {
   date_to?: string;
   page?: number;
   page_size?: number;
+  /** Restricts the list to invoices past the company's overdue threshold (invoicing spec §5). */
+  overdue?: boolean;
 }
 
 export interface SalesInvoiceLine {

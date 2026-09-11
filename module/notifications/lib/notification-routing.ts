@@ -30,6 +30,10 @@ export const resolveNotificationUrl = (
       const id = toId(payload?.customer_request_id);
       return id !== undefined ? `/orders?requestId=${id}` : "/orders";
     }
+    case "sales_invoice.overdue": {
+      const id = toId(payload?.sales_invoice_id);
+      return id !== undefined ? `/sales/overdue?invoiceId=${id}` : "/sales/overdue";
+    }
     default:
       return "/notifications";
   }

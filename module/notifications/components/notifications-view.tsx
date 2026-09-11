@@ -100,6 +100,11 @@ const EVENT_CONFIG: Record<
     badgeClass: "bg-rose-500/10 text-rose-600",
     label: "إلغاء الطلبية",
   },
+  "sales_invoice.overdue": {
+    icon: "money_outlined",
+    badgeClass: "bg-rose-500/10 text-rose-600",
+    label: "فاتورة متأخرة السداد",
+  },
 };
 
 const DEFAULT_EVENT_CONFIG: { icon: iconName; badgeClass: string } = {
