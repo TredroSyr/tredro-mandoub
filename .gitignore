@@ -39,6 +39,8 @@ yarn-error.log*
 # app download (uploaded manually, not tracked in git)
 /public/download/*
 !/public/download/.gitkeep
+/public/downloads/*
+!/public/downloads/.gitkeep
 
 # typescript
 *.tsbuildinfo

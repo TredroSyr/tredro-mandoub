@@ -127,6 +127,8 @@ export interface SalesInvoice {
   id: number;
   number: string;
   date: string;
+  /** Confirmed on `?overdue=true` responses — line item count without fetching the full detail. Not verified on other list endpoints. */
+  line_count?: number;
   rep: number;
   rep_name: string;
   customer: number;
@@ -145,8 +147,6 @@ export interface SalesInvoice {
   notes: string;
   created_at: string;
   updated_at: string;
-  /** Present when listed via `?overdue=true` (invoicing spec §5) — unconfirmed on other list endpoints. */
-  days_overdue?: number;
 }
 
 export interface SalesInvoicesResponse {
