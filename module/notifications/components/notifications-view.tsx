@@ -73,32 +73,32 @@ const EVENT_CONFIG: Record<
   "stock_transfer.requested": {
     icon: "re_order_outlined",
     badgeClass: "bg-amber-500/10 text-amber-600",
-    label: "طلب نقل مخزون",
+    label: "طلب توريد بضاعة",
   },
   "stock_transfer.dispatched": {
     icon: "send_outlined",
     badgeClass: "bg-blue-500/10 text-blue-600",
-    label: "إرسال نقل مخزون",
+    label: "إرسال الطلبية",
   },
   "stock_transfer.modified": {
     icon: "edit_outlined",
     badgeClass: "bg-violet-500/10 text-violet-600",
-    label: "تعديل نقل مخزون",
+    label: "تعديل الطلبية",
   },
   "stock_transfer.confirmed": {
     icon: "success_outlined",
     badgeClass: "bg-emerald-500/10 text-emerald-600",
-    label: "تأكيد نقل مخزون",
+    label: "تأكيد الطلبية",
   },
   "stock_transfer.received": {
     icon: "download_outlined",
     badgeClass: "bg-teal-500/10 text-teal-600",
-    label: "استلام نقل مخزون",
+    label: "استلام الطلبية",
   },
   "stock_transfer.cancelled": {
     icon: "block_outlined",
     badgeClass: "bg-rose-500/10 text-rose-600",
-    label: "إلغاء نقل مخزون",
+    label: "إلغاء الطلبية",
   },
 };
 

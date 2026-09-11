@@ -12,7 +12,12 @@ interface MapFloatingActionsProps {
   onStartPicking: () => void;
 }
 
-/** The "locate me" and "add customer" floating round buttons anchored above the shop-list drawer. */
+/**
+ * The "locate me" and "add customer" floating round buttons anchored above the shop-list drawer.
+ * `fixed` (not `absolute`) so `floatingBottom` shares the drawer's own fixed-to-viewport
+ * coordinate space — the drawer's on-screen top edge maps directly to a `bottom` offset here
+ * with no containing-block math in between.
+ */
 export function MapFloatingActions({
   visible,
   floatingBottom,
@@ -24,7 +29,7 @@ export function MapFloatingActions({
   return (
     <>
       <div
-        className="absolute z-[2200] transition-all duration-300"
+        className="fixed z-[2200] transition-all duration-300"
         style={{ insetInlineEnd: "0.75rem", bottom: floatingBottom }}
       >
         <Button
@@ -38,7 +43,7 @@ export function MapFloatingActions({
       </div>
 
       <div
-        className="absolute z-[2200] transition-all duration-300"
+        className="fixed z-[2200] transition-all duration-300"
         style={{ insetInlineStart: "0.75rem", bottom: floatingBottom }}
       >
         <Button

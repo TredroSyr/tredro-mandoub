@@ -90,3 +90,46 @@ export async function clearWatch(id: GeoWatchId) {
   if (!id) return;
   await Geolocation.clearWatch({ id });
 }
+
+/**
+ * Reverse-geocodes a point into a detailed free-text address (street/area,
+ * city, district, state — every level Nominatim returns), via OSM's
+ * Nominatim — the same OSM stack the map tiles and OSRM routing already
+ * rely on. Returns null when nothing usable comes back.
+ */
+export async function reverseGeocode(
+  lat: number,
+  lng: number,
+  signal?: AbortSignal,
+): Promise<string | null> {
+  const url =
+    `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lng}` +
+    `&addressdetails=1&accept-language=ar`;
+
+  const res = await fetch(url, signal ? { signal } : undefined);
+  if (!res.ok) throw new Error(`nominatim ${res.status}`);
+  const json = (await res.json()) as {
+    display_name?: string;
+    address?: Record<string, string>;
+  };
+
+  if (!json.display_name) return null;
+
+  // display_name is already ordered most-specific-first (street/suburb ...
+  // city ... district ... state ... country) — reuse it wholesale for detail
+  // instead of hand-picking fields, since not every response has the same
+  // fields populated (e.g. "road" is often blank for residential areas).
+  // The trailing country segment is dropped: the app only operates within
+  // Syria, so it's redundant on every address.
+  let segments = json.display_name
+    .split(",")
+    .map((s) => s.trim())
+    .filter(Boolean);
+
+  const country = json.address?.country;
+  if (country && segments[segments.length - 1] === country) {
+    segments = segments.slice(0, -1);
+  }
+
+  return segments.length > 0 ? segments.join("، ") : json.display_name;
+}

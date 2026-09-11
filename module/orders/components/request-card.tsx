@@ -41,9 +41,15 @@ export function RequestCard({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  const hasActions =
+    isRequestAnswerable(request.status) || isRequestDeliverable(request.status);
+
   return (
     <article className="flex h-43 flex-col justify-between rounded-2xl border border-border bg-card p-4">
-      <div>
+      <div
+        onClick={() => setDetailOpen(true)}
+        className="cursor-pointer"
+      >
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0">
             <h2 className="truncate text-sm font-bold">
@@ -56,7 +62,13 @@ export function RequestCard({
               {formatRequestDate(request.created_at)}
             </p>
           </div>
-          <RequestStatusBadge status={request.status} />
+          <div className="flex shrink-0 items-center gap-1.5">
+            <RequestStatusBadge status={request.status} />
+            <IconRenderer
+              name="arrow_left_outlined"
+              className="size-4 text-muted-foreground"
+            />
+          </div>
         </div>
 
         <div className="mt-3 flex items-center justify-between">
@@ -69,27 +81,25 @@ export function RequestCard({
         </div>
       </div>
 
-      <div className="flex items-center justify-between gap-1.5 border-t border-border pt-3">
-        <button
-          onClick={() => setDetailOpen(true)}
-          className="flex items-center gap-1 rounded-xl bg-secondary px-3 py-2 text-[11px] font-bold text-muted-foreground"
-        >
-          <IconRenderer name="plus_circle_outlined" className="size-3.5" />{" "}
-          التفاصيل
-        </button>
-
-        <div className="flex items-center gap-1.5">
+      {hasActions && (
+        <div className="flex items-center justify-end gap-1.5 border-t border-border pt-3">
           {isRequestAnswerable(request.status) && (
             <>
               <button
-                onClick={() => accept.mutate(request.id)}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  accept.mutate(request.id);
+                }}
                 disabled={accept.isPending}
                 className="flex items-center gap-1 rounded-xl bg-primary px-3 py-2 text-[11px] font-bold text-primary-foreground disabled:opacity-50"
               >
                 <IconRenderer name="tick_outlined" className="size-3.5" /> قبول
               </button>
               <button
-                onClick={() => setRejectOpen(true)}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setRejectOpen(true);
+                }}
                 disabled={reject.isPending}
                 className="flex items-center gap-1 rounded-xl bg-destructive/12 px-3 py-2 text-[11px] font-bold text-destructive disabled:opacity-50"
               >
@@ -100,7 +110,10 @@ export function RequestCard({
 
           {isRequestDeliverable(request.status) && (
             <button
-              onClick={() => setInvoiceOpen(true)}
+              onClick={(e) => {
+                e.stopPropagation();
+                setInvoiceOpen(true);
+              }}
               className="flex items-center text-white gap-1 rounded-xl bg-primary px-3 py-2 text-[11px] font-bold text-primary-foreground"
             >
               <IconRenderer name="checkout_outlined" className="size-3.5" />{" "}
@@ -108,7 +121,7 @@ export function RequestCard({
             </button>
           )}
         </div>
-      </div>
+      )}
 
       <RequestDetailDrawer
         open={detailOpen}

@@ -1,18 +1,18 @@
 "use client";
 
-import Link from "next/link";
+import { useState } from "react";
 import { IconRenderer } from "@/assets/icons/iconRenderer";
 import { SkeletonCard } from "@/components/ui/skeleton";
 import { EmptyState } from "@/components/tredro/empty-state";
-import { SalesInvoiceRow } from "@/module/invoices/components";
+import { InvoiceDetailDrawer, SalesInvoiceRow } from "@/module/invoices/components";
 import { useGetSalesInvoicesQuery } from "@/module/invoices/hooks";
 
-const PREVIEW_COUNT = 3;
+const PREVIEW_COUNT = 5;
 
 export function HomeSalesSection() {
   const { data, isLoading } = useGetSalesInvoicesQuery({ page_size: PREVIEW_COUNT });
   const invoices = data?.data?.invoices ?? [];
-  const hasMore = (data?.data?.pagination?.count ?? 0) > invoices.length;
+  const [detailInvoiceId, setDetailInvoiceId] = useState<number | null>(null);
 
   return (
     <section className="mt-5">
@@ -30,20 +30,16 @@ export function HomeSalesSection() {
       ) : (
         <div className="space-y-2">
           {invoices.map((invoice) => (
-            <SalesInvoiceRow key={invoice.id} invoice={invoice} />
+            <SalesInvoiceRow key={invoice.id} invoice={invoice} onClick={() => setDetailInvoiceId(invoice.id)} />
           ))}
         </div>
       )}
 
-      {hasMore && (
-        <Link
-          href="/sales"
-          className="mt-2.5 flex items-center justify-center gap-1.5 rounded-2xl border border-border bg-card py-2.5 text-xs font-bold text-primary"
-        >
-          عرض كل المبيعات
-          <IconRenderer name="arrow_left_outlined" className="size-3.5" />
-        </Link>
-      )}
+      <InvoiceDetailDrawer
+        invoiceId={detailInvoiceId}
+        open={detailInvoiceId != null}
+        onOpenChange={(open) => !open && setDetailInvoiceId(null)}
+      />
     </section>
   );
 }

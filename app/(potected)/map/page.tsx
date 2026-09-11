@@ -52,7 +52,7 @@ export default function TourPage() {
   const [pickedPoint, setPickedPoint] = useState<[number, number] | null>(null);
   const [pickingLocLoading, setPickingLocLoading] = useState(false);
   const [routePlanDrawerOpen, setRoutePlanDrawerOpen] = useState(false);
-  const [shopListHeight, setShopListHeight] = useState<number | null>(null);
+  const [shopListTop, setShopListTop] = useState<number | null>(null);
 
   const { focus, flyTo } = useMapFocus();
   const nav = useTourNavigation({ flyTo });
@@ -116,11 +116,16 @@ export default function TourPage() {
   // 46svh ≈ 340px on typical mobile, 100px = minimal offset when closed.
   // The nav height is approx 64px (4rem) + safe area, but Leaflet needs a static number.
   const bottomInset = (listOpen ? 340 : 100) + NAV_H_ESTIMATE;
+  // The floating buttons are `position: fixed`, the same coordinate space as
+  // the drawer itself, so they can be anchored directly off its measured
+  // on-screen top edge (shopListTop) — no cross-container math needed.
+  // When the list is closed there's no drawer to sit above, so they just
+  // rest above the bottom nav bar instead.
   const floatingBottom = listOpen
-    ? shopListHeight != null
-      ? `calc(${shopListHeight}px + 0.7rem)`
-      : `calc(46svh + 0.7rem)`
-    : `0rem`;
+    ? shopListTop != null
+      ? `calc(100dvh - ${shopListTop}px + 1.25rem)`
+      : `calc(46svh + 1.25rem)`
+    : `calc(var(--bottom-nav-height) + 1.25rem)`;
 
   return (
     <main
@@ -234,7 +239,7 @@ export default function TourPage() {
         origin={nav.origin}
         onSelectItem={openListItem}
         isLoading={isLoadingCustomers}
-        onHeightChange={setShopListHeight}
+        onTopChange={setShopListTop}
       />
 
       <AddCustomerDrawer

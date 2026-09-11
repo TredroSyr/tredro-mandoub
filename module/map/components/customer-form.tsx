@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { AxiosError } from "axios";
@@ -29,6 +29,7 @@ import {
 } from "@/module/customers/hooks";
 import { UpdateCustomerRequest } from "@/module/customers/types";
 import type { Customer } from "@/module/customers/types";
+import { reverseGeocode } from "@/module/map/lib/geo";
 import { ApiErrorResponse } from "@/module/auth/types";
 import { useAuthStore } from "@/module/auth/store/auth-store";
 import { Badge } from "@/components/ui/badge";
@@ -62,6 +63,11 @@ export function CustomerForm({
 }: CustomerFormProps) {
   const rep = useAuthStore((state) => state.rep);
   const isEdit = !!customer;
+  // Once a customer has a location, the backend treats it as final and rejects
+  // any update that resends latitude/longitude — reps can only set the location
+  // the first time, not move it afterwards.
+  const hasExistingLocation =
+    isEdit && customer?.latitude != null && customer?.longitude != null;
 
   const form = useForm<CreateCustomerValues>({
     resolver: zodResolver(createCustomerSchema),
@@ -89,6 +95,37 @@ export function CustomerForm({
       form.setValue("longitude", undefined);
     }
   }, [pickedPoint, form]);
+
+  // Every time a new point is picked on the map, look up its address via
+  // reverse geocoding and drop it into the free-text address field, so the
+  // rep doesn't have to type it out by hand. A customer with an already
+  // locked-in location (hasExistingLocation) never re-picks, so this never
+  // fires for it.
+  const [isGeocodingAddress, setIsGeocodingAddress] = useState(false);
+  const geocodeAbortRef = useRef<AbortController | null>(null);
+
+  useEffect(() => {
+    if (!pickedPoint || hasExistingLocation) return;
+
+    geocodeAbortRef.current?.abort();
+    const controller = new AbortController();
+    geocodeAbortRef.current = controller;
+
+    setIsGeocodingAddress(true);
+    reverseGeocode(pickedPoint[0], pickedPoint[1], controller.signal)
+      .then((address) => {
+        if (address) form.setValue("address", address, { shouldValidate: true });
+      })
+      .catch(() => {
+        /* best-effort — rep can still type the address manually */
+      })
+      .finally(() => {
+        if (geocodeAbortRef.current === controller) setIsGeocodingAddress(false);
+      });
+
+    return () => controller.abort();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pickedPoint, hasExistingLocation]);
 
   const createCustomerMutation = useCreateCustomerMutation({
     onSuccess: () => {
@@ -154,7 +191,11 @@ export function CustomerForm({
       const requestData: UpdateCustomerRequest = {
         address: values.address?.trim() ?? "",
       };
-      if (values.latitude !== undefined && values.longitude !== undefined) {
+      if (
+        !hasExistingLocation &&
+        values.latitude !== undefined &&
+        values.longitude !== undefined
+      ) {
         requestData.latitude = Number(values.latitude.toFixed(6));
         requestData.longitude = Number(values.longitude.toFixed(6));
       }
@@ -200,6 +241,7 @@ export function CustomerForm({
   };
 
   const selectedWorkDays = form.watch("work_days") || [];
+  const addressValue = form.watch("address");
 
   return (
     <Form {...form}>
@@ -302,6 +344,11 @@ export function CustomerForm({
                   value={field.value || ""}
                 />
               </FormControl>
+              {isGeocodingAddress && (
+                <p className="text-[10px] text-muted-foreground">
+                  جاري تحديد العنوان من الموقع…
+                </p>
+              )}
               <FormMessage className="text-[11px] font-bold" />
             </FormItem>
           )}
@@ -350,37 +397,55 @@ export function CustomerForm({
           <FormLabel className="mb-1.5 block text-[11px] font-bold text-primary">
             الموقع على الخريطة
           </FormLabel>
-          <div className="space-y-2">
-            <Button
-              type="button"
-              onClick={onPickLocation}
-              variant="outline"
-              className="w-full border-2 border-dashed border-primary bg-primary/8 py-3 text-xs text-primary"
-            >
-              <IconRenderer name="pin_outlined" className="w-6 h-6" />
-              {pickedPoint ? "تعديل الموقع" : "حدد الموقع بالضغط على الخريطة"}
-            </Button>
-            <Button
-              type="button"
-              onClick={onUseMyLocation}
-              disabled={isLoadingLocation}
-              variant="secondary"
-              className="w-full py-3 text-xs"
-            >
-              <IconRenderer
-                name={
-                  isLoadingLocation ? "refresh_outlined" : "cursor_outlined"
-                }
-                className={cn("w-6 h-6", isLoadingLocation && "animate-spin")}
-              />
-              {isLoadingLocation ? "جاري جلب موقعك…" : "استخدم موقعي الحالي"}
-            </Button>
+          {hasExistingLocation ? (
+            <p className="text-[10px] text-muted-foreground">
+              موقع المحل محدد بالفعل ولا يمكن تعديله
+            </p>
+          ) : (
+            <div className="space-y-2">
+              <Button
+                type="button"
+                onClick={onPickLocation}
+                variant="outline"
+                className="w-full border-2 border-dashed border-primary bg-primary/8 py-3 text-xs text-primary"
+              >
+                <IconRenderer name="pin_outlined" className="w-6 h-6" />
+                {pickedPoint ? "تعديل الموقع" : "حدد الموقع بالضغط على الخريطة"}
+              </Button>
+              <Button
+                type="button"
+                onClick={onUseMyLocation}
+                disabled={isLoadingLocation}
+                variant="secondary"
+                className="w-full py-3 text-xs"
+              >
+                <IconRenderer
+                  name={
+                    isLoadingLocation ? "refresh_outlined" : "cursor_outlined"
+                  }
+                  className={cn("w-6 h-6", isLoadingLocation && "animate-spin")}
+                />
+                {isLoadingLocation ? "جاري جلب موقعك…" : "استخدم موقعي الحالي"}
+              </Button>
+            </div>
+          )}
+          <div className="mt-2">
+            {pickedPoint ? (
+              addressValue ? (
+                <Badge variant="secondary" className="text-[11px]">
+                  {addressValue}
+                </Badge>
+              ) : isGeocodingAddress ? (
+                <p className="text-[11px] text-muted-foreground">
+                  جاري تحديد العنوان…
+                </p>
+              ) : null
+            ) : (
+              <p className="text-[11px] text-muted-foreground">
+                لم يتم تحديد الموقع بعد
+              </p>
+            )}
           </div>
-          <p className="mt-2 font-mono text-[11px] text-muted-foreground">
-            {pickedPoint
-              ? `${pickedPoint[0].toFixed(5)}, ${pickedPoint[1].toFixed(5)}`
-              : "لم يتم تحديد الموقع بعد"}
-          </p>
           <FormMessage className="text-[11px] font-bold" />
         </div>
       </form>

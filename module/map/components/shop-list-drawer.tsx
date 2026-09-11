@@ -38,8 +38,8 @@ interface ShopListDrawerProps {
   bottomNavHeight?: string;
   panelWidthClass?: string;
   overlayZ?: string;
-  /** Reports the drawer's actual rendered height (px) whenever it changes, so callers can position elements (e.g. floating buttons) flush against its top edge instead of guessing a fixed height. */
-  onHeightChange?: (height: number) => void;
+  /** Reports the drawer's actual top edge (viewport `getBoundingClientRect().top`, px) whenever it moves, so callers can position elements (e.g. floating buttons) flush against it instead of guessing a fixed height. */
+  onTopChange?: (top: number) => void;
 }
 
 export function ShopListDrawer({
@@ -51,7 +51,7 @@ export function ShopListDrawer({
   origin,
   onSelectItem,
   isLoading,
-  onHeightChange,
+  onTopChange,
 }: ShopListDrawerProps) {
   const dayItems = filterListItemsByDay(items, day);
   const governorate = useAuthStore((s) => s.rep?.company?.governorate);
@@ -59,14 +59,18 @@ export function ShopListDrawer({
 
   useEffect(() => {
     const el = contentRef.current;
-    if (!el || !onHeightChange || !open) return;
-    const observer = new ResizeObserver((entries) => {
-      const entry = entries[0];
-      if (entry) onHeightChange(entry.contentRect.height);
-    });
+    if (!el || !onTopChange || !open) return;
+    const reportTop = () => onTopChange(el.getBoundingClientRect().top);
+    const observer = new ResizeObserver(reportTop);
     observer.observe(el);
-    return () => observer.disconnect();
-  }, [onHeightChange, open]);
+    // Re-measure on viewport resize too (e.g. mobile address-bar collapse),
+    // since the drawer's top can shift even when its own size doesn't.
+    window.addEventListener("resize", reportTop);
+    return () => {
+      observer.disconnect();
+      window.removeEventListener("resize", reportTop);
+    };
+  }, [onTopChange, open]);
 
   const getDistance = (item: CustomerListItem): number => {
     if (item.hasCoordinates && item.lat != null && item.lng != null) {

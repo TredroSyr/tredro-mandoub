@@ -42,7 +42,7 @@ const playTone = (
 };
 
 /**
- * Short ascending chime played after a mutating request (create/update/delete)
+ * Single short "tick" played after a mutating request (create/update/delete)
  * completes successfully. Uses the Web Audio API so no sound asset is needed.
  */
 export const playActionSuccessSound = () => {
@@ -51,9 +51,7 @@ export const playActionSuccessSound = () => {
     if (!ctx) return;
 
     const now = ctx.currentTime;
-    [523.25, 783.99].forEach((freq, i) => {
-      playTone(ctx, freq, now + i * 0.1, 0.18, "sine", 0.2);
-    });
+    playTone(ctx, 1000, now, 0.06, "sine", 0.25);
   } catch (error) {
     console.error("❌ Failed to play action success sound:", error);
   }

@@ -13,17 +13,21 @@ import axios, {
 // too often to play a sound for.
 const MUTATING_METHODS = ["post", "put", "patch", "delete"];
 
-// Endpoints that are technically mutating but happen passively/in the
-// background (e.g. marking a notification read as soon as it's opened) —
-// not a deliberate user action, so they shouldn't get a sound either.
-const SILENT_URL_PATTERNS = [/notifications\/.*read/i];
+// Modules whose mutating calls don't get a *success* tick — auth (login,
+// token refresh, signout) and notifications (marking read, device
+// registration) fire often and/or already have their own UI feedback, so a
+// success sound for them is just noise. A failure from these modules is
+// still worth a sound, since that's actionable in a way "yep, it worked" isn't.
+const SUCCESS_SILENT_URL_PATTERNS = [/\/auth\//i, /notifications\//i];
 
 const isMutatingRequest = (method?: string) =>
   !!method && MUTATING_METHODS.includes(method.toLowerCase());
 
-const shouldPlaySound = (method?: string, url?: string) =>
+const shouldPlaySuccessSound = (method?: string, url?: string) =>
   isMutatingRequest(method) &&
-  !SILENT_URL_PATTERNS.some((pattern) => pattern.test(url ?? ""));
+  !SUCCESS_SILENT_URL_PATTERNS.some((pattern) => pattern.test(url ?? ""));
+
+const shouldPlayErrorSound = (method?: string) => isMutatingRequest(method);
 
 // Rejects with `error`, playing the action-fail sound first if the request
 // that caused it was a create/update/delete call. Use this instead of a bare
@@ -31,7 +35,7 @@ const shouldPlaySound = (method?: string, url?: string) =>
 // requests just queued for retry, and not for the retried request itself —
 // that retry gets its own success/error outcome through this same interceptor).
 const rejectWithSound = (error: AxiosError, rejectValue: unknown = error) => {
-  if (shouldPlaySound(error.config?.method, error.config?.url)) {
+  if (shouldPlayErrorSound(error.config?.method)) {
     playActionErrorSound();
   }
   return Promise.reject(rejectValue);
@@ -170,7 +174,7 @@ const processQueue = (error: unknown, token: string | null = null) => {
 api.interceptors.response.use(
   (response) => {
     clearRequestTimers(response.config as TimedRequestConfig);
-    if (shouldPlaySound(response.config.method, response.config.url)) {
+    if (shouldPlaySuccessSound(response.config.method, response.config.url)) {
       playActionSuccessSound();
     }
     return response;
