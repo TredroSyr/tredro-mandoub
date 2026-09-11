@@ -5,6 +5,7 @@ import {
   HomeSalesSection,
   HomeWarehouseSection,
   HomeTransfersSection,
+  HomeOverdueSection,
   HomeNearbyCustomersSection,
   HomeNewRequestsSection,
 } from "@/module/home/components";
@@ -24,6 +25,7 @@ export default function HomePage() {
     <>
       <HomeWarehouseSection dashboard={dashboard} isLoading={showSkeleton} />
       <HomeTransfersSection />
+      <HomeOverdueSection />
       <HomeNearbyCustomersSection />
       <HomeNewRequestsSection />
       <HomeSalesSection />

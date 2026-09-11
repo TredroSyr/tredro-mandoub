@@ -36,6 +36,10 @@ yarn-error.log*
 # vercel
 .vercel
 
+# app download (uploaded manually, not tracked in git)
+/public/download/*
+!/public/download/.gitkeep
+
 # typescript
 *.tsbuildinfo
 next-env.d.ts

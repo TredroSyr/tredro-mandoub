@@ -50,12 +50,6 @@ const TABS: Tab[] = [
     filled: "card_filled",
     outlined: "card_outlined",
   },
-  {
-    to: "/sales/overdue",
-    label: "الديون",
-    filled: "money_filled",
-    outlined: "money_outlined",
-  },
 ];
 
 const SPRING = {
@@ -68,13 +62,6 @@ const SPRING = {
 export default function BottomNav() {
   const pathname = usePathname();
 
-  // Longest matching `to` wins, so a nested route like /sales/overdue
-  // activates only its own tab instead of also lighting up /sales.
-  const activeTo = [...TABS]
-    .map((t) => t.to)
-    .filter((to) => (to === "/" ? pathname === "/" : pathname?.startsWith(to)))
-    .sort((a, b) => b.length - a.length)[0];
-
   return (
     <motion.nav
       dir="rtl"
@@ -85,7 +72,8 @@ export default function BottomNav() {
     >
       <ul className="bg-card mx-auto flex max-w-md items-center justify-between gap-1 px-1.5 py-3 shadow-(--bottom-nav-shadow)">
         {TABS.map(({ to, label, filled, outlined }) => {
-          const active = to === activeTo;
+          const active =
+            to === "/" ? pathname === "/" : pathname?.startsWith(to);
           return (
             <motion.li layout transition={SPRING} key={to} className="relative">
               <Link
