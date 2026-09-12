@@ -71,7 +71,6 @@ function TourPageContent() {
   const [pickedPoint, setPickedPoint] = useState<[number, number] | null>(null);
   const [pickingLocLoading, setPickingLocLoading] = useState(false);
   const [routePlanDrawerOpen, setRoutePlanDrawerOpen] = useState(false);
-  const [shopListTop, setShopListTop] = useState<number | null>(null);
 
   const { focus, flyTo } = useMapFocus();
   const nav = useTourNavigation({ flyTo });
@@ -161,16 +160,16 @@ function TourPageContent() {
   // 100px = minimal offset when closed. The nav height is approx 64px (4rem) + safe area,
   // but Leaflet needs a static number.
   const bottomInset = (listOpen ? 320 : 100) + NAV_H_ESTIMATE;
-  // The floating buttons are `position: fixed`, the same coordinate space as
-  // the drawer itself, so they can be anchored directly off its measured
-  // on-screen top edge (shopListTop) — no cross-container math needed.
-  // When the list is closed there's no drawer to sit above, so they just
-  // rest above the bottom nav bar instead.
-  const floatingBottom = listOpen
-    ? shopListTop != null
-      ? `calc(100dvh - ${shopListTop}px + 0.5rem)`
-      : `calc(46svh + 0.5rem)`
-    : `calc(var(--bottom-nav-height) + 0.5rem)`;
+  // MapFloatingActions only renders while the list drawer is closed (see below) —
+  // once it's open, the same locate/add buttons live pinned inside the drawer
+  // itself instead, so this only ever needs the "rest above the bottom nav" case.
+  const floatingBottom = "calc(var(--bottom-nav-height) + 0.5rem)";
+
+  const startPicking = () => {
+    setPicking(true);
+    setAddOpen(false);
+    setListOpen(false);
+  };
 
   return (
     <main
@@ -246,14 +245,10 @@ function TourPageContent() {
       )}
 
       <MapFloatingActions
-        visible={!nav.navShop && !addOpen && !picking}
+        visible={!nav.navShop && !addOpen && !picking && !listOpen}
         floatingBottom={floatingBottom}
         onLocate={nav.locate}
-        onStartPicking={() => {
-          setPicking(true);
-          setAddOpen(false);
-          setListOpen(false);
-        }}
+        onStartPicking={startPicking}
       />
 
       <LocationPickingBanner
@@ -284,7 +279,8 @@ function TourPageContent() {
         origin={nav.origin}
         onSelectItem={openListItem}
         isLoading={isLoadingCustomers}
-        onTopChange={setShopListTop}
+        onLocate={nav.locate}
+        onStartPicking={startPicking}
       />
 
       <AddCustomerDrawer
