@@ -1,0 +1,8 @@
+{
+  "rewrites": [
+    {
+      "source": "/download/tredro-mandoub.apk",
+      "destination": "https://zyvf1dlacznk9vlz.public.blob.vercel-storage.com/tredro-mandoub.apk"
+    }
+  ]
+}
