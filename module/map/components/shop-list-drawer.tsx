@@ -26,6 +26,8 @@ import {
 import { SkeletonCard } from "@/components/ui/skeleton";
 import { PhoneInput } from "@/components/tredro/phone-input";
 
+const SNAP_POINTS = [0.5, 0.92];
+
 interface ShopListDrawerProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -80,7 +82,14 @@ export function ShopListDrawer({
   };
 
   return (
-    <Drawer open={open} onOpenChange={onOpenChange} modal={false}>
+    <Drawer
+      open={open}
+      onOpenChange={onOpenChange}
+      modal={false}
+      showSwipeHandle
+      snapPoints={SNAP_POINTS}
+      defaultSnapPoint={SNAP_POINTS[0]}
+    >
       <DrawerContent className={` mt-0 `}>
         <div ref={contentRef} className="flex min-h-0 flex-1 flex-col">
           <DrawerHeader className="flex justify-between flex-row w-full items-center gap-3 px-5 pb-3 pt-1 text-start">

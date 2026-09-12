@@ -155,11 +155,11 @@ function TourPageContent() {
     router.push(`/stores/detail?id=${item.customerId}`);
   };
 
-  // TODO: These values are tied to the drawer heights in the JSX (h-[46svh], h-[75svh]).
-  // For Leaflet's fitBounds, we need pixel estimates.
-  // 46svh ≈ 340px on typical mobile, 100px = minimal offset when closed.
+  // TODO: This value is tied to ShopListDrawer's default snap point (SNAP_POINTS[0] = 0.5,
+  // i.e. ~50svh). For Leaflet's fitBounds, we need pixel estimates.
+  // ~50svh ≈ 400px on typical mobile, 100px = minimal offset when closed.
   // The nav height is approx 64px (4rem) + safe area, but Leaflet needs a static number.
-  const bottomInset = (listOpen ? 340 : 100) + NAV_H_ESTIMATE;
+  const bottomInset = (listOpen ? 400 : 100) + NAV_H_ESTIMATE;
   // The floating buttons are `position: fixed`, the same coordinate space as
   // the drawer itself, so they can be anchored directly off its measured
   // on-screen top edge (shopListTop) — no cross-container math needed.
