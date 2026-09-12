@@ -1,6 +1,5 @@
 "use client";
 
-import { Crosshair } from "lucide-react";
 import {
   Drawer,
   DrawerContent,
@@ -26,13 +25,19 @@ import {
 import { SkeletonCard } from "@/components/ui/skeleton";
 import { PhoneInput } from "@/components/tredro/phone-input";
 
-const SNAP_POINTS = [0.5, 0.92];
+// Exported so callers (the map page) can derive the drawer's currently-visible
+// height from the same snap fractions, e.g. to position floating buttons flush
+// above it without measuring the DOM (the popup moves via transform, not resize).
+export const SHOP_LIST_SNAP_POINTS: number[] = [0.5, 0.92];
 
 // The day-badges panel (DaySelector + DetermineRouteButton) floats over the map's
 // top-left, roughly 130px tall including its padding. Snap points are fractions of
 // this drawer's max travel height, so capping that max height (100dvh - 180px,
 // i.e. ~130px panel + 50px clearance below it) keeps every snap state — including
-// the dragged-open one — from ever covering the day badges.
+// the dragged-open one — from ever covering the day badges. Kept in sync with
+// SHOP_LIST_MAX_HEIGHT_OFFSET_PX below (Tailwind arbitrary values must be a
+// static string, so the two can't share a single source of truth).
+export const SHOP_LIST_MAX_HEIGHT_OFFSET_PX = 180;
 
 interface ShopListDrawerProps {
   open: boolean;
@@ -46,8 +51,9 @@ interface ShopListDrawerProps {
   bottomNavHeight?: string;
   panelWidthClass?: string;
   overlayZ?: string;
-  onLocate: () => void;
-  onStartPicking: () => void;
+  /** Fires with the fraction (from SHOP_LIST_SNAP_POINTS) whenever the user drags the
+   * drawer to a new snap point, so callers can reposition elements anchored above it. */
+  onSnapPointChange?: (snapPoint: number | null) => void;
 }
 
 export function ShopListDrawer({
@@ -59,8 +65,7 @@ export function ShopListDrawer({
   origin,
   onSelectItem,
   isLoading,
-  onLocate,
-  onStartPicking,
+  onSnapPointChange,
 }: ShopListDrawerProps) {
   const dayItems = filterListItemsByDay(items, day);
   const governorate = useAuthStore((s) => s.rep?.company?.governorate);
@@ -78,8 +83,11 @@ export function ShopListDrawer({
       onOpenChange={onOpenChange}
       modal={false}
       showSwipeHandle
-      snapPoints={SNAP_POINTS}
-      defaultSnapPoint={SNAP_POINTS[0]}
+      snapPoints={SHOP_LIST_SNAP_POINTS}
+      defaultSnapPoint={SHOP_LIST_SNAP_POINTS[0]}
+      onSnapPointChange={(snapPoint) =>
+        onSnapPointChange?.(typeof snapPoint === "number" ? snapPoint : null)
+      }
     >
       <DrawerContent className="mt-0 data-[swipe-axis=y]:[--drawer-content-max-height:calc(100dvh-180px)]">
         <div className="flex min-h-0 flex-1 flex-col">
@@ -98,29 +106,6 @@ export function ShopListDrawer({
               </Button>
             </DrawerClose>
           </DrawerHeader>
-
-          {/* Pinned to the top of the drawer (outside the scrollable list below) so it
-              stays visible at every snap height, instead of floating over the map where
-              the drawer's own height could cover or push it off-screen. */}
-          <div className="flex shrink-0 items-center justify-between gap-3 px-5 pb-3">
-            <Button
-              onClick={onStartPicking}
-              className="h-11 w-11 rounded-full p-0 text-primary shadow-sheet backdrop-blur-xl hover:bg-card"
-            >
-              <IconRenderer
-                name="plus_outlined"
-                className="w-5 h-5 text-primary-foreground"
-              />
-            </Button>
-            <Button
-              onClick={onLocate}
-              aria-label="موقعي الحالي"
-              variant="glass"
-              className="h-11 w-11 rounded-full border border-glass-border bg-card/95 p-0 text-primary shadow-sheet backdrop-blur-xl hover:bg-card"
-            >
-              <Crosshair className="size-5" />
-            </Button>
-          </div>
 
           <div className="flex-1 overflow-y-auto px-3 pb-6">
             {isLoading ? (

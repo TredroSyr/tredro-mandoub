@@ -21,7 +21,11 @@ import { TourMap } from "@/module/map/components/tour-map";
 import { DaySelector } from "@/module/map/components/day-selector";
 import { DetermineRouteButton } from "@/module/map/components/determine-route-button";
 import { RoutePlanDrawer } from "@/module/map/components/route-plan-drawer";
-import { ShopListDrawer } from "@/module/map/components/shop-list-drawer";
+import {
+  ShopListDrawer,
+  SHOP_LIST_SNAP_POINTS,
+  SHOP_LIST_MAX_HEIGHT_OFFSET_PX,
+} from "@/module/map/components/shop-list-drawer";
 import { AddCustomerDrawer } from "@/module/map/components/add-customer-drawer";
 import { NavigationPanel } from "@/module/map/components/navigation-panel";
 import { LocationErrorBanner } from "@/module/map/components/location-error-banner";
@@ -71,6 +75,9 @@ function TourPageContent() {
   const [pickedPoint, setPickedPoint] = useState<[number, number] | null>(null);
   const [pickingLocLoading, setPickingLocLoading] = useState(false);
   const [routePlanDrawerOpen, setRoutePlanDrawerOpen] = useState(false);
+  const [shopListSnapPoint, setShopListSnapPoint] = useState<number>(
+    SHOP_LIST_SNAP_POINTS[0],
+  );
 
   const { focus, flyTo } = useMapFocus();
   const nav = useTourNavigation({ flyTo });
@@ -154,21 +161,31 @@ function TourPageContent() {
     router.push(`/stores/detail?id=${item.customerId}`);
   };
 
-  // TODO: This value is tied to ShopListDrawer's default snap point (SNAP_POINTS[0] = 0.5)
-  // and its max-height cap (100dvh - 180px, kept clear of the day badges). For Leaflet's
-  // fitBounds, we need pixel estimates: ~50% of (100dvh - 180px) ≈ 320px on typical mobile,
-  // 100px = minimal offset when closed. The nav height is approx 64px (4rem) + safe area,
-  // but Leaflet needs a static number.
+  // TODO: This value is tied to ShopListDrawer's default snap point (SHOP_LIST_SNAP_POINTS[0]
+  // = 0.5) and its max-height cap (100dvh - 180px, kept clear of the day badges). For
+  // Leaflet's fitBounds, we need pixel estimates: ~50% of (100dvh - 180px) ≈ 320px on
+  // typical mobile, 100px = minimal offset when closed. The nav height is approx 64px
+  // (4rem) + safe area, but Leaflet needs a static number.
   const bottomInset = (listOpen ? 320 : 100) + NAV_H_ESTIMATE;
-  // MapFloatingActions only renders while the list drawer is closed (see below) —
-  // once it's open, the same locate/add buttons live pinned inside the drawer
-  // itself instead, so this only ever needs the "rest above the bottom nav" case.
-  const floatingBottom = "calc(var(--bottom-nav-height) + 0.5rem)";
+  // The floating buttons are `position: fixed`, so they need the drawer's current
+  // on-screen height to sit flush above it. The drawer's popup moves via a transform
+  // rather than resizing, so measuring the DOM is unreliable — instead this mirrors the
+  // library's own snap-point math (a fraction of the viewport height, capped at the same
+  // max-height offset the drawer itself uses) from the fraction reported by
+  // onSnapPointChange, and only needs to update when the user settles on a new snap point.
+  const floatingBottom = listOpen
+    ? `calc(min(${shopListSnapPoint * 100}dvh, 100dvh - ${SHOP_LIST_MAX_HEIGHT_OFFSET_PX}px) + 0.5rem)`
+    : "calc(var(--bottom-nav-height) + 0.5rem)";
 
   const startPicking = () => {
     setPicking(true);
     setAddOpen(false);
     setListOpen(false);
+  };
+
+  const handleListOpenChange = (next: boolean) => {
+    setListOpen(next);
+    if (!next) setShopListSnapPoint(SHOP_LIST_SNAP_POINTS[0]);
   };
 
   return (
@@ -245,7 +262,7 @@ function TourPageContent() {
       )}
 
       <MapFloatingActions
-        visible={!nav.navShop && !addOpen && !picking && !listOpen}
+        visible={!nav.navShop && !addOpen && !picking}
         floatingBottom={floatingBottom}
         onLocate={nav.locate}
         onStartPicking={startPicking}
@@ -272,15 +289,16 @@ function TourPageContent() {
 
       <ShopListDrawer
         open={!nav.navShop && listOpen}
-        onOpenChange={setListOpen}
+        onOpenChange={handleListOpenChange}
         day={day}
         items={listItems}
         selectedId={null}
         origin={nav.origin}
         onSelectItem={openListItem}
         isLoading={isLoadingCustomers}
-        onLocate={nav.locate}
-        onStartPicking={startPicking}
+        onSnapPointChange={(snapPoint) =>
+          setShopListSnapPoint(snapPoint ?? SHOP_LIST_SNAP_POINTS[0])
+        }
       />
 
       <AddCustomerDrawer
