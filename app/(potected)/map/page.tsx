@@ -1,13 +1,15 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
-import { useRouter } from "next/navigation";
+import { Suspense, useCallback, useEffect, useMemo, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 
 import { useGetCustomersQuery } from "@/module/customers/hooks";
 import {
   customersToShops,
   customersToListItems,
   filterCustomersByDay,
+  getCustomerWorkDays,
+  API_DAY_TO_KEY,
   CustomerListItem,
 } from "@/module/customers/lib/utils";
 import { DayKey, DAYS, getTodayDayKey } from "@/module/map/lib/tour-data";
@@ -34,7 +36,24 @@ import {
 } from "@/module/map/lib/constants";
 
 export default function TourPage() {
+  return (
+    <Suspense fallback={null}>
+      <TourPageContent />
+    </Suspense>
+  );
+}
+
+function TourPageContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  // Captured once on mount: a "show on map" link from a customer's page lands
+  // here with ?customerId= to fly straight to that customer's pin.
+  const [pendingFocusId, setPendingFocusId] = useState<number | null>(() => {
+    const id = searchParams.get("customerId");
+    return id ? Number(id) : null;
+  });
+  const [selectedShopId, setSelectedShopId] = useState<string | null>(null);
+
   const { data: customersData, isLoading: isLoadingCustomers } =
     useGetCustomersQuery();
   const apiCustomers = customersData?.data?.customers ?? [];
@@ -63,6 +82,31 @@ export default function TourPage() {
     [apiCustomers, day],
   );
   const overlayOpen = addOpen || listOpen;
+
+  useEffect(() => {
+    if (searchParams.get("customerId")) router.replace("/map");
+    // Only meant to strip the query param once, right after reading it above.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Once customers are loaded, jump to the requested customer's pin — even if
+  // it falls on a day other than the one currently selected.
+  useEffect(() => {
+    if (pendingFocusId == null || isLoadingCustomers) return;
+    const target = apiCustomers.find((c) => c.id === pendingFocusId);
+    setPendingFocusId(null);
+    if (!target || target.latitude == null || target.longitude == null) return;
+
+    const matchedDay = getCustomerWorkDays(target)
+      .map((d) => API_DAY_TO_KEY[d])
+      .find((d): d is DayKey => !!d);
+    if (matchedDay) setDay(matchedDay);
+
+    setListOpen(false);
+    setSelectedShopId(`customer-${target.id}`);
+    flyTo([target.latitude, target.longitude], 17);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pendingFocusId, isLoadingCustomers, apiCustomers]);
 
   // Route planning and active turn-by-turn navigation are mutually exclusive
   // in the UI — starting one clears the other, and switching days invalidates
@@ -134,8 +178,8 @@ export default function TourPage() {
     >
       <TourMap
         shops={dayShops}
-        selectedId={null}
-        onSelect={() => {}}
+        selectedId={selectedShopId}
+        onSelect={setSelectedShopId}
         onViewDetails={(customerId) =>
           router.push(`/stores/detail?id=${customerId}`)
         }

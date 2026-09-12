@@ -1,3 +1,4 @@
+import { useRouter } from "next/navigation";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { IconRenderer } from "@/assets/icons/iconRenderer";
@@ -9,6 +10,8 @@ export interface StoreIdentityCardProps {
 }
 
 export function StoreIdentityCard({ customer, isLoading }: StoreIdentityCardProps) {
+  const router = useRouter();
+
   if (isLoading || !customer) {
     return (
       <section className="mt-3 rounded-3xl border border-border bg-card p-4">
@@ -38,9 +41,18 @@ export function StoreIdentityCard({ customer, isLoading }: StoreIdentityCardProp
           </span>
           <div className="min-w-0 flex-1">
             <p className="mt-1.5 truncate text-xs text-muted-foreground">{customer.address}</p>
-            {!customer.is_active && (
-              <div className="mt-2.5 flex flex-wrap gap-2">
-                <Badge variant="secondary">غير نشط</Badge>
+            {(!customer.is_active || hasCoords) && (
+              <div className="mt-2.5 flex flex-wrap items-center gap-2">
+                {!customer.is_active && <Badge variant="secondary">غير نشط</Badge>}
+                {hasCoords && (
+                  <button
+                    type="button"
+                    onClick={() => router.push(`/map?customerId=${customer.id}`)}
+                    className="flex items-center gap-1 rounded-xl bg-primary/10 px-2.5 py-1.5 text-[10px] font-bold text-primary"
+                  >
+                    <IconRenderer name="location_filled" className="size-3" /> عرض على الخريطة
+                  </button>
+                )}
               </div>
             )}
           </div>
