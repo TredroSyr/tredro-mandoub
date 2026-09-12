@@ -46,18 +46,21 @@ export default function UpdateChecker() {
         const info = await App.getInfo();
         const installedVersion = info.version;
 
-        const { data } = await api.get<{ app: string; version: string }>(
-          "/apk-version",
-          { params: { app: APP_PARAM } },
-        );
+        const { data } = await api.get<{
+          success: boolean;
+          message: string;
+          data: { app: string; version: string };
+        }>("/apk-version", { params: { app: APP_PARAM } });
+
+        const remoteVersion = data.data.version;
 
         if (cancelled) return;
-        if (!isNewerVersion(data.version, installedVersion)) return;
+        if (!isNewerVersion(remoteVersion, installedVersion)) return;
 
-        const dismissKey = `update_dismissed_v${data.version}`;
+        const dismissKey = `update_dismissed_v${remoteVersion}`;
         if (sessionStorage.getItem(dismissKey)) return;
 
-        setLatestVersion(data.version);
+        setLatestVersion(remoteVersion);
         setOpen(true);
       } catch {
         // Silently no-op — never block app usage on a failed version check.

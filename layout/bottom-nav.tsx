@@ -47,8 +47,8 @@ const TABS: Tab[] = [
   {
     to: "/sales",
     label: "الفواتير",
-    filled: "card_filled",
-    outlined: "card_outlined",
+    filled: "money_filled",
+    outlined: "money_outlined",
   },
 ];
 
