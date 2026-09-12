@@ -1,13 +1,14 @@
 import { IconRenderer } from "@/assets/icons/iconRenderer";
 import { iconName } from "@/assets/icons/iconRenderer/types";
 
-export type StoreDetailTab = "requests" | "invoices" | "payments" | "returns";
+export type StoreDetailTab = "requests" | "invoices" | "payments" | "returns" | "overdue";
 
 const TABS: { key: StoreDetailTab; label: string; icon: iconName }[] = [
   { key: "requests", label: "الطلبات", icon: "re_order_filled" },
   { key: "invoices", label: "الفواتير", icon: "card_filled" },
   { key: "payments", label: "الدفعات", icon: "money_filled" },
   { key: "returns", label: "المرتجعات", icon: "undo_filled" },
+  { key: "overdue", label: "الديون", icon: "warning_outlined" },
 ];
 
 export interface StoreDetailTabsProps {
@@ -17,7 +18,7 @@ export interface StoreDetailTabsProps {
 
 export function StoreDetailTabs({ value, onChange }: StoreDetailTabsProps) {
   return (
-    <div className="mt-4 grid grid-cols-4 gap-1 rounded-2xl bg-secondary p-1">
+    <div className="mt-4 grid grid-cols-5 gap-1 rounded-2xl bg-secondary p-1">
       {TABS.map(({ key, label, icon }) => (
         <button
           key={key}

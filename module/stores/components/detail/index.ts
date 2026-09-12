@@ -5,6 +5,7 @@ export { StoreLocationBanner } from "./store-location-banner";
 export { StoreFinancialSummary } from "./store-financial-summary";
 export { StoreWhatsappButton } from "./store-whatsapp-button";
 export { StoreDetailTabs, type StoreDetailTab } from "./store-detail-tabs";
+export { OverdueTab } from "./overdue-tab";
 export { RequestsTab } from "./requests-tab";
 export { InvoicesTab } from "./invoices-tab";
 export { PaymentsTab } from "./payments-tab";

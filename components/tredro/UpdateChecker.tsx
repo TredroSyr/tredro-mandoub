@@ -11,9 +11,30 @@ import { Button } from "@/components/ui/button";
 const APP_PARAM = "rep";
 const APK_URL = "https://mandoub.tredro.online/download/tredro-mandoub.apk";
 
+// Compares two dot-separated version strings (e.g. "1.2.0" vs "1.10.0") part
+// by part as numbers instead of lexicographically, so "1.10.0" > "1.2.0".
+// Missing/non-numeric parts fail closed (treated as "not newer") so a
+// malformed value from the backend never wrongly triggers the update drawer.
+function isNewerVersion(remote: string, installed: string): boolean {
+  const parse = (v: string) => v.trim().split(".").map((p) => parseInt(p, 10));
+  const remoteParts = parse(remote);
+  const installedParts = parse(installed);
+  const len = Math.max(remoteParts.length, installedParts.length);
+
+  for (let i = 0; i < len; i++) {
+    const r = remoteParts[i] ?? 0;
+    const inst = installedParts[i] ?? 0;
+    if (Number.isNaN(r) || Number.isNaN(inst)) return false;
+    if (r > inst) return true;
+    if (r < inst) return false;
+  }
+
+  return false;
+}
+
 export default function UpdateChecker() {
   const [open, setOpen] = useState(false);
-  const [latestVersion, setLatestVersion] = useState<number | null>(null);
+  const [latestVersion, setLatestVersion] = useState<string | null>(null);
 
   useEffect(() => {
     if (!Capacitor.isNativePlatform()) return;
@@ -23,16 +44,15 @@ export default function UpdateChecker() {
     (async () => {
       try {
         const info = await App.getInfo();
-        const installedBuild = parseInt(info.build, 10);
-        if (Number.isNaN(installedBuild)) return;
+        const installedVersion = info.version;
 
-        const { data } = await api.get<{ app: string; version: number }>(
+        const { data } = await api.get<{ app: string; version: string }>(
           "/apk-version",
           { params: { app: APP_PARAM } },
         );
 
         if (cancelled) return;
-        if (data.version <= installedBuild) return;
+        if (!isNewerVersion(data.version, installedVersion)) return;
 
         const dismissKey = `update_dismissed_v${data.version}`;
         if (sessionStorage.getItem(dismissKey)) return;

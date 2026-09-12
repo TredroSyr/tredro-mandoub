@@ -10,6 +10,7 @@ import {
   StoreFinancialSummary,
   StoreWhatsappButton,
   StoreDetailTabs,
+  OverdueTab,
   RequestsTab,
   InvoicesTab,
   PaymentsTab,
@@ -117,6 +118,7 @@ function StoreDetailContent() {
       )}
       {tab === "payments" && <PaymentsTab query={paymentsQuery} />}
       {tab === "returns" && <ReturnsTab query={returnsQuery} />}
+      {tab === "overdue" && <OverdueTab customerId={customerId} />}
     </>
   );
 }

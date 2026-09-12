@@ -112,6 +112,8 @@ export interface CustomerDocumentsParams {
   date_to?: string;
   page?: number;
   page_size?: number;
+  /** Sales-invoice list only: restricts to invoices past the company's overdue threshold. */
+  overdue?: boolean;
 }
 
 export type {
