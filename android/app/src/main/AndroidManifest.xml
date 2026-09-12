@@ -29,6 +29,13 @@
             android:name="com.google.firebase.messaging.default_notification_channel_id"
             android:value="@string/default_notification_channel_id" />
 
+        <!-- Status bar icon for FCM-displayed (backgrounded/killed) notifications. Android
+             resolves drawable-night/ic_stat_notify.png automatically when the device is in
+             system dark mode, and drawable/ic_stat_notify.png otherwise. -->
+        <meta-data
+            android:name="com.google.firebase.messaging.default_notification_icon"
+            android:resource="@drawable/ic_stat_notify" />
+
         <provider
       android:name="androidx.core.content.FileProvider"
       android:authorities="${applicationId}.fileprovider"
