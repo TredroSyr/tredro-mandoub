@@ -65,7 +65,7 @@ function TourPageContent() {
   );
 
   const [day, setDay] = useState<DayKey>(getTodayDayKey());
-  const [listOpen, setListOpen] = useState(true);
+  const [listOpen, setListOpen] = useState(false);
   const [addOpen, setAddOpen] = useState(false);
   const [picking, setPicking] = useState(false);
   const [pickedPoint, setPickedPoint] = useState<[number, number] | null>(null);
@@ -155,11 +155,12 @@ function TourPageContent() {
     router.push(`/stores/detail?id=${item.customerId}`);
   };
 
-  // TODO: This value is tied to ShopListDrawer's default snap point (SNAP_POINTS[0] = 0.5,
-  // i.e. ~50svh). For Leaflet's fitBounds, we need pixel estimates.
-  // ~50svh ≈ 400px on typical mobile, 100px = minimal offset when closed.
-  // The nav height is approx 64px (4rem) + safe area, but Leaflet needs a static number.
-  const bottomInset = (listOpen ? 400 : 100) + NAV_H_ESTIMATE;
+  // TODO: This value is tied to ShopListDrawer's default snap point (SNAP_POINTS[0] = 0.5)
+  // and its max-height cap (100dvh - 180px, kept clear of the day badges). For Leaflet's
+  // fitBounds, we need pixel estimates: ~50% of (100dvh - 180px) ≈ 320px on typical mobile,
+  // 100px = minimal offset when closed. The nav height is approx 64px (4rem) + safe area,
+  // but Leaflet needs a static number.
+  const bottomInset = (listOpen ? 320 : 100) + NAV_H_ESTIMATE;
   // The floating buttons are `position: fixed`, the same coordinate space as
   // the drawer itself, so they can be anchored directly off its measured
   // on-screen top edge (shopListTop) — no cross-container math needed.
@@ -167,9 +168,9 @@ function TourPageContent() {
   // rest above the bottom nav bar instead.
   const floatingBottom = listOpen
     ? shopListTop != null
-      ? `calc(100dvh - ${shopListTop}px + 1.25rem)`
-      : `calc(46svh + 1.25rem)`
-    : `calc(var(--bottom-nav-height) + 1.25rem)`;
+      ? `calc(100dvh - ${shopListTop}px + 0.5rem)`
+      : `calc(46svh + 0.5rem)`
+    : `calc(var(--bottom-nav-height) + 0.5rem)`;
 
   return (
     <main

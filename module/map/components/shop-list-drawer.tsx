@@ -28,6 +28,12 @@ import { PhoneInput } from "@/components/tredro/phone-input";
 
 const SNAP_POINTS = [0.5, 0.92];
 
+// The day-badges panel (DaySelector + DetermineRouteButton) floats over the map's
+// top-left, roughly 130px tall including its padding. Snap points are fractions of
+// this drawer's max travel height, so capping that max height (100dvh - 180px,
+// i.e. ~130px panel + 50px clearance below it) keeps every snap state — including
+// the dragged-open one — from ever covering the day badges.
+
 interface ShopListDrawerProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -63,13 +69,29 @@ export function ShopListDrawer({
     const el = contentRef.current;
     if (!el || !onTopChange || !open) return;
     const reportTop = () => onTopChange(el.getBoundingClientRect().top);
+    reportTop();
+
     const observer = new ResizeObserver(reportTop);
     observer.observe(el);
+
+    // With snap points, the popup keeps a near-full-height box and is moved via a
+    // `transform`/CSS-var set in its inline `style` (see DrawerPopup) rather than
+    // resized — so ResizeObserver alone misses drag and snap-point changes. Watch
+    // the popup ancestor's `style` attribute too, which mutates on every frame of
+    // a drag and again once it settles on a snap point.
+    const popupEl = el.closest('[data-slot="drawer-popup"]');
+    const mutationObserver = popupEl ? new MutationObserver(reportTop) : null;
+    mutationObserver?.observe(popupEl as Element, {
+      attributes: true,
+      attributeFilter: ["style"],
+    });
+
     // Re-measure on viewport resize too (e.g. mobile address-bar collapse),
     // since the drawer's top can shift even when its own size doesn't.
     window.addEventListener("resize", reportTop);
     return () => {
       observer.disconnect();
+      mutationObserver?.disconnect();
       window.removeEventListener("resize", reportTop);
     };
   }, [onTopChange, open]);
@@ -90,7 +112,7 @@ export function ShopListDrawer({
       snapPoints={SNAP_POINTS}
       defaultSnapPoint={SNAP_POINTS[0]}
     >
-      <DrawerContent className={` mt-0 `}>
+      <DrawerContent className="mt-0 data-[swipe-axis=y]:[--drawer-content-max-height:calc(100dvh-180px)]">
         <div ref={contentRef} className="flex min-h-0 flex-1 flex-col">
           <DrawerHeader className="flex justify-between flex-row w-full items-center gap-3 px-5 pb-3 pt-1 text-start">
             <div className="min-w-0">
