@@ -94,10 +94,19 @@ export const updateRepWorkDays = async (
   return response.data;
 };
 
+/**
+ * `idempotencyKey` defaults to a fresh UUID so existing callers are
+ * unaffected. The backend isn't confirmed to read this header on this route
+ * yet (see the offline-mode report's open questions) — sending it now is
+ * harmless and means no client change is needed once that's confirmed.
+ */
 export const createCustomer = async (
   data: CreateCustomerRequest,
+  idempotencyKey: string = crypto.randomUUID(),
 ): Promise<CreateCustomerResponse> => {
-  const response = await api.post("/reps/customers/", data);
+  const response = await api.post("/reps/customers/", data, {
+    headers: { "Idempotency-Key": idempotencyKey },
+  });
   const resData = response.data;
 
   return {

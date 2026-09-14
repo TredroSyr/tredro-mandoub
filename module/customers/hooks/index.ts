@@ -1,4 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useRef } from "react";
 import { AxiosError } from "axios";
 import { toast } from "@/components/ui/toast";
 import { ApiErrorResponse } from "@/module/auth/types";
@@ -97,10 +98,14 @@ export const useCreateCustomerMutation = (options?: {
   onError?: (error: AxiosError<ApiErrorResponse>) => void;
 }) => {
   const queryClient = useQueryClient();
+  // Stable per hook instance so a resubmit after a timeout replays the same
+  // key instead of risking a duplicate customer — see module/invoices/hooks.
+  const idempotencyKeyRef = useRef(crypto.randomUUID());
 
   return useMutation({
     mutationKey: ["createCustomer"],
-    mutationFn: (data: CreateCustomerRequest) => createCustomer(data),
+    mutationFn: (data: CreateCustomerRequest) =>
+      createCustomer(data, idempotencyKeyRef.current),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["customers"] });
       toast.success("تم إضافة العميل بنجاح");

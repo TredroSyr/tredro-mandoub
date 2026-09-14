@@ -1,4 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useRef } from "react";
 import { AxiosError } from "axios";
 import { toast } from "@/components/ui/toast";
 import { ApiErrorResponse } from "@/module/auth/types";
@@ -47,10 +48,12 @@ export const useAcceptCustomerRequestMutation = (options?: {
   onError?: (error: AxiosError<ApiErrorResponse>) => void;
 }) => {
   const invalidate = useInvalidateCustomerRequests();
+  const idempotencyKeyRef = useRef(crypto.randomUUID());
 
   return useMutation({
     mutationKey: ["acceptCustomerRequest"],
-    mutationFn: (requestId: number) => acceptCustomerRequest(requestId),
+    mutationFn: (requestId: number) =>
+      acceptCustomerRequest(requestId, idempotencyKeyRef.current),
     onSuccess: (data) => {
       invalidate();
       toast.success(data.message || "تم قبول الطلب");
@@ -68,11 +71,12 @@ export const useRejectCustomerRequestMutation = (options?: {
   onError?: (error: AxiosError<ApiErrorResponse>) => void;
 }) => {
   const invalidate = useInvalidateCustomerRequests();
+  const idempotencyKeyRef = useRef(crypto.randomUUID());
 
   return useMutation({
     mutationKey: ["rejectCustomerRequest"],
     mutationFn: ({ requestId, payload }: { requestId: number; payload?: RejectCustomerRequestPayload }) =>
-      rejectCustomerRequest(requestId, payload),
+      rejectCustomerRequest(requestId, payload, idempotencyKeyRef.current),
     onSuccess: (data) => {
       invalidate();
       toast.success(data.message || "تم رفض الطلب");
