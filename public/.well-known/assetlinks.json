@@ -1,0 +1,12 @@
+[
+  {
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "com.tredromandoub.app",
+      "sha256_cert_fingerprints": [
+        "62:4A:83:75:D4:5E:F6:7F:95:2D:FE:24:63:FA:3A:6A:4E:31:3F:8F:78:B4:DD:C1:EB:F2:D3:48:03:27:9D:8F"
+      ]
+    }
+  }
+]
