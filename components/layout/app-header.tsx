@@ -14,6 +14,7 @@ import {
   useUnregisterNotificationDeviceMutation,
 } from "@/module/notifications/hooks";
 import { FCM_TOKEN_STORAGE_KEY } from "@/module/notifications/hooks/use-register-push-notifications";
+import { useOutboxSummary } from "@/hooks/use-outbox-summary";
 import { Button } from "@/components/ui/button";
 import {
   Popover,
@@ -48,6 +49,8 @@ export default function AppHeader({ onRefresh }: AppHeaderProps) {
     })),
   );
   const router = useRouter();
+  const { pendingCount, failedCount } = useOutboxSummary();
+  const unsyncedCount = pendingCount + failedCount;
   const [logoError, setLogoError] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [referralInfoOpen, setReferralInfoOpen] = useState(false);
@@ -96,6 +99,24 @@ export default function AppHeader({ onRefresh }: AppHeaderProps) {
             </span>
           )}
         </button>
+
+        {unsyncedCount > 0 && (
+          <button
+            type="button"
+            onClick={() => router.push("/sync-issues")}
+            aria-label="عناصر بانتظار المزامنة"
+            className="relative grid size-9 shrink-0 place-items-center rounded-2xl bg-secondary text-primary active:scale-95"
+          >
+            <IconRenderer name="refresh_outlined" className="size-4" />
+            <span
+              className={`absolute -top-1 -end-1 grid min-w-4 place-items-center rounded-full px-1 font-mono text-white text-[9px] font-bold ${
+                failedCount > 0 ? "bg-destructive" : "bg-warning"
+              }`}
+            >
+              {formatNum(unsyncedCount)}
+            </span>
+          </button>
+        )}
 
         <button type="button" onClick={onRefresh} className="shrink-0">
           <Image

@@ -7,6 +7,8 @@ import { cn } from "@/lib/utils";
 import { ProtectedRoute } from "@/guards/protected-route";
 import BottomNav, { NAV_H } from "@/layout/bottom-nav";
 import AppHeader from "@/components/layout/app-header";
+import { OfflineBanner } from "@/components/layout/offline-banner";
+import { SyncOnReconnect } from "@/components/layout/sync-on-reconnect";
 import { PullToRefresh } from "@/components/tredro/pull-to-refresh";
 import { useAuthInit } from "@/module/auth/hook/use-token-guard";
 import { useRegisterPushNotifications } from "@/module/notifications/hooks/use-register-push-notifications";
@@ -37,6 +39,8 @@ export default function ProtectedLayout({ children }: { children: ReactNode }) {
     <ProtectedRoute>
       <UpdateChecker />
       <div style={{ paddingBottom: NAV_H }} className="min-h-dvh bg-background">
+        <SyncOnReconnect />
+        <OfflineBanner />
         {!isFullScreen && <AppHeader />}
         {isFullScreen ? (
           children

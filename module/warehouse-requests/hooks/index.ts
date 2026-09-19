@@ -1,4 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useRef } from "react";
 import { AxiosError } from "axios";
 import { toast } from "@/components/ui/toast";
 import { ApiErrorResponse } from "@/module/auth/types";
@@ -76,10 +77,14 @@ export const useCreateStockTransferMutation = (options?: {
   onError?: (error: AxiosError<ApiErrorResponse>) => void;
 }) => {
   const invalidate = useInvalidateStockTransfers();
+  // Stable per hook instance so a resubmit after a timeout replays the same
+  // key instead of risking a duplicate transfer — see module/invoices/hooks.
+  const idempotencyKeyRef = useRef(crypto.randomUUID());
 
   return useMutation({
     mutationKey: ["createStockTransfer"],
-    mutationFn: (payload: CreateStockTransferPayload) => createStockTransfer(payload),
+    mutationFn: (payload: CreateStockTransferPayload) =>
+      createStockTransfer(payload, idempotencyKeyRef.current),
     onSuccess: (data) => {
       invalidate();
       toast.success(data.message || "تم إرسال الطلب للشركة");
@@ -141,10 +146,12 @@ export const useReceiveStockTransferMutation = (options?: {
   onError?: (error: AxiosError<ApiErrorResponse>) => void;
 }) => {
   const invalidate = useInvalidateStockTransfers();
+  const idempotencyKeyRef = useRef(crypto.randomUUID());
 
   return useMutation({
     mutationKey: ["receiveStockTransfer"],
-    mutationFn: (transferId: number) => receiveStockTransfer(transferId),
+    mutationFn: (transferId: number) =>
+      receiveStockTransfer(transferId, idempotencyKeyRef.current),
     onSuccess: (data) => {
       invalidate();
       toast.success(data.message || "تمت إضافة البضاعة لمستودع السيارة");

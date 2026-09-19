@@ -22,11 +22,18 @@ export const getStockTransfers = async (
   return response.data;
 };
 
+/**
+ * `idempotencyKey` defaults to a fresh UUID so existing callers are
+ * unaffected, but a caller expecting the rep might retry this exact
+ * submission must generate the key once, up front, and pass the same value
+ * on every attempt — see module/invoices/api's createSalesInvoice.
+ */
 export const createStockTransfer = async (
   payload: CreateStockTransferPayload,
+  idempotencyKey: string = crypto.randomUUID(),
 ): Promise<StockTransferDetailResponse> => {
   const response = await api.post("/reps/stock-transfers/", payload, {
-    headers: { "Idempotency-Key": crypto.randomUUID() },
+    headers: { "Idempotency-Key": idempotencyKey },
   });
   return response.data;
 };
@@ -47,11 +54,12 @@ export const rejectStockTransfer = async (
 
 export const receiveStockTransfer = async (
   transferId: number,
+  idempotencyKey: string = crypto.randomUUID(),
 ): Promise<StockTransferDetailResponse> => {
   const response = await api.post(
     `/reps/stock-transfers/${transferId}/receive/`,
     {},
-    { headers: { "Idempotency-Key": crypto.randomUUID() } },
+    { headers: { "Idempotency-Key": idempotencyKey } },
   );
   return response.data;
 };
