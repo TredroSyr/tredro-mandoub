@@ -1,7 +1,6 @@
 "use client";
 
 import Image from "next/image";
-import Link from "next/link";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useShallow } from "zustand/react/shallow";
@@ -224,10 +223,13 @@ export default function AppHeader({ onRefresh }: AppHeaderProps) {
               )}
 
               <div className="border-t border-border p-2">
-                <Link
-                  href="/settings"
-                  onClick={() => setMenuOpen(false)}
-                  className={`${MENU_ITEM} ${ITEM_ANIMATION}`}
+                <button
+                  type="button"
+                  onClick={() => {
+                    setMenuOpen(false);
+                    router.push("/settings");
+                  }}
+                  className={`${MENU_ITEM} w-full ${ITEM_ANIMATION}`}
                   style={{ animationDelay: "120ms" }}
                 >
                   <span className="flex items-center gap-3">
@@ -236,7 +238,7 @@ export default function AppHeader({ onRefresh }: AppHeaderProps) {
                     </span>
                     عرض إحصائياتي
                   </span>
-                </Link>
+                </button>
 
                 <button
                   type="button"
