@@ -129,8 +129,8 @@ export function OfflineDiagnosticsView() {
     setBusy(true);
     setTestResult(null);
     try {
-      const synced = await flushOutbox();
-      setTestResult(`تمت مزامنة ${synced} عنصر`);
+      const { synced, failed } = await flushOutbox();
+      setTestResult(`تمت مزامنة ${synced} عنصر — تعذّر ${failed}`);
     } catch (error) {
       setTestResult(`❌ فشلت المزامنة: ${describeError(error)}`);
     } finally {

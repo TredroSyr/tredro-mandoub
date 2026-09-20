@@ -1,4 +1,5 @@
 import type { PersistedClient, Persister } from "@tanstack/react-query-persist-client";
+import { clearSyncLog } from "@/lib/sync/sync-log";
 import { describeError, getDb, runSerialized } from "./sqlite";
 
 const CACHE_KEY = "react-query-cache";
@@ -175,5 +176,6 @@ export const sqlitePersister: Persister = {
  * (The outbox is deliberately NOT cleared: unsynced writes must survive.)
  */
 export async function clearOfflineCache(): Promise<void> {
+  clearSyncLog();
   await sqlitePersister.removeClient();
 }

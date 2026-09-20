@@ -44,6 +44,27 @@ function rowToItem(row: OutboxRow): OutboxItem {
   };
 }
 
+// Lets other parts of the app (the "items waiting" reminder) react to the
+// outbox changing without this module knowing about them.
+const changeListeners = new Set<() => void>();
+
+export function subscribeOutboxChanges(listener: () => void): () => void {
+  changeListeners.add(listener);
+  return () => {
+    changeListeners.delete(listener);
+  };
+}
+
+function notifyChanged(): void {
+  for (const listener of changeListeners) {
+    try {
+      listener();
+    } catch (error) {
+      console.error("[offline-db] outbox listener failed", error);
+    }
+  }
+}
+
 // ---------------------------------------------------------------------------
 // localStorage fallback. SQLite is the primary store, but if it can't be
 // opened on a device, a queued write must still survive an app restart rather
@@ -118,6 +139,7 @@ export async function enqueueOutboxItem(item: {
           [item.id, item.kind, item.label, payload, now, now],
         ),
       );
+      notifyChanged();
       return true;
     } catch (error) {
       console.error(
@@ -140,7 +162,9 @@ export async function enqueueOutboxItem(item: {
       created_at: now,
       updated_at: now,
     });
-    return lsWrite(rows);
+    const stored = lsWrite(rows);
+    if (stored) notifyChanged();
+    return stored;
   }
   return true;
 }
@@ -197,6 +221,7 @@ export async function markOutboxItem(
     row.attempt_count += bump;
     lsWrite(rows);
   }
+  notifyChanged();
 }
 
 /** Called once an item is confirmed synced, or the rep explicitly discards it. */
@@ -216,6 +241,7 @@ export async function removeOutboxItem(id: string): Promise<void> {
   if (rows.some((r) => r.id === id)) {
     lsWrite(rows.filter((r) => r.id !== id));
   }
+  notifyChanged();
 }
 
 /**

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -18,6 +18,7 @@ import { useOutboxSummary } from "@/hooks/use-outbox-summary";
 import { useNetworkStatus } from "@/hooks/use-network-status";
 import { removeOutboxItem, type OutboxItem } from "@/lib/db/outbox";
 import { retryOutboxItem } from "@/lib/sync/flush-outbox";
+import { formatAgo, readSyncLog, type SyncLogEntry } from "@/lib/sync/sync-log";
 import { hasOutboxEditor, OutboxItemEditor } from "./outbox-item-editor";
 
 function StatusBadge({ status }: { status: OutboxItem["status"] }) {
@@ -37,6 +38,19 @@ export function SyncIssuesView() {
   const [busyId, setBusyId] = useState<string | null>(null);
   const [discardTarget, setDiscardTarget] = useState<OutboxItem | null>(null);
   const [editing, setEditing] = useState<OutboxItem | null>(null);
+
+  // Read after mount (not in the initial state) so the prerendered page and
+  // the first client render agree.
+  const [history, setHistory] = useState<SyncLogEntry[]>([]);
+  useEffect(() => {
+    const load = () => setHistory(readSyncLog().reverse().slice(0, 10));
+    const first = setTimeout(load, 0);
+    const timer = setInterval(load, 3000);
+    return () => {
+      clearTimeout(first);
+      clearInterval(timer);
+    };
+  }, []);
 
   /** Sends the item again exactly as saved (a rejected item goes out under a fresh key). */
   const resend = async (item: OutboxItem) => {
@@ -164,6 +178,26 @@ export function SyncIssuesView() {
             );
           })}
         </ul>
+      )}
+
+      {history.length > 0 && (
+        <section className="flex flex-col gap-2">
+          <h2 className="text-xs font-extrabold text-muted-foreground">آخر ما تمت مزامنته</h2>
+          <ul className="flex flex-col gap-1.5">
+            {history.map((entry) => (
+              <li
+                key={entry.id}
+                className="flex items-center justify-between gap-2 rounded-xl bg-muted/50 px-3 py-2 text-xs"
+              >
+                <span className="flex items-center gap-1.5 font-bold">
+                  <IconRenderer name="tick_outlined" className="size-3.5 text-success-foreground" />
+                  {entry.label}
+                </span>
+                <span className="shrink-0 text-[10px] text-muted-foreground">{formatAgo(entry.at)}</span>
+              </li>
+            ))}
+          </ul>
+        </section>
       )}
 
       {editing && (

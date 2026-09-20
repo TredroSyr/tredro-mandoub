@@ -225,7 +225,7 @@ export default function AppHeader({ onRefresh }: AppHeaderProps) {
                   name="user_filled"
                   className="size-4 text-primary"
                 />
-                عرض الملف الشخصي
+                عرض إحصائياتي
               </Link>
 
               {/* <Link
