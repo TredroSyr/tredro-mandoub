@@ -9,7 +9,12 @@ import { formatDateShort, formatMoneyParts } from "@/lib/format";
 import { REQUEST_STATUS_META } from "@/module/orders/lib/utils";
 import type { CustomerRequestStatus } from "@/module/orders/types";
 import { useMyInsightsQuery, useMyOverviewQuery } from "../hooks";
-import type { Insight, InsightSeverity, OverviewParams, RepOverview } from "../types";
+import type {
+  Insight,
+  InsightSeverity,
+  OverviewParams,
+  RepOverview,
+} from "../types";
 
 /* ============================================================
    بيانات حقيقية من /reps/overview/
@@ -29,13 +34,50 @@ function buildKpis(overview: RepOverview): Kpi[] {
   const totalAmount = formatMoneyParts(sales.total_amount.value, currency.code);
 
   return [
-    { key: "customers", label: "الزبائن المسندين", value: customers.assigned.value, change: customers.assigned.change_pct, icon: "users_outlined" },
-    { key: "orders", label: "الطلبيات", value: customer_requests.count.value, change: customer_requests.count.change_pct, icon: "cart_outlined" },
-    { key: "revenue", label: "قيمة المبيعات", value: totalAmount.amount, suffix: totalAmount.label, change: sales.total_amount.change_pct, icon: "revenue_outlined" },
-    { key: "newCustomers", label: "زبائن جدد (إحالة)", value: customers.new_via_referral.value, change: customers.new_via_referral.change_pct, icon: "add_user_outlined" },
+    {
+      key: "customers",
+      label: "الزبائن المسندين",
+      value: customers.assigned.value,
+      change: customers.assigned.change_pct,
+      icon: "users_outlined",
+    },
+    {
+      key: "orders",
+      label: "الطلبيات",
+      value: customer_requests.count.value,
+      change: customer_requests.count.change_pct,
+      icon: "cart_outlined",
+    },
+    {
+      key: "revenue",
+      label: "قيمة المبيعات",
+      value: totalAmount.amount,
+      suffix: totalAmount.label,
+      change: sales.total_amount.change_pct,
+      icon: "revenue_outlined",
+    },
+    {
+      key: "newCustomers",
+      label: "زبائن جدد (إحالة)",
+      value: customers.new_via_referral.value,
+      change: customers.new_via_referral.change_pct,
+      icon: "add_user_outlined",
+    },
     // a queue — waiting on the rep to deliver, doesn't follow the date picker.
-    { key: "pending", label: "بانتظار التسليم", value: customer_requests.awaiting_delivery_count, change: null, icon: "clock_outlined" },
-    { key: "visits", label: "الزيارات (آخر 7 أيام)", value: visits.count.value, change: visits.count.change_pct, icon: "map_outlined" },
+    {
+      key: "pending",
+      label: "بانتظار التسليم",
+      value: customer_requests.awaiting_delivery_count,
+      change: null,
+      icon: "clock_outlined",
+    },
+    {
+      key: "visits",
+      label: "الزيارات (آخر 7 أيام)",
+      value: visits.count.value,
+      change: visits.count.change_pct,
+      icon: "map_outlined",
+    },
   ];
 }
 
@@ -45,10 +87,14 @@ interface DistributionBar {
   value: number;
 }
 
-function buildRequestBars(overview: RepOverview): { bars: DistributionBar[]; total: number } {
+function buildRequestBars(overview: RepOverview): {
+  bars: DistributionBar[];
+  total: number;
+} {
   const bars = overview.customer_requests.by_status.map((s) => ({
     key: s.status,
-    label: REQUEST_STATUS_META[s.status as CustomerRequestStatus]?.label ?? s.label,
+    label:
+      REQUEST_STATUS_META[s.status as CustomerRequestStatus]?.label ?? s.label,
     value: s.count,
   }));
   return { bars, total: bars.reduce((sum, b) => sum + b.value, 0) };
@@ -70,9 +116,14 @@ interface ActivityGroupData {
 }
 
 function buildActivityGroups(overview: RepOverview): ActivityGroupData[] {
-  const { sales, visits, customer_requests, customers, currency, period } = overview;
-  const periodLabel = `${formatDateShort(period.date_from)} - ${formatDateShort(period.date_to)}`;
-  const visitsWindowLabel = `${formatDateShort(visits.window.date_from)} - ${formatDateShort(visits.window.date_to)}`;
+  const { sales, visits, customer_requests, customers, currency, period } =
+    overview;
+  const periodLabel = `${formatDateShort(period.date_from)} - ${formatDateShort(
+    period.date_to,
+  )}`;
+  const visitsWindowLabel = `${formatDateShort(
+    visits.window.date_from,
+  )} - ${formatDateShort(visits.window.date_to)}`;
   const totalAmount = formatMoneyParts(sales.total_amount.value, currency.code);
 
   return [
@@ -81,9 +132,25 @@ function buildActivityGroups(overview: RepOverview): ActivityGroupData[] {
       title: "الطلبيات",
       icon: "cart_outlined",
       tiles: [
-        { value: totalAmount.amount, suffix: totalAmount.label, change: sales.total_amount.change_pct, label: "إجمالي المبيعات", sub: periodLabel },
-        { value: customer_requests.count.value, change: customer_requests.count.change_pct, label: "عدد الطلبيات", sub: periodLabel },
-        { value: customer_requests.pending_count, change: null, label: "طلبيات معلّقة", sub: "بانتظار ردّك" },
+        {
+          value: totalAmount.amount,
+          suffix: totalAmount.label,
+          change: sales.total_amount.change_pct,
+          label: "إجمالي المبيعات",
+          sub: periodLabel,
+        },
+        {
+          value: customer_requests.count.value,
+          change: customer_requests.count.change_pct,
+          label: "عدد الطلبيات",
+          sub: periodLabel,
+        },
+        {
+          value: customer_requests.pending_count,
+          change: null,
+          label: "طلبيات معلّقة",
+          sub: "بانتظار ردّك",
+        },
       ],
     },
     {
@@ -91,8 +158,18 @@ function buildActivityGroups(overview: RepOverview): ActivityGroupData[] {
       title: "الزيارات",
       icon: "map_outlined",
       tiles: [
-        { value: visits.count.value, change: visits.count.change_pct, label: "الزيارات", sub: visitsWindowLabel },
-        { value: visits.unvisited_customer_count, change: null, label: "محلات غير مزارة", sub: "خلال هذا الأسبوع" },
+        {
+          value: visits.count.value,
+          change: visits.count.change_pct,
+          label: "الزيارات",
+          sub: visitsWindowLabel,
+        },
+        {
+          value: visits.unvisited_customer_count,
+          change: null,
+          label: "محلات غير مزارة",
+          sub: "خلال هذا الأسبوع",
+        },
         {
           value: visits.days_since_last_visit ?? "—",
           change: null,
@@ -106,8 +183,18 @@ function buildActivityGroups(overview: RepOverview): ActivityGroupData[] {
       title: "الزبائن",
       icon: "users_outlined",
       tiles: [
-        { value: customers.assigned.value, change: customers.assigned.change_pct, label: "إجمالي الزبائن", sub: "مسندين للمندوب" },
-        { value: customers.new_via_referral.value, change: customers.new_via_referral.change_pct, label: "زبائن جدد", sub: "عبر كود الإحالة" },
+        {
+          value: customers.assigned.value,
+          change: customers.assigned.change_pct,
+          label: "إجمالي الزبائن",
+          sub: "مسندين للمندوب",
+        },
+        {
+          value: customers.new_via_referral.value,
+          change: customers.new_via_referral.change_pct,
+          label: "زبائن جدد",
+          sub: "عبر كود الإحالة",
+        },
       ],
     },
   ];
@@ -117,7 +204,14 @@ function buildActivityGroups(overview: RepOverview): ActivityGroupData[] {
 function hasOverviewShape(value: unknown): value is RepOverview {
   if (!value || typeof value !== "object") return false;
   const o = value as Partial<RepOverview>;
-  return Boolean(o.currency && o.period && o.sales && o.visits && o.customer_requests && o.customers);
+  return Boolean(
+    o.currency &&
+      o.period &&
+      o.sales &&
+      o.visits &&
+      o.customer_requests &&
+      o.customers,
+  );
 }
 
 const ACTIVITY_SKELETON_GROUP_SIZES = [3, 3, 2];
@@ -164,7 +258,8 @@ function useDragScroll() {
     if (!dragging) return;
     const el = ref.current;
     if (!el) return;
-    el.scrollLeft = state.current.startLeft - (e.clientX - state.current.startX);
+    el.scrollLeft =
+      state.current.startLeft - (e.clientX - state.current.startX);
   };
   const endDrag = (e: PointerEvent<HTMLDivElement>) => {
     if (!dragging) return;
@@ -172,7 +267,14 @@ function useDragScroll() {
     ref.current?.releasePointerCapture(e.pointerId);
   };
 
-  return { ref, dragging, onPointerDown, onPointerMove, onPointerUp: endDrag, onPointerCancel: endDrag };
+  return {
+    ref,
+    dragging,
+    onPointerDown,
+    onPointerMove,
+    onPointerUp: endDrag,
+    onPointerCancel: endDrag,
+  };
 }
 
 /* ============================================================
@@ -202,23 +304,43 @@ function KpiCard({ item }: { item: Kpi }) {
           <IconRenderer name={item.icon} className="size-4" />
         </div>
         {change != null && (
-          <span className={`flex items-center gap-0.5 text-[11px] font-medium ${isUp ? "text-emerald-600" : "text-red-500"}`}>
-            <IconRenderer name={isUp ? "arrow_up_outlined" : "arrow_down_outlined"} className="size-3" />
+          <span
+            className={`flex items-center gap-0.5 text-[11px] font-medium ${
+              isUp ? "text-emerald-600" : "text-red-500"
+            }`}
+          >
+            <IconRenderer
+              name={isUp ? "arrow_up_outlined" : "arrow_down_outlined"}
+              className="size-3"
+            />
             {Math.abs(change)}%
           </span>
         )}
       </div>
       <div className="flex flex-wrap items-baseline gap-1">
-        <span className="text-xl font-semibold text-foreground">{item.value}</span>
-        {item.suffix && <span className="text-xs text-muted-foreground">{item.suffix}</span>}
+        <span className="text-xl font-semibold text-foreground">
+          {item.value}
+        </span>
+        {item.suffix && (
+          <span className="text-xs text-muted-foreground">{item.suffix}</span>
+        )}
       </div>
-      <span className="truncate text-xs text-muted-foreground">{item.label}</span>
+      <span className="truncate text-xs text-muted-foreground">
+        {item.label}
+      </span>
     </div>
   );
 }
 
 function KpiRow({ kpis }: { kpis: Kpi[] | null }) {
-  const { ref, dragging, onPointerDown, onPointerMove, onPointerUp, onPointerCancel } = useDragScroll();
+  const {
+    ref,
+    dragging,
+    onPointerDown,
+    onPointerMove,
+    onPointerUp,
+    onPointerCancel,
+  } = useDragScroll();
 
   if (!kpis) {
     return (
@@ -261,7 +383,10 @@ function OrdersDistributionSkeleton() {
         {[60, 90, 40, 70].map((h, i) => (
           <div key={i} className="flex flex-1 flex-col items-center gap-2">
             <div className="flex h-28 w-full items-end">
-              <Skeleton className="w-full" style={{ height: `${h}%` } as React.CSSProperties} />
+              <Skeleton
+                className="w-full"
+                style={{ height: `${h}%` } as React.CSSProperties}
+              />
             </div>
             <Skeleton className="h-2.5 w-10" />
           </div>
@@ -271,18 +396,31 @@ function OrdersDistributionSkeleton() {
   );
 }
 
-function OrdersDistributionCard({ bars, total }: { bars: DistributionBar[]; total: number }) {
+function OrdersDistributionCard({
+  bars,
+  total,
+}: {
+  bars: DistributionBar[];
+  total: number;
+}) {
   const [sel, setSel] = useState(0);
   const maxV = Math.max(...bars.map((b) => b.value), 1);
 
   return (
     <div className="flex h-full flex-col rounded-2xl border border-border bg-card p-4">
       <div className="flex items-start justify-between">
-        <span className="text-sm font-medium text-muted-foreground">توزيع الطلبيات</span>
-        <IconRenderer name="arrow_up_right_outlined" className="size-4 text-muted-foreground" />
+        <span className="text-sm font-medium text-muted-foreground">
+          توزيع الطلبيات
+        </span>
+        <IconRenderer
+          name="arrow_up_right_outlined"
+          className="size-4 text-muted-foreground"
+        />
       </div>
       <div className="mt-2 flex items-baseline gap-1">
-        <span className="text-3xl font-semibold tracking-tight text-foreground">{total}</span>
+        <span className="text-3xl font-semibold tracking-tight text-foreground">
+          {total}
+        </span>
         <span className="text-xs text-muted-foreground">طلبية</span>
       </div>
 
@@ -291,17 +429,30 @@ function OrdersDistributionCard({ bars, total }: { bars: DistributionBar[]; tota
           const isSel = sel === i;
           const h = (d.value / maxV) * 100;
           return (
-            <button key={d.key} onClick={() => setSel(i)} className="flex min-w-0 flex-1 flex-col items-center gap-2">
+            <button
+              key={d.key}
+              onClick={() => setSel(i)}
+              className="flex min-w-0 flex-1 flex-col items-center gap-2"
+            >
               <div className="flex h-28 w-full items-end">
-                <div className={`w-full rounded-md transition-all ${isSel ? "bg-primary" : "bg-primary/15"}`} style={{ height: `${h}%` }}>
+                <div
+                  className={`w-full rounded-md transition-all ${
+                    isSel ? "bg-primary" : "bg-primary/15"
+                  }`}
+                  style={{ height: `${h}%` }}
+                >
                   {isSel && (
                     <div className="w-full pt-1 text-center">
-                      <span className="text-[11px] font-semibold text-primary-foreground">{d.value}</span>
+                      <span className="text-[11px] font-semibold text-primary-foreground">
+                        {d.value}
+                      </span>
                     </div>
                   )}
                 </div>
               </div>
-              <span className="w-full truncate text-center text-[11px] text-muted-foreground">{d.label}</span>
+              <span className="w-full truncate text-center text-[11px] text-muted-foreground">
+                {d.label}
+              </span>
             </button>
           );
         })}
@@ -333,7 +484,10 @@ function InsightBanner({ insights }: { insights: Insight[] }) {
   const [active, setActive] = useState(0);
   useEffect(() => {
     if (insights.length < 2) return;
-    const id = setInterval(() => setActive((p) => (p + 1) % insights.length), ROTATE_MS);
+    const id = setInterval(
+      () => setActive((p) => (p + 1) % insights.length),
+      ROTATE_MS,
+    );
     return () => clearInterval(id);
   }, [insights.length]);
 
@@ -358,11 +512,16 @@ function InsightBanner({ insights }: { insights: Insight[] }) {
         <div className="flex items-start gap-2">
           <IconRenderer
             name={KIND_ICON[current.kind] ?? GENERIC_ICON}
-            className={`mt-0.5 size-4 shrink-0 ${SEVERITY_ICON_CLASS[current.severity] ?? SEVERITY_ICON_CLASS.neutral}`}
+            className={`mt-0.5 size-4 shrink-0 ${
+              SEVERITY_ICON_CLASS[current.severity] ??
+              SEVERITY_ICON_CLASS.neutral
+            }`}
           />
           <div className="flex flex-col gap-1">
             <span className="text-sm font-semibold">{current.title}</span>
-            <p className="text-xs leading-relaxed text-white/80">{current.body}</p>
+            <p className="text-xs leading-relaxed text-white/80">
+              {current.body}
+            </p>
           </div>
         </div>
         {insights.length > 1 && (
@@ -372,7 +531,9 @@ function InsightBanner({ insights }: { insights: Insight[] }) {
                 key={i}
                 onClick={() => setActive(i)}
                 aria-label={`توقع ${i + 1}`}
-                className={`h-1.5 rounded-full transition-all ${i === index ? "w-5 bg-white" : "w-1.5 bg-white/40"}`}
+                className={`h-1.5 rounded-full transition-all ${
+                  i === index ? "w-5 bg-white" : "w-1.5 bg-white/40"
+                }`}
               />
             ))}
           </div>
@@ -403,8 +564,14 @@ function ActivityStatTile({ tile }: { tile: ActivityTileData }) {
   return (
     <div className="flex h-[140px] w-[150px] shrink-0 flex-col justify-between rounded-2xl border border-border bg-card p-4">
       <div className="flex flex-wrap items-baseline gap-x-1.5">
-        <span className="text-xl font-semibold text-foreground">{tile.value}</span>
-        {tile.suffix && <span className="text-[11px] text-muted-foreground">{tile.suffix}</span>}
+        <span className="text-xl font-semibold text-foreground">
+          {tile.value}
+        </span>
+        {tile.suffix && (
+          <span className="text-[11px] text-muted-foreground">
+            {tile.suffix}
+          </span>
+        )}
         {tile.change != null && (
           <IconRenderer
             name={isUp ? "arrow_up_outlined" : "arrow_down_outlined"}
@@ -414,14 +581,23 @@ function ActivityStatTile({ tile }: { tile: ActivityTileData }) {
       </div>
       <div>
         <div className="text-xs font-medium text-foreground">{tile.label}</div>
-        {tile.sub && <div className="text-[11px] text-muted-foreground">{tile.sub}</div>}
+        {tile.sub && (
+          <div className="text-[11px] text-muted-foreground">{tile.sub}</div>
+        )}
       </div>
     </div>
   );
 }
 
 function ActivitySection({ groups }: { groups: ActivityGroupData[] | null }) {
-  const { ref, dragging, onPointerDown, onPointerMove, onPointerUp, onPointerCancel } = useDragScroll();
+  const {
+    ref,
+    dragging,
+    onPointerDown,
+    onPointerMove,
+    onPointerUp,
+    onPointerCancel,
+  } = useDragScroll();
 
   if (!groups) {
     return (
@@ -453,14 +629,21 @@ function ActivitySection({ groups }: { groups: ActivityGroupData[] | null }) {
         onPointerMove={onPointerMove}
         onPointerUp={onPointerUp}
         onPointerCancel={onPointerCancel}
-        className={`overflow-x-auto [&::-webkit-scrollbar]:hidden ${dragging ? "cursor-grabbing select-none" : "cursor-grab"}`}
+        className={`overflow-x-auto [&::-webkit-scrollbar]:hidden ${
+          dragging ? "cursor-grabbing select-none" : "cursor-grab"
+        }`}
       >
         <div className="flex min-w-max gap-6">
           {groups.map((group) => (
             <div key={group.key} className="shrink-0">
               <div className="mb-3 flex items-center gap-2">
-                <IconRenderer name={group.icon} className="size-4 text-muted-foreground" />
-                <h3 className="text-sm font-semibold text-foreground">{group.title}</h3>
+                <IconRenderer
+                  name={group.icon}
+                  className="size-4 text-muted-foreground"
+                />
+                <h3 className="text-sm font-semibold text-foreground">
+                  {group.title}
+                </h3>
               </div>
               <div className="flex gap-3">
                 {group.tiles.map((tile, i) => (
@@ -485,7 +668,8 @@ export interface AnalyticsOverviewProps {
 }
 
 export function AnalyticsOverview({ params }: AnalyticsOverviewProps) {
-  const { data, isLoading, isError, isFetching, refetch, error } = useMyOverviewQuery(params);
+  const { data, isLoading, isError, isFetching, refetch, error } =
+    useMyOverviewQuery(params);
   const rawOverview = data?.data?.overview;
   const overview = hasOverviewShape(rawOverview) ? rawOverview : undefined;
   const hasError = isError || (!isLoading && !overview);
@@ -493,16 +677,31 @@ export function AnalyticsOverview({ params }: AnalyticsOverviewProps) {
   const insightsQuery = useMyInsightsQuery(params);
   const insights = insightsQuery.data?.data?.insights ?? [];
 
-  const kpis = useMemo(() => (overview ? buildKpis(overview) : null), [overview]);
-  const requestDistribution = useMemo(() => (overview ? buildRequestBars(overview) : null), [overview]);
-  const activityGroups = useMemo(() => (overview ? buildActivityGroups(overview) : null), [overview]);
+  const kpis = useMemo(
+    () => (overview ? buildKpis(overview) : null),
+    [overview],
+  );
+  const requestDistribution = useMemo(
+    () => (overview ? buildRequestBars(overview) : null),
+    [overview],
+  );
+  const activityGroups = useMemo(
+    () => (overview ? buildActivityGroups(overview) : null),
+    [overview],
+  );
 
   if (hasError) {
-    return <ErrorState error={error} isRetrying={isFetching} onRetry={() => refetch()} />;
+    return (
+      <ErrorState
+        error={error}
+        isRetrying={isFetching}
+        onRetry={() => refetch()}
+      />
+    );
   }
 
   return (
-    <div className="flex flex-col gap-5">
+    <div className={`flex flex-col gap-5 transition-opacity ${isFetching ? "opacity-60" : ""}`}>
       {overview?.fx.stale && (
         <span className="flex items-center gap-1.5 text-xs text-amber-600">
           <IconRenderer name="warning_outlined" className="size-3.5" />
@@ -514,7 +713,10 @@ export function AnalyticsOverview({ params }: AnalyticsOverviewProps) {
 
       <div className="grid grid-cols-1 gap-4">
         {requestDistribution ? (
-          <OrdersDistributionCard bars={requestDistribution.bars} total={requestDistribution.total} />
+          <OrdersDistributionCard
+            bars={requestDistribution.bars}
+            total={requestDistribution.total}
+          />
         ) : (
           <OrdersDistributionSkeleton />
         )}
