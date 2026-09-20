@@ -228,7 +228,7 @@ export default function AppHeader({ onRefresh }: AppHeaderProps) {
                 عرض الملف الشخصي
               </Link>
 
-              <Link
+              {/* <Link
                 href="/offline-debug"
                 onClick={() => setMenuOpen(false)}
                 className="flex items-center gap-2.5 px-3 py-2.5 text-xs font-bold"
@@ -238,7 +238,7 @@ export default function AppHeader({ onRefresh }: AppHeaderProps) {
                   className="size-4 text-primary"
                 />
                 حالة وضع عدم الاتصال
-              </Link>
+              </Link> */}
 
               <button
                 type="button"
