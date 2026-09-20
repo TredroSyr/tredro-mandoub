@@ -134,7 +134,7 @@ function MyOrdersContent() {
               </>
             )}
 
-            {received.isError && (
+            {(received.isError && !received.data) && (
               <div className="flex flex-col items-center justify-center gap-2 rounded-2xl bg-muted/40 p-6 text-center">
                 <IconRenderer
                   name="warning_outlined"
@@ -156,7 +156,7 @@ function MyOrdersContent() {
             )}
 
             {!received.isLoading &&
-              !received.isError &&
+              !(received.isError && !received.data) &&
               filteredList.length === 0 && (
                 <p className="rounded-2xl bg-muted/60 p-4 text-center text-[11px] text-muted-foreground">
                   لا توجد طلبات بعد.
@@ -164,7 +164,7 @@ function MyOrdersContent() {
               )}
 
             {!received.isLoading &&
-              !received.isError &&
+              !(received.isError && !received.data) &&
               filteredList.map((transfer) => (
                 <TransferCard
                   key={transfer.id}

@@ -19,13 +19,16 @@ export function RejectReasonDialog({
   onOpenChange,
   onConfirm,
   isPending,
+  initialReason,
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onConfirm: (reason: string) => void;
   isPending: boolean;
+  /** Re-opening a queued rejection: the reason to pre-fill. */
+  initialReason?: string;
 }) {
-  const [reason, setReason] = useState("");
+  const [reason, setReason] = useState(initialReason ?? "");
 
   return (
     <Dialog

@@ -1,8 +1,10 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useRef } from "react";
 import { AxiosError } from "axios";
 import { toast } from "@/components/ui/toast";
 import { ApiErrorResponse } from "@/module/auth/types";
+import { useIdempotencyKey } from "@/hooks/use-idempotency-key";
+import { OfflineQueuedError, QUEUED_MESSAGE } from "@/lib/sync/errors";
+import { runOrQueue } from "@/lib/sync/queue-on-offline";
 import {
   createCustomer,
   getCustomerById,
@@ -16,11 +18,16 @@ import {
 } from "../api";
 import {
   CreateCustomerRequest,
+  CreateCustomerResponse,
   CustomerDocumentsParams,
   CustomerRequestStatus,
   UpdateCustomerRequest,
+  UpdateCustomerResponse,
   UpdateRepWorkDaysRequest,
+  UpdateRepWorkDaysResponse,
 } from "../types";
+
+type MutationError = AxiosError<ApiErrorResponse> | OfflineQueuedError;
 
 export const useGetCustomersQuery = (params?: {
   is_active?: boolean;
@@ -47,25 +54,44 @@ export const useGetCustomerByIdQuery = (customerId: number | null) => {
 export const useUpdateCustomerMutation = (options?: {
   onSuccess?: () => void;
   onError?: (error: AxiosError<ApiErrorResponse>) => void;
+  onQueued?: () => void;
+  /** Id of the outbox item being edited; removed once this resubmission is accepted or re-queued. */
+  replacesOutboxId?: string;
 }) => {
   const queryClient = useQueryClient();
+  const { keyFor, reset } = useIdempotencyKey();
 
-  return useMutation({
+  return useMutation<
+    UpdateCustomerResponse,
+    MutationError,
+    { customerId: number; data: UpdateCustomerRequest }
+  >({
     mutationKey: ["updateCustomer"],
-    mutationFn: ({
-      customerId,
-      data,
-    }: {
-      customerId: number;
-      data: UpdateCustomerRequest;
-    }) => updateCustomer(customerId, data),
+    // A PATCH that sets fields to full values is already safe to replay; the
+    // id only de-dupes a double tap in the local outbox.
+    mutationFn: (variables) =>
+      runOrQueue({
+        id: keyFor({ kind: "update_customer", ...variables }),
+        kind: "update_customer",
+        label: `تعديل بيانات العميل رقم ${variables.customerId}`,
+        payload: variables,
+        run: () => updateCustomer(variables.customerId, variables.data),
+        replaces: options?.replacesOutboxId,
+      }),
     onSuccess: () => {
+      reset();
       queryClient.invalidateQueries({ queryKey: ["customers"] });
       queryClient.invalidateQueries({ queryKey: ["customer"] });
       toast.success("تم تحديث بيانات العميل بنجاح");
       if (options?.onSuccess) options.onSuccess();
     },
-    onError: (error: AxiosError<ApiErrorResponse>) => {
+    onError: (error) => {
+      if (error instanceof OfflineQueuedError) {
+        toast.success(QUEUED_MESSAGE);
+        options?.onQueued?.();
+        return;
+      }
+      if (error.response) reset();
       toast.error(error.response?.data?.message || "فشل تحديث بيانات العميل");
       if (options?.onError) options.onError(error);
     },
@@ -75,18 +101,34 @@ export const useUpdateCustomerMutation = (options?: {
 export const useUpdateRepWorkDaysMutation = (options?: {
   onSuccess?: () => void;
   onError?: (error: AxiosError<ApiErrorResponse>) => void;
+  onQueued?: () => void;
 }) => {
   const queryClient = useQueryClient();
+  const { keyFor, reset } = useIdempotencyKey();
 
-  return useMutation({
+  return useMutation<UpdateRepWorkDaysResponse, MutationError, UpdateRepWorkDaysRequest>({
     mutationKey: ["updateRepWorkDays"],
-    mutationFn: (data: UpdateRepWorkDaysRequest) => updateRepWorkDays(data),
+    mutationFn: (data) =>
+      runOrQueue({
+        id: keyFor({ kind: "update_rep_work_days", data }),
+        kind: "update_rep_work_days",
+        label: "تعديل أيام العمل",
+        payload: data,
+        run: () => updateRepWorkDays(data),
+      }),
     onSuccess: () => {
+      reset();
       queryClient.invalidateQueries({ queryKey: ["repProfile"] });
       toast.success("تم تحديث أيام العمل بنجاح");
       if (options?.onSuccess) options.onSuccess();
     },
-    onError: (error: AxiosError<ApiErrorResponse>) => {
+    onError: (error) => {
+      if (error instanceof OfflineQueuedError) {
+        toast.success(QUEUED_MESSAGE);
+        options?.onQueued?.();
+        return;
+      }
+      if (error.response) reset();
       toast.error(error.response?.data?.message || "فشل تحديث أيام العمل");
       if (options?.onError) options.onError(error);
     },
@@ -96,22 +138,39 @@ export const useUpdateRepWorkDaysMutation = (options?: {
 export const useCreateCustomerMutation = (options?: {
   onSuccess?: () => void;
   onError?: (error: AxiosError<ApiErrorResponse>) => void;
+  onQueued?: () => void;
+  /** Id of the outbox item being edited; removed once this resubmission is accepted or re-queued. */
+  replacesOutboxId?: string;
 }) => {
   const queryClient = useQueryClient();
-  // Stable per hook instance so a resubmit after a timeout replays the same
-  // key instead of risking a duplicate customer — see module/invoices/hooks.
-  const idempotencyKeyRef = useRef(crypto.randomUUID());
+  const { keyFor, reset } = useIdempotencyKey();
 
-  return useMutation({
+  return useMutation<CreateCustomerResponse, MutationError, CreateCustomerRequest>({
     mutationKey: ["createCustomer"],
-    mutationFn: (data: CreateCustomerRequest) =>
-      createCustomer(data, idempotencyKeyRef.current),
+    mutationFn: (data) => {
+      const key = keyFor(data);
+      return runOrQueue({
+        id: key,
+        kind: "create_customer",
+        label: `عميل جديد — ${data.name}`,
+        payload: data,
+        run: () => createCustomer(data, key),
+        replaces: options?.replacesOutboxId,
+      });
+    },
     onSuccess: () => {
+      reset();
       queryClient.invalidateQueries({ queryKey: ["customers"] });
       toast.success("تم إضافة العميل بنجاح");
       if (options?.onSuccess) options.onSuccess();
     },
-    onError: (error: AxiosError<ApiErrorResponse>) => {
+    onError: (error) => {
+      if (error instanceof OfflineQueuedError) {
+        toast.success(QUEUED_MESSAGE);
+        options?.onQueued?.();
+        return;
+      }
+      if (error.response) reset();
       toast.error(error.response?.data?.message || "فشل إضافة العميل");
       if (options?.onError) options.onError(error);
     },

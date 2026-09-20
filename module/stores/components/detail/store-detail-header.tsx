@@ -86,20 +86,25 @@ export function StoreDetailHeader({
   );
 }
 
-function WorkDaysDialog({
+export function WorkDaysDialog({
   open,
   onOpenChange,
   customerId,
   workDays,
+  replacesOutboxId,
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   customerId: number;
   workDays: string[];
+  /** Outbox item being edited — deleted once this resubmission is accepted or re-queued. */
+  replacesOutboxId?: string;
 }) {
   const [selected, setSelected] = useState<string[]>(workDays);
   const updateCustomerMutation = useUpdateCustomerMutation({
+    replacesOutboxId,
     onSuccess: () => onOpenChange(false),
+    onQueued: () => onOpenChange(false),
   });
 
   const toggleDay = (day: string) => {

@@ -2,7 +2,7 @@
 
 import { useCallback, type ReactNode } from "react";
 import { usePathname } from "next/navigation";
-import { useQueryClient } from "@tanstack/react-query";
+import { onlineManager, useQueryClient } from "@tanstack/react-query";
 import { cn } from "@/lib/utils";
 import { ProtectedRoute } from "@/guards/protected-route";
 import BottomNav, { NAV_H } from "@/layout/bottom-nav";
@@ -28,6 +28,9 @@ export default function ProtectedLayout({ children }: { children: ReactNode }) {
   const queryClient = useQueryClient();
 
   const handleRefresh = useCallback(async () => {
+    // Offline, a refetch is paused rather than failed, so awaiting it would
+    // leave the pull-to-refresh spinner hanging until the connection returns.
+    if (!onlineManager.isOnline()) return;
     const startedAt = Date.now();
     await queryClient.refetchQueries({ type: "active" });
     const remaining = MIN_SPIN_MS - (Date.now() - startedAt);

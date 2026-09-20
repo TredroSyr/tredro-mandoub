@@ -13,11 +13,13 @@ export default function SalesPage() {
   const [range, setRange] = useState<Range>({});
   const [detailInvoiceId, setDetailInvoiceId] = useState<number | null>(null);
 
-  const { data, isLoading, isError, error, refetch, isFetching } = useGetSalesInvoicesQuery({
+  const { data, isLoading, isError: queryFailed, error, refetch, isFetching } = useGetSalesInvoicesQuery({
     date_from: range.from,
     date_to: range.to,
     page_size: 50,
   });
+  // Cached data stays on screen when a refresh fails (e.g. offline).
+  const isError = queryFailed && !data;
   const invoices = data?.data?.invoices ?? [];
 
   return (

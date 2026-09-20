@@ -65,6 +65,7 @@ export function CreateReturnDrawer({
   const createDraft = useCreateReturnInvoiceMutation();
   const issue = useIssueReturnInvoiceMutation({
     onSuccess: () => onOpenChange(false),
+    onQueued: () => onOpenChange(false),
     onError: (error) => {
       if (isRefundMethodRequiredError(error)) setRefundMethodRequired(true);
     },

@@ -34,10 +34,12 @@ function OrdersContent() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const { data, isLoading, isError, isFetching, refetch } = useGetCustomerRequestsQuery(
+  const { data, isLoading, isError: queryFailed, isFetching, refetch } = useGetCustomerRequestsQuery(
     filter === "all" ? undefined : { status: filter },
     { refetchOnMount: "always" },
   );
+  // Cached data stays on screen when a refresh fails (e.g. offline).
+  const isError = queryFailed && !data;
   const requests = data?.data?.requests ?? [];
 
   return (

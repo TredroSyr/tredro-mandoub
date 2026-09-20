@@ -33,6 +33,7 @@ export function RequestCard({
   const accept = useAcceptCustomerRequestMutation();
   const reject = useRejectCustomerRequestMutation({
     onSuccess: () => setRejectOpen(false),
+    onQueued: () => setRejectOpen(false),
   });
 
   useEffect(() => {

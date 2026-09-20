@@ -48,6 +48,10 @@ interface CustomerFormProps {
   formId?: string;
   /** Notified whenever the save/create mutation's pending state changes, so a header save button can reflect it. */
   onPendingChange?: (pending: boolean) => void;
+  /** Re-opening a queued customer from the sync-issues screen: values to pre-fill. */
+  initialValues?: Partial<CreateCustomerValues>;
+  /** Outbox item being edited — deleted once this resubmission is accepted or re-queued. */
+  replacesOutboxId?: string;
 }
 
 export function CustomerForm({
@@ -60,6 +64,8 @@ export function CustomerForm({
   onCancel,
   formId,
   onPendingChange,
+  initialValues,
+  replacesOutboxId,
 }: CustomerFormProps) {
   const rep = useAuthStore((state) => state.rep);
   const isEdit = !!customer;
@@ -83,6 +89,7 @@ export function CustomerForm({
         : undefined,
       latitude: pickedPoint?.[0],
       longitude: pickedPoint?.[1],
+      ...initialValues,
     },
   });
 
@@ -128,7 +135,12 @@ export function CustomerForm({
   }, [pickedPoint, hasExistingLocation]);
 
   const createCustomerMutation = useCreateCustomerMutation({
+    replacesOutboxId,
     onSuccess: () => {
+      form.reset();
+      onSuccess?.();
+    },
+    onQueued: () => {
       form.reset();
       onSuccess?.();
     },
@@ -156,7 +168,11 @@ export function CustomerForm({
   // The update endpoint only accepts address/location/work_days — name, phone
   // and email can't be changed once the customer exists.
   const updateCustomerMutation = useUpdateCustomerMutation({
+    replacesOutboxId,
     onSuccess: () => {
+      onSuccess?.();
+    },
+    onQueued: () => {
       onSuccess?.();
     },
     onError: (error: AxiosError<ApiErrorResponse>) => {

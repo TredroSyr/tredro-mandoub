@@ -8,15 +8,44 @@ import { useCreateStockTransferMutation, useGetRepProductsQuery } from "../hooks
 import { formatTransferQuantity } from "../lib/utils";
 import { PickupHoursSelector } from "./pickup-hours-selector";
 
-export function NewTransferForm() {
+export interface TransferInitialValues {
+  lines: { product_id: number; quantity: string }[];
+  pickupHours?: number;
+}
+
+export function NewTransferForm({
+  initial,
+  replacesOutboxId,
+  onDone,
+}: {
+  /** Re-opening a queued request: values to pre-fill. */
+  initial?: TransferInitialValues;
+  /** Outbox item being edited — deleted once this resubmission is accepted or re-queued. */
+  replacesOutboxId?: string;
+  /** Called after the request was sent or saved for later, so a drawer can close. */
+  onDone?: () => void;
+} = {}) {
   const [search, setSearch] = useState("");
-  const [quantities, setQuantities] = useState<Record<number, number>>({});
-  const [pickupHours, setPickupHours] = useState(2);
+  const seedLines = useMemo(() => initial?.lines ?? [], [initial]);
+  const [quantities, setQuantities] = useState<Record<number, number>>(() =>
+    Object.fromEntries(seedLines.map((l) => [l.product_id, parseFloat(l.quantity) || 0])),
+  );
+  const [pickupHours, setPickupHours] = useState(initial?.pickupHours ?? 2);
 
   const { data, isLoading } = useGetRepProductsQuery({ search: search || undefined, page_size: 50 });
   const products = data?.data?.products ?? [];
 
-  const create = useCreateStockTransferMutation({ onSuccess: () => setQuantities({}) });
+  const create = useCreateStockTransferMutation({
+    replacesOutboxId,
+    onSuccess: () => {
+      setQuantities({});
+      onDone?.();
+    },
+    onQueued: () => {
+      setQuantities({});
+      onDone?.();
+    },
+  });
 
   const step = (productId: number, delta: number) =>
     setQuantities((q) => ({ ...q, [productId]: Math.max(0, (q[productId] ?? 0) + delta) }));
@@ -29,13 +58,26 @@ export function NewTransferForm() {
     [products, quantities],
   );
 
+  // A saved line whose product isn't in the loaded list must not be silently
+  // dropped when re-sending — keep it and submit it as-is.
+  const hiddenLines = useMemo(
+    () =>
+      seedLines.filter(
+        (l) => (quantities[l.product_id] ?? 0) > 0 && !products.some((p) => p.id === l.product_id),
+      ),
+    [seedLines, quantities, products],
+  );
+
   const submit = () => {
-    if (selectedLines.length === 0) return;
+    if (selectedLines.length === 0 && hiddenLines.length === 0) return;
     create.mutate({
-      lines: selectedLines.map(({ product, quantity }) => ({
-        product_id: product.id,
-        quantity: String(quantity),
-      })),
+      lines: [
+        ...selectedLines.map(({ product, quantity }) => ({
+          product_id: product.id,
+          quantity: String(quantity),
+        })),
+        ...hiddenLines.map((l) => ({ product_id: l.product_id, quantity: String(quantities[l.product_id]) })),
+      ],
       pickup_within_hours: pickupHours,
     });
   };
@@ -45,6 +87,12 @@ export function NewTransferForm() {
       <h2 className="flex items-center gap-2 text-sm font-extrabold">
         <IconRenderer name="checkout_filled" className="size-4 text-primary" /> طلب بضاعة جديد
       </h2>
+
+      {hiddenLines.length > 0 && (
+        <p className="mt-3 rounded-xl bg-muted px-3 py-2 text-[11px] text-muted-foreground">
+          {hiddenLines.length} صنف محفوظ لا يظهر في القائمة الحالية — سيُرسل كما هو.
+        </p>
+      )}
 
       <Input
         value={search}
@@ -105,7 +153,7 @@ export function NewTransferForm() {
       <PickupHoursSelector value={pickupHours} onChange={setPickupHours} />
 
       <button
-        disabled={selectedLines.length === 0 || create.isPending}
+        disabled={(selectedLines.length === 0 && hiddenLines.length === 0) || create.isPending}
         onClick={submit}
         className="mt-3 flex w-full items-center justify-center gap-2 rounded-2xl bg-primary py-3.5 text-sm font-extrabold text-primary-foreground disabled:bg-muted disabled:text-muted-foreground"
       >

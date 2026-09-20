@@ -46,7 +46,7 @@ export function InvoicesTab({
           <Skeleton className="h-16 w-full rounded-2xl" />
           <Skeleton className="h-16 w-full rounded-2xl" />
         </div>
-      ) : q.isError ? (
+      ) : (q.isError && !q.data) ? (
         <ErrorState
           error={q.error}
           onRetry={() => q.refetch()}

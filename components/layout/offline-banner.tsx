@@ -2,6 +2,7 @@
 
 import { IconRenderer } from "@/assets/icons/iconRenderer";
 import { useNetworkStatus } from "@/hooks/use-network-status";
+import { isNativeApp } from "@/lib/native";
 
 /**
  * A persistent strip, not a toast — a rep needs to know they're offline for
@@ -12,7 +13,7 @@ import { useNetworkStatus } from "@/hooks/use-network-status";
 export function OfflineBanner() {
   const { connected } = useNetworkStatus();
 
-  if (connected) return null;
+  if (!isNativeApp() || connected) return null;
 
   return (
     <div

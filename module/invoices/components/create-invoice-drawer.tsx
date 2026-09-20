@@ -5,18 +5,31 @@ import { IconRenderer } from "@/assets/icons/iconRenderer";
 import { Button } from "@/components/ui/button";
 import { Drawer, DrawerClose, DrawerContent, DrawerHeader, DrawerTitle } from "@/components/ui/drawer";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { CreateInvoiceForm, CreateInvoiceFormHandle, CreateInvoiceFormState, InvoiceRequestPrefill } from "./create-invoice-form";
+import {
+  CreateInvoiceForm,
+  CreateInvoiceFormHandle,
+  CreateInvoiceFormState,
+  InvoiceInitialValues,
+  InvoiceRequestPrefill,
+} from "./create-invoice-form";
 
 export function CreateInvoiceDrawer({
   open,
   onOpenChange,
   customerId,
   prefill,
+  initial,
+  replacesOutboxId,
+  title,
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   customerId: number;
   prefill?: InvoiceRequestPrefill;
+  /** Re-opening a queued invoice: fields to pre-fill. */
+  initial?: InvoiceInitialValues;
+  replacesOutboxId?: string;
+  title?: string;
 }) {
   const isMobile = useIsMobile();
   const formRef = useRef<CreateInvoiceFormHandle>(null);
@@ -30,7 +43,7 @@ export function CreateInvoiceDrawer({
       >
         <DrawerHeader className="sticky top-0 z-10 flex-row items-center justify-between gap-3 border-b border-border bg-background px-4 pb-3 pt-6 sm:px-6 sm:pt-4">
           <DrawerTitle className="text-right text-base sm:text-lg">
-            {prefill ? "إنشاء فاتورة وتسليم الطلب" : "فاتورة جديدة"}
+            {title ?? (prefill ? "إنشاء فاتورة وتسليم الطلب" : "فاتورة جديدة")}
           </DrawerTitle>
           <div className="flex shrink-0 items-center gap-2">
             <Button
@@ -55,7 +68,10 @@ export function CreateInvoiceDrawer({
             ref={formRef}
             customerId={customerId}
             prefill={prefill}
+            initial={initial}
+            replacesOutboxId={replacesOutboxId}
             onSuccess={() => onOpenChange(false)}
+            onQueued={() => onOpenChange(false)}
             onStateChange={setFormState}
           />
         </div>

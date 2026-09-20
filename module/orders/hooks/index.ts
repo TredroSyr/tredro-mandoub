@@ -1,15 +1,23 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useRef } from "react";
 import { AxiosError } from "axios";
 import { toast } from "@/components/ui/toast";
 import { ApiErrorResponse } from "@/module/auth/types";
+import { useIdempotencyKey } from "@/hooks/use-idempotency-key";
+import { OfflineQueuedError, QUEUED_MESSAGE } from "@/lib/sync/errors";
+import { runOrQueue } from "@/lib/sync/queue-on-offline";
 import {
   acceptCustomerRequest,
   getCustomerRequestById,
   getCustomerRequests,
   rejectCustomerRequest,
 } from "../api";
-import { CustomerRequestsListParams, RejectCustomerRequestPayload } from "../types";
+import {
+  CustomerRequestDetailResponse,
+  CustomerRequestsListParams,
+  RejectCustomerRequestPayload,
+} from "../types";
+
+type MutationError = AxiosError<ApiErrorResponse> | OfflineQueuedError;
 
 export const useGetCustomerRequestsQuery = (
   params?: CustomerRequestsListParams,
@@ -46,20 +54,36 @@ function useInvalidateCustomerRequests() {
 export const useAcceptCustomerRequestMutation = (options?: {
   onSuccess?: () => void;
   onError?: (error: AxiosError<ApiErrorResponse>) => void;
+  onQueued?: () => void;
 }) => {
   const invalidate = useInvalidateCustomerRequests();
-  const idempotencyKeyRef = useRef(crypto.randomUUID());
+  const { keyFor, reset } = useIdempotencyKey();
 
-  return useMutation({
+  return useMutation<CustomerRequestDetailResponse, MutationError, number>({
     mutationKey: ["acceptCustomerRequest"],
-    mutationFn: (requestId: number) =>
-      acceptCustomerRequest(requestId, idempotencyKeyRef.current),
+    mutationFn: (requestId) => {
+      const key = keyFor({ kind: "accept_customer_request", requestId });
+      return runOrQueue({
+        id: key,
+        kind: "accept_customer_request",
+        label: `قبول طلب العميل رقم ${requestId}`,
+        payload: { requestId },
+        run: () => acceptCustomerRequest(requestId, key),
+      });
+    },
     onSuccess: (data) => {
+      reset();
       invalidate();
       toast.success(data.message || "تم قبول الطلب");
       options?.onSuccess?.();
     },
-    onError: (error: AxiosError<ApiErrorResponse>) => {
+    onError: (error) => {
+      if (error instanceof OfflineQueuedError) {
+        toast.success(QUEUED_MESSAGE);
+        options?.onQueued?.();
+        return;
+      }
+      if (error.response) reset();
       toast.error(error.response?.data?.message || "تعذّر قبول الطلب");
       options?.onError?.(error);
     },
@@ -69,20 +93,43 @@ export const useAcceptCustomerRequestMutation = (options?: {
 export const useRejectCustomerRequestMutation = (options?: {
   onSuccess?: () => void;
   onError?: (error: AxiosError<ApiErrorResponse>) => void;
+  onQueued?: () => void;
+  /** Id of the outbox item being edited; removed once this resubmission is accepted or re-queued. */
+  replacesOutboxId?: string;
 }) => {
   const invalidate = useInvalidateCustomerRequests();
-  const idempotencyKeyRef = useRef(crypto.randomUUID());
+  const { keyFor, reset } = useIdempotencyKey();
 
-  return useMutation({
+  return useMutation<
+    CustomerRequestDetailResponse,
+    MutationError,
+    { requestId: number; payload?: RejectCustomerRequestPayload }
+  >({
     mutationKey: ["rejectCustomerRequest"],
-    mutationFn: ({ requestId, payload }: { requestId: number; payload?: RejectCustomerRequestPayload }) =>
-      rejectCustomerRequest(requestId, payload, idempotencyKeyRef.current),
+    mutationFn: (variables) => {
+      const key = keyFor({ kind: "reject_customer_request", ...variables });
+      return runOrQueue({
+        id: key,
+        kind: "reject_customer_request",
+        label: `رفض طلب العميل رقم ${variables.requestId}`,
+        payload: variables,
+        run: () => rejectCustomerRequest(variables.requestId, variables.payload, key),
+        replaces: options?.replacesOutboxId,
+      });
+    },
     onSuccess: (data) => {
+      reset();
       invalidate();
       toast.success(data.message || "تم رفض الطلب");
       options?.onSuccess?.();
     },
-    onError: (error: AxiosError<ApiErrorResponse>) => {
+    onError: (error) => {
+      if (error instanceof OfflineQueuedError) {
+        toast.success(QUEUED_MESSAGE);
+        options?.onQueued?.();
+        return;
+      }
+      if (error.response) reset();
       toast.error(error.response?.data?.message || "تعذّر رفض الطلب");
       options?.onError?.(error);
     },

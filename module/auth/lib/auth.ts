@@ -2,6 +2,7 @@ import axios from "axios";
 
 import { useAuthStore } from "../store/auth-store";
 import { requestNewAccessToken } from "../hook/refresh-token";
+import { clearOfflineCache } from "@/lib/db/query-persister";
 
 // Why a refresh failed. Callers must only log the user out on 'invalid' /
 // 'no-refresh-token' — 'network' means we simply couldn't reach the server
@@ -93,6 +94,7 @@ export const logout = async (): Promise<void> => {
     // clearAuth() already resets the store; persist() middleware auto-syncs
     // that change to localStorage, so no manual localStorage.removeItem needed
     useAuthStore.getState().clearAuth();
+    await clearOfflineCache();
 
     if (typeof window !== "undefined") {
       console.log("🔀 Redirecting to login...");

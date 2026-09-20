@@ -40,8 +40,10 @@ function StoreDetailContent() {
   const id = searchParams.get("id");
   const customerId = id ? Number(id) : null;
 
-  const { data, isLoading, isError, error, refetch, isFetching } =
+  const { data, isLoading, isError: queryFailed, error, refetch, isFetching } =
     useGetCustomerByIdQuery(customerId);
+  // Cached data stays on screen when a refresh fails (e.g. offline).
+  const isError = queryFailed && !data;
   const customer = data?.data?.customer;
 
   const [tab, setTab] = useState<StoreDetailTab>("requests");

@@ -10,7 +10,7 @@ const DEFAULT_STATUS: ConnectionStatus = {
 
 /**
  * Wraps @capacitor/network so the rest of the app (the offline banner, and
- * later the sync-on-reconnect trigger) reacts to connectivity without every
+ * the sync-on-reconnect trigger) reacts to connectivity without every
  * caller touching the plugin directly. Starts "connected" until the first
  * native status resolves, so a slow bridge on cold start never flashes a
  * false offline state.
@@ -21,9 +21,13 @@ export function useNetworkStatus(): ConnectionStatus {
   useEffect(() => {
     let cancelled = false;
 
-    Network.getStatus().then((current) => {
-      if (!cancelled) setStatus(current);
-    });
+    Network.getStatus()
+      .then((current) => {
+        if (!cancelled) setStatus(current);
+      })
+      .catch((error) => {
+        console.error("[offline] Network.getStatus failed", error);
+      });
 
     const listenerPromise = Network.addListener(
       "networkStatusChange",
@@ -32,7 +36,7 @@ export function useNetworkStatus(): ConnectionStatus {
 
     return () => {
       cancelled = true;
-      listenerPromise.then((listener) => listener.remove());
+      listenerPromise.then((listener) => listener.remove()).catch(() => {});
     };
   }, []);
 

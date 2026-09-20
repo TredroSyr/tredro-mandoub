@@ -21,7 +21,7 @@ export function OverdueTab({ customerId }: { customerId: number }) {
     );
   }
 
-  if (q.isError) {
+  if ((q.isError && !q.data)) {
     return (
       <ErrorState
         error={q.error}

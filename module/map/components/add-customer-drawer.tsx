@@ -12,6 +12,7 @@ import { Button } from "@/components/ui/button";
 import { IconRenderer } from "@/assets/icons/iconRenderer";
 import { cn } from "@/lib/utils";
 import type { Customer } from "@/module/customers/types";
+import type { CreateCustomerValues } from "@/module/customers/schema";
 import { CustomerForm } from "./customer-form";
 
 const CUSTOMER_FORM_ID = "add-customer-drawer-form";
@@ -26,6 +27,10 @@ interface AddCustomerDrawerProps {
   onUseMyLocation: () => void;
   isLoadingLocation: boolean;
   onSuccess: () => void;
+  /** Re-opening a queued customer: values to pre-fill, the outbox item it replaces, and a custom title. */
+  initialValues?: Partial<CreateCustomerValues>;
+  replacesOutboxId?: string;
+  title?: string;
 }
 
 export function AddCustomerDrawer({
@@ -37,6 +42,9 @@ export function AddCustomerDrawer({
   onUseMyLocation,
   isLoadingLocation,
   onSuccess,
+  initialValues,
+  replacesOutboxId,
+  title,
 }: AddCustomerDrawerProps) {
   const [isSaving, setIsSaving] = useState(false);
 
@@ -45,7 +53,7 @@ export function AddCustomerDrawer({
       <DrawerContent>
         <DrawerHeader className="flex justify-between flex-row w-full items-center gap-3 px-5 text-start">
           <DrawerTitle className="truncate text-base">
-            {customer ? "تعديل بيانات المحل" : "محل جديد"}
+            {title ?? (customer ? "تعديل بيانات المحل" : "محل جديد")}
           </DrawerTitle>
           <div className="flex items-center gap-2">
             <Button
@@ -81,6 +89,8 @@ export function AddCustomerDrawer({
             onSuccess={onSuccess}
             onCancel={() => onOpenChange(false)}
             onPendingChange={setIsSaving}
+            initialValues={initialValues}
+            replacesOutboxId={replacesOutboxId}
           />
         </div>
       </DrawerContent>

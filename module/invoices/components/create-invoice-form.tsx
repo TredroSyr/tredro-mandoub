@@ -14,6 +14,14 @@ export interface InvoiceRequestPrefill {
   lines: { product_id: number; quantity: string }[];
 }
 
+/** Values to pre-fill when re-opening a queued invoice from the sync-issues screen. */
+export interface InvoiceInitialValues {
+  lines: { product_id: number; quantity: string }[];
+  paymentAmount?: string;
+  notes?: string;
+  requestId?: number;
+}
+
 /** Imperative handle so the drawer's header Save button can trigger submission from outside the form. */
 export interface CreateInvoiceFormHandle {
   submit: () => void;
@@ -29,16 +37,23 @@ export const CreateInvoiceForm = forwardRef<
   {
     customerId: number;
     prefill?: InvoiceRequestPrefill;
+    initial?: InvoiceInitialValues;
+    /** Outbox item being edited — deleted once this resubmission is accepted or re-queued. */
+    replacesOutboxId?: string;
     onSuccess?: (invoice: SalesInvoiceDetail) => void;
+    /** Saved offline — it will sync automatically once the connection returns. */
+    onQueued?: () => void;
     onStateChange?: (state: CreateInvoiceFormState) => void;
   }
->(function CreateInvoiceForm({ customerId, prefill, onSuccess, onStateChange }, ref) {
+>(function CreateInvoiceForm({ customerId, prefill, initial, replacesOutboxId, onSuccess, onQueued, onStateChange }, ref) {
   const [search, setSearch] = useState("");
+  const seedLines = useMemo(() => prefill?.lines ?? initial?.lines ?? [], [prefill, initial]);
+  const requestId = prefill?.requestId ?? initial?.requestId;
   const [quantities, setQuantities] = useState<Record<number, number>>(() =>
-    Object.fromEntries((prefill?.lines ?? []).map((l) => [l.product_id, parseFloat(l.quantity) || 0])),
+    Object.fromEntries(seedLines.map((l) => [l.product_id, parseFloat(l.quantity) || 0])),
   );
-  const [paymentAmount, setPaymentAmount] = useState("");
-  const [notes, setNotes] = useState("");
+  const [paymentAmount, setPaymentAmount] = useState(initial?.paymentAmount ?? "");
+  const [notes, setNotes] = useState(initial?.notes ?? "");
   const [shortage, setShortage] = useState<{ productId: number; available: string; requested: string } | null>(
     null,
   );
@@ -51,6 +66,14 @@ export const CreateInvoiceForm = forwardRef<
   const products = useMemo(() => data?.data?.products ?? [], [data]);
 
   const create = useCreateSalesInvoiceMutation({
+    replacesOutboxId,
+    onQueued: () => {
+      setQuantities({});
+      setPaymentAmount("");
+      setNotes("");
+      setShortage(null);
+      onQueued?.();
+    },
     onSuccess: (invoice) => {
       setQuantities({});
       setPaymentAmount("");
@@ -78,6 +101,17 @@ export const CreateInvoiceForm = forwardRef<
     [products, quantities],
   );
 
+  // A saved line whose product isn't in the currently loaded list (the list is
+  // capped and searchable) must not be silently dropped when re-sending: keep
+  // it and submit it as-is.
+  const hiddenLines = useMemo(
+    () =>
+      seedLines.filter(
+        (l) => (quantities[l.product_id] ?? 0) > 0 && !products.some((p) => p.id === l.product_id),
+      ),
+    [seedLines, quantities, products],
+  );
+
   const total = selectedLines.reduce(
     (sum, { product, quantity }) => sum + (product.price ? parseFloat(product.price) : 0) * quantity,
     0,
@@ -88,23 +122,26 @@ export const CreateInvoiceForm = forwardRef<
   const shortageProductName = shortage ? products.find((p) => p.id === shortage.productId)?.name : null;
 
   const submit = () => {
-    if (selectedLines.length === 0) return;
+    if (selectedLines.length === 0 && hiddenLines.length === 0) return;
     setShortage(null);
     create.mutate({
       customer_id: customerId,
-      lines: selectedLines.map(({ product, quantity }) => ({
-        product_id: product.id,
-        quantity: String(quantity),
-      })),
+      lines: [
+        ...selectedLines.map(({ product, quantity }) => ({
+          product_id: product.id,
+          quantity: String(quantity),
+        })),
+        ...hiddenLines.map((l) => ({ product_id: l.product_id, quantity: String(quantities[l.product_id]) })),
+      ],
       payment_amount: paymentAmount || undefined,
       notes: notes || undefined,
-      fulfils_request_ids: prefill ? [prefill.requestId] : undefined,
+      fulfils_request_ids: requestId ? [requestId] : undefined,
     });
   };
 
   useImperativeHandle(ref, () => ({ submit }));
 
-  const canSubmit = selectedLines.length > 0;
+  const canSubmit = selectedLines.length > 0 || hiddenLines.length > 0;
   useEffect(() => {
     onStateChange?.({ canSubmit, isPending: create.isPending });
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -112,6 +149,12 @@ export const CreateInvoiceForm = forwardRef<
 
   return (
     <div>
+      {hiddenLines.length > 0 && (
+        <p className="mb-3 rounded-xl bg-muted px-3 py-2 text-[11px] text-muted-foreground">
+          {hiddenLines.length} صنف محفوظ لا يظهر في القائمة الحالية — سيُرسل كما هو.
+        </p>
+      )}
+
       {shortage && (
         <p className="mb-3 rounded-xl bg-destructive/10 px-3 py-2 text-[11px] text-destructive">
           الكمية المتوفرة من {shortageProductName ?? "هذا المنتج"} بالسيارة {shortage.available} فقط، والمطلوب{" "}

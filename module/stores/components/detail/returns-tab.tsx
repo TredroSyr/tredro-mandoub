@@ -14,7 +14,7 @@ export function ReturnsTab({ query: q }: { query: ReturnType<typeof useGetCustom
     );
   }
 
-  if (q.isError) {
+  if ((q.isError && !q.data)) {
     return (
       <ErrorState
         error={q.error}

@@ -1,14 +1,19 @@
 import {
   createPayment,
-  createReturnInvoice,
   createSalesInvoice,
   issueReturnInvoice,
 } from "@/module/invoices/api";
 import {
+  confirmStockTransfer,
   createStockTransfer,
   receiveStockTransfer,
+  rejectStockTransfer,
 } from "@/module/warehouse-requests/api";
-import { createCustomer } from "@/module/customers/api";
+import {
+  createCustomer,
+  updateCustomer,
+  updateRepWorkDays,
+} from "@/module/customers/api";
 import {
   acceptCustomerRequest,
   rejectCustomerRequest,
@@ -17,12 +22,14 @@ import type { OutboxItem } from "@/lib/db/outbox";
 
 /**
  * Maps an outbox item's `kind` back to the API call that originally created
- * it, replayed with the exact same Idempotency-Key (`item.id`) so a retry
- * after a partial failure can never double-create the underlying record.
+ * it, replayed with the same Idempotency-Key (`item.id`) where the endpoint
+ * takes one, so a retry after a partial failure can't double-create the
+ * underlying record.
  *
- * Only "create_sales_invoice" is wired end-to-end from a mutation hook today
- * (see module/invoices/hooks's useCreateSalesInvoiceMutation) — the other
- * kinds are defined here ready to extend the same way, one hook at a time.
+ * Every kind here is queued by the matching mutation hook (see runOrQueue in
+ * lib/sync/queue-on-offline.ts) — keep the two in step when adding one.
+ * Return-invoice creation is deliberately absent: it is a two-step flow that
+ * can't be completed offline, so it is never queued.
  */
 export async function replayOutboxItem(item: OutboxItem): Promise<void> {
   switch (item.kind) {
@@ -36,13 +43,6 @@ export async function replayOutboxItem(item: OutboxItem): Promise<void> {
     case "create_payment":
       await createPayment(
         item.payload as Parameters<typeof createPayment>[0],
-        item.id,
-      );
-      return;
-
-    case "create_return_invoice":
-      await createReturnInvoice(
-        item.payload as Parameters<typeof createReturnInvoice>[0],
         item.id,
       );
       return;
@@ -68,6 +68,33 @@ export async function replayOutboxItem(item: OutboxItem): Promise<void> {
       await receiveStockTransfer(transferId, item.id);
       return;
     }
+
+    case "confirm_stock_transfer": {
+      const { transferId } = item.payload as { transferId: number };
+      await confirmStockTransfer(transferId);
+      return;
+    }
+
+    case "reject_stock_transfer": {
+      const { transferId } = item.payload as { transferId: number };
+      await rejectStockTransfer(transferId);
+      return;
+    }
+
+    case "update_customer": {
+      const { customerId, data } = item.payload as {
+        customerId: number;
+        data: Parameters<typeof updateCustomer>[1];
+      };
+      await updateCustomer(customerId, data);
+      return;
+    }
+
+    case "update_rep_work_days":
+      await updateRepWorkDays(
+        item.payload as Parameters<typeof updateRepWorkDays>[0],
+      );
+      return;
 
     case "create_customer":
       await createCustomer(

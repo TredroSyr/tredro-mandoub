@@ -7,6 +7,7 @@ import { useRouter } from "next/navigation";
 import { useAuthStore } from "../store/auth-store";
 import { clearAuthTokens, refreshAccessToken } from "../lib/auth";
 import { getTokenRemainingTime, isTokenExpired } from "../lib/token";
+import { clearOfflineCache } from "@/lib/db/query-persister";
 
 export const useAuthInit = () => {
   const { clearAuth } = useAuthStore();
@@ -19,6 +20,7 @@ export const useAuthInit = () => {
     console.log("🔀 Session invalid, logging out...");
     clearAuth();
     queryClient.clear();
+    void clearOfflineCache();
     clearAuthTokens();
     router.push("/auth/login");
   }, [clearAuth, queryClient, router]);

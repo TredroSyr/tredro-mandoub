@@ -11,6 +11,8 @@ export interface LocationConfirmDialogProps {
   onOpenChange: (open: boolean) => void;
   customerId: number;
   initialPoint: [number, number];
+  /** Outbox item being edited — deleted once this resubmission is accepted or re-queued. */
+  replacesOutboxId?: string;
 }
 
 /** Mounted by the caller only while a fresh GPS reading is pending confirmation, so `point` never needs to be re-synced from a later `initialPoint`. */
@@ -19,11 +21,14 @@ export function LocationConfirmDialog({
   onOpenChange,
   customerId,
   initialPoint,
+  replacesOutboxId,
 }: LocationConfirmDialogProps) {
   const [point, setPoint] = useState(initialPoint);
 
   const updateCustomerMutation = useUpdateCustomerMutation({
+    replacesOutboxId,
     onSuccess: () => onOpenChange(false),
+    onQueued: () => onOpenChange(false),
   });
 
   return (

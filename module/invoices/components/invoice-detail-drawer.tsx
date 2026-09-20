@@ -36,9 +36,11 @@ export function InvoiceDetailDrawer({
   const [isExporting, setIsExporting] = useState(false);
   const [showPayment, setShowPayment] = useState(false);
 
-  const { data, isLoading, isError, refetch, isFetching } = useGetSalesInvoiceDetailQuery(invoiceId, {
+  const { data, isLoading, isError: queryFailed, refetch, isFetching } = useGetSalesInvoiceDetailQuery(invoiceId, {
     enabled: open,
   });
+  // Cached data stays on screen when a refresh fails (e.g. offline).
+  const isError = queryFailed && !data;
   const invoice = data?.data?.invoice;
 
   const buildPdf = async () => {

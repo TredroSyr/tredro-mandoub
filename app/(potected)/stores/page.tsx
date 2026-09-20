@@ -29,7 +29,9 @@ export default function StoresPage() {
   // The stores list is the rep's whole assigned set and is not paginated,
   // so we fetch it once and filter client-side — that keeps the stat
   // tiles accurate against the true total regardless of the day filter.
-  const { data, isLoading, isError, error, refetch, isFetching } = useGetCustomersQuery();
+  const { data, isLoading, isError: queryFailed, error, refetch, isFetching } = useGetCustomersQuery();
+  // Cached data stays on screen when a refresh fails (e.g. offline).
+  const isError = queryFailed && !data;
 
   const allCustomers = useMemo(() => data?.data?.customers ?? [], [data]);
   const total = data?.data?.total ?? allCustomers.length;

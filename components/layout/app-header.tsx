@@ -15,6 +15,7 @@ import {
 } from "@/module/notifications/hooks";
 import { FCM_TOKEN_STORAGE_KEY } from "@/module/notifications/hooks/use-register-push-notifications";
 import { useOutboxSummary } from "@/hooks/use-outbox-summary";
+import { clearOfflineCache } from "@/lib/db/query-persister";
 import { Button } from "@/components/ui/button";
 import {
   Popover,
@@ -72,6 +73,7 @@ export default function AppHeader({ onRefresh }: AppHeaderProps) {
 
     clearAuth();
     queryClient.clear();
+    void clearOfflineCache();
     router.push("/auth/login");
   };
 
@@ -224,6 +226,18 @@ export default function AppHeader({ onRefresh }: AppHeaderProps) {
                   className="size-4 text-primary"
                 />
                 عرض الملف الشخصي
+              </Link>
+
+              <Link
+                href="/offline-debug"
+                onClick={() => setMenuOpen(false)}
+                className="flex items-center gap-2.5 px-3 py-2.5 text-xs font-bold"
+              >
+                <IconRenderer
+                  name="refresh_outlined"
+                  className="size-4 text-primary"
+                />
+                حالة وضع عدم الاتصال
               </Link>
 
               <button

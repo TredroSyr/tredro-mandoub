@@ -18,6 +18,7 @@ import { useOutboxSummary } from "@/hooks/use-outbox-summary";
 import { useNetworkStatus } from "@/hooks/use-network-status";
 import { removeOutboxItem, type OutboxItem } from "@/lib/db/outbox";
 import { retryOutboxItem } from "@/lib/sync/flush-outbox";
+import { hasOutboxEditor, OutboxItemEditor } from "./outbox-item-editor";
 
 function StatusBadge({ status }: { status: OutboxItem["status"] }) {
   if (status === "failed") {
@@ -33,17 +34,25 @@ export function SyncIssuesView() {
   const router = useRouter();
   const { connected } = useNetworkStatus();
   const { items, refresh } = useOutboxSummary();
-  const [retryingId, setRetryingId] = useState<string | null>(null);
+  const [busyId, setBusyId] = useState<string | null>(null);
   const [discardTarget, setDiscardTarget] = useState<OutboxItem | null>(null);
+  const [editing, setEditing] = useState<OutboxItem | null>(null);
 
-  const handleRetry = async (item: OutboxItem) => {
-    setRetryingId(item.id);
+  /** Sends the item again exactly as saved (a rejected item goes out under a fresh key). */
+  const resend = async (item: OutboxItem) => {
+    setBusyId(item.id);
     try {
       await retryOutboxItem(item.id);
       refresh();
     } finally {
-      setRetryingId(null);
+      setBusyId(null);
     }
+  };
+
+  /** Failed item: open the original form pre-filled (edit or just confirm); items with no form resend directly. */
+  const handleRetry = (item: OutboxItem) => {
+    if (hasOutboxEditor(item)) setEditing(item);
+    else void resend(item);
   };
 
   const handleDiscard = async () => {
@@ -81,43 +90,91 @@ export function SyncIssuesView() {
         </div>
       ) : (
         <ul className="flex flex-col gap-2">
-          {items.map((item) => (
-            <li
-              key={item.id}
-              className="flex flex-col gap-2 rounded-2xl border border-border bg-card p-3"
-            >
-              <div className="flex items-start justify-between gap-2">
-                <p className="text-sm font-bold">{item.label}</p>
-                <StatusBadge status={item.status} />
-              </div>
+          {items.map((item) => {
+            const editable = hasOutboxEditor(item);
+            const failed = item.status === "failed";
+            const busy = busyId === item.id;
+            return (
+              <li
+                key={item.id}
+                className="flex flex-col gap-2 rounded-2xl border border-border bg-card p-3"
+              >
+                <div className="flex items-start justify-between gap-2">
+                  <p className="text-sm font-bold">{item.label}</p>
+                  <StatusBadge status={item.status} />
+                </div>
 
-              {item.status === "failed" && item.errorMessage && (
-                <p className="text-xs text-destructive">{item.errorMessage}</p>
-              )}
+                {failed && item.errorMessage && (
+                  <p className="text-xs text-destructive">{item.errorMessage}</p>
+                )}
 
-              <div className="flex items-center gap-2 pt-1">
-                <Button
-                  type="button"
-                  size="sm"
-                  variant="secondary"
-                  disabled={!connected || retryingId === item.id}
-                  onClick={() => handleRetry(item)}
-                >
-                  {retryingId === item.id ? "جارٍ المحاولة..." : "إعادة المحاولة"}
-                </Button>
-                <Button
-                  type="button"
-                  size="sm"
-                  variant="ghost"
-                  className="text-destructive"
-                  onClick={() => setDiscardTarget(item)}
-                >
-                  تجاهل
-                </Button>
-              </div>
-            </li>
-          ))}
+                {failed && editable && (
+                  <p className="text-[11px] text-muted-foreground">
+                    ستُفتح البيانات المحفوظة — عدّلها إن أردت ثم أعد الإرسال.
+                  </p>
+                )}
+
+                <div className="flex flex-wrap items-center gap-2 pt-1">
+                  {failed ? (
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="secondary"
+                      // Opening the form works offline too (submitting re-queues it);
+                      // only a direct resend needs a connection.
+                      disabled={busy || (!editable && !connected)}
+                      onClick={() => handleRetry(item)}
+                    >
+                      {busy ? "جارٍ المحاولة..." : "إعادة المحاولة"}
+                    </Button>
+                  ) : (
+                    <>
+                      <Button
+                        type="button"
+                        size="sm"
+                        variant="secondary"
+                        disabled={!connected || busy}
+                        onClick={() => void resend(item)}
+                      >
+                        {busy ? "جارٍ الإرسال..." : "مزامنة الآن"}
+                      </Button>
+                      {editable && (
+                        <Button
+                          type="button"
+                          size="sm"
+                          variant="secondary"
+                          onClick={() => setEditing(item)}
+                        >
+                          تعديل
+                        </Button>
+                      )}
+                    </>
+                  )}
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="ghost"
+                    className="text-destructive"
+                    onClick={() => setDiscardTarget(item)}
+                  >
+                    تجاهل
+                  </Button>
+                </div>
+              </li>
+            );
+          })}
         </ul>
+      )}
+
+      {editing && (
+        <OutboxItemEditor
+          key={editing.id}
+          item={editing}
+          onClose={() => {
+            setEditing(null);
+            refresh();
+          }}
+        />
       )}
 
       <Dialog

@@ -15,7 +15,7 @@ export function RequestsTab({ query: q }: { query: ReturnType<typeof useGetCusto
     );
   }
 
-  if (q.isError) {
+  if ((q.isError && !q.data)) {
     return (
       <ErrorState
         error={q.error}
