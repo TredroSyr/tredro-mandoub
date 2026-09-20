@@ -18,6 +18,7 @@ import {
   needsRepConfirmation,
   translateUnitName,
 } from "../lib/utils";
+import { QuantityChange } from "./quantity-change";
 import { TransferStatusBadge } from "./transfer-status-badge";
 import { TransferDetailDrawer } from "./transfer-detail-drawer";
 
@@ -81,11 +82,7 @@ export function TransferCard({
                 {line.product_name}
               </span>
               {isLineModified(line) ? (
-                <span className="shrink-0 rounded-md bg-primary/10 px-1.5 py-0.5 font-mono font-bold text-primary">
-                  {formatTransferQuantity(line.requested_qty)} →{" "}
-                  {formatTransferQuantity(line.effective_qty)}{" "}
-                  {translateUnitName(line.unit_name)}
-                </span>
+                <QuantityChange line={line} className="shrink-0" />
               ) : (
                 <span className="shrink-0 font-mono">
                   ×{formatTransferQuantity(line.effective_qty)}{" "}
@@ -104,7 +101,7 @@ export function TransferCard({
 
         {needsRepConfirmation(transfer.status) && (
           <p className="mt-2 rounded-xl bg-primary/10 px-2.5 py-1.5 text-[11px] text-primary">
-            الشركة عدّلت الكميات، راجعها قبل التأكيد.
+            عدّلت الشركة الكميات، يُرجى مراجعتها قبل التأكيد.
           </p>
         )}
 

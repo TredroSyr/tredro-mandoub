@@ -27,6 +27,7 @@ import {
   needsRepConfirmation,
   translateUnitName,
 } from "../lib/utils";
+import { QuantityChange } from "./quantity-change";
 import { TransferStatusBadge } from "./transfer-status-badge";
 
 export function TransferDetailDrawer({
@@ -88,7 +89,7 @@ export function TransferDetailDrawer({
 
           {needsRepConfirmation(transfer.status) && (
             <p className="rounded-xl bg-primary/10 px-3 py-2 text-[11px] text-primary">
-              الشركة عدّلت الكميات، راجعها قبل التأكيد.
+              عدّلت الشركة الكميات، يُرجى مراجعتها قبل التأكيد.
             </p>
           )}
 
@@ -183,11 +184,7 @@ export function TransferDetailDrawer({
 
                   <div className="shrink-0 text-end">
                     {modified ? (
-                      <p className="rounded-md bg-primary/10 px-1.5 py-0.5 font-mono text-[11px] font-bold text-primary">
-                        {formatTransferQuantity(line.requested_qty)} →{" "}
-                        {formatTransferQuantity(line.effective_qty)}{" "}
-                        {translateUnitName(line.unit_name)}
-                      </p>
+                      <QuantityChange line={line} className="text-[11px]" />
                     ) : (
                       <p className="font-mono text-[11px] font-bold">
                         ×{formatTransferQuantity(line.effective_qty)}{" "}
