@@ -61,7 +61,7 @@ export async function reconcileSyncReminder(): Promise<void> {
         {
           id: REMINDER_ID,
           title: "عناصر لم تُرسل بعد",
-          body: `لديك ${countItems(count)} بانتظار الإرسال — كل ما عليك هو فتح التطبيق.`,
+          body: `لديك ${countItems(count)} بانتظار الإرسال — اضغط للمزامنة.`,
           schedule: { at: new Date(at), allowWhileIdle: true },
           // The default is an exact alarm, which on Android 12+ sends the user
           // to a system settings screen to grant it. A reminder doesn't need

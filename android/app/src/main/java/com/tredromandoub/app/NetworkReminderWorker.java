@@ -55,8 +55,8 @@ public class NetworkReminderWorker extends Worker {
 
         int count = getInputData().getInt(KEY_COUNT, 0);
         String text = count > 0
-            ? "لديك " + describeCount(count) + " بانتظار الإرسال — كل ما عليك هو فتح التطبيق."
-            : "لديك عناصر بانتظار الإرسال — كل ما عليك هو فتح التطبيق.";
+            ? "لديك " + describeCount(count) + " بانتظار الإرسال — اضغط للمزامنة."
+            : "لديك عناصر بانتظار الإرسال — اضغط للمزامنة.";
 
         NotificationCompat.Builder builder = new NotificationCompat.Builder(context, CHANNEL_ID)
             .setSmallIcon(R.drawable.ic_stat_notify)
