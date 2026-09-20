@@ -55,8 +55,8 @@ public class NetworkReminderWorker extends Worker {
 
         int count = getInputData().getInt(KEY_COUNT, 0);
         String text = count > 0
-            ? "لديك " + count + (count == 1 ? " عنصر" : " عناصر") + " بانتظار الإرسال — افتح التطبيق الآن لإرسالها."
-            : "افتح التطبيق الآن لإرسال العناصر المعلّقة.";
+            ? "لديك " + describeCount(count) + " بانتظار الإرسال — كل ما عليك هو فتح التطبيق."
+            : "لديك عناصر بانتظار الإرسال — كل ما عليك هو فتح التطبيق.";
 
         NotificationCompat.Builder builder = new NotificationCompat.Builder(context, CHANNEL_ID)
             .setSmallIcon(R.drawable.ic_stat_notify)
@@ -77,6 +77,14 @@ public class NetworkReminderWorker extends Worker {
         Notification notification = builder.build();
         NotificationManagerCompat.from(context).notify(NOTIFICATION_ID, notification);
         return Result.success();
+    }
+
+    /** Arabic counted-noun agreement: 1 عنصر واحد, 2 عنصران, 3-10 عناصر, 11+ عنصرًا. */
+    private static String describeCount(int n) {
+        if (n == 1) return "عنصر واحد";
+        if (n == 2) return "عنصران";
+        if (n >= 3 && n <= 10) return n + " عناصر";
+        return n + " عنصرًا";
     }
 
     private static boolean isAppInForeground(Context context) {

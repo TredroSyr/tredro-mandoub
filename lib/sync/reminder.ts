@@ -2,6 +2,7 @@ import { LocalNotifications } from "@capacitor/local-notifications";
 import { Network } from "@capacitor/network";
 import { listOutboxItems } from "@/lib/db/outbox";
 import { isNativeApp } from "@/lib/native";
+import { countItems } from "@/lib/arabic-count";
 import { updateNetworkReminder } from "./network-reminder";
 
 /**
@@ -60,7 +61,7 @@ export async function reconcileSyncReminder(): Promise<void> {
         {
           id: REMINDER_ID,
           title: "عناصر لم تُرسل بعد",
-          body: `لديك ${count} ${count === 1 ? "عنصر" : "عناصر"} بانتظار الإرسال — افتح التطبيق ليتم إرسالها.`,
+          body: `لديك ${countItems(count)} بانتظار الإرسال — كل ما عليك هو فتح التطبيق.`,
           schedule: { at: new Date(at), allowWhileIdle: true },
           // The default is an exact alarm, which on Android 12+ sends the user
           // to a system settings screen to grant it. A reminder doesn't need

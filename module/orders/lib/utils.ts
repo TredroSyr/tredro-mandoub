@@ -1,4 +1,5 @@
 import { CustomerRequestStatus } from "../types";
+import { formatAmount } from "@/lib/format";
 
 /** Latin (Western) digits everywhere, even inside Arabic-locale formatting — matches lib/format.ts. */
 const NUMBERING_SYSTEM = { numberingSystem: "latn" } as const;
@@ -43,8 +44,7 @@ export function translateUnitName(unitName: string): string {
 /** Money strings from the API are indicative and can be null — never render null as 0. */
 export function formatRequestMoney(value: string | null): string {
   if (value == null) return "بدون سعر";
-  const n = parseFloat(value);
-  return `${(Number.isFinite(n) ? n : 0).toLocaleString("ar-SY", NUMBERING_SYSTEM)} ل.س`;
+  return `${formatAmount(value)} ل.س`;
 }
 
 export function formatRequestQuantity(value: string): string {

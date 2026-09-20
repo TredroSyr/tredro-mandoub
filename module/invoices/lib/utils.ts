@@ -1,5 +1,6 @@
 import { AxiosError } from "axios";
 import { ApiErrorResponse } from "@/module/auth/types";
+import { formatAmount } from "@/lib/format";
 
 /** Latin (Western) digits everywhere, even inside Arabic-locale formatting — matches lib/format.ts. */
 const NUMBERING_SYSTEM = { numberingSystem: "latn" } as const;
@@ -7,8 +8,7 @@ const NUMBERING_SYSTEM = { numberingSystem: "latn" } as const;
 /** Money strings from the API can be null — never render null as 0. */
 export function formatInvoiceMoney(value: string | null): string {
   if (value == null) return "بدون سعر";
-  const n = parseFloat(value);
-  return `${(Number.isFinite(n) ? n : 0).toLocaleString("ar-SY", NUMBERING_SYSTEM)} ل.س`;
+  return `${formatAmount(value)} ل.س`;
 }
 
 export function formatInvoiceQuantity(value: string): string {

@@ -18,11 +18,26 @@ const LOG_KEY = "tredro_sync_log_v1";
 const ACK_KEY = "tredro_sync_ack_v1";
 const MAX_ENTRIES = 50;
 
+/** How long a synced item stays in the history before it is deleted. */
+export const SYNC_LOG_RETENTION_DAYS = 2;
+const RETENTION_MS = SYNC_LOG_RETENTION_DAYS * 24 * 60 * 60 * 1000;
+
+function isWithinRetention(entry: SyncLogEntry): boolean {
+  const at = Date.parse(entry.at);
+  return !Number.isNaN(at) && Date.now() - at < RETENTION_MS;
+}
+
+/** Returns the history with anything older than the retention window removed — and deleted from storage. */
 export function readSyncLog(): SyncLogEntry[] {
   if (typeof window === "undefined") return [];
   try {
     const parsed = JSON.parse(window.localStorage.getItem(LOG_KEY) ?? "[]");
-    return Array.isArray(parsed) ? (parsed as SyncLogEntry[]) : [];
+    const stored = Array.isArray(parsed) ? (parsed as SyncLogEntry[]) : [];
+    const fresh = stored.filter(isWithinRetention);
+    if (fresh.length !== stored.length) {
+      window.localStorage.setItem(LOG_KEY, JSON.stringify(fresh));
+    }
+    return fresh;
   } catch {
     return [];
   }

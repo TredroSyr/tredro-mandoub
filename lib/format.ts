@@ -1,9 +1,18 @@
 /** Latin (Western) digits everywhere, even inside Arabic-locale formatting — keeps numbers consistent instead of mixing Eastern Arabic-Indic and Latin digits. */
 const NUMBERING_SYSTEM = { numberingSystem: "latn" } as const;
 
+/** Whole amounts drop the decimals ("100.00" → "100"); never abbreviated, so huge amounts print in full. */
+export function formatAmount(value: string | number | null | undefined) {
+  const n = typeof value === "string" ? parseFloat(value) : Number(value ?? 0);
+  return (Number.isFinite(n) ? n : 0).toLocaleString("ar-SY", {
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 2,
+    ...NUMBERING_SYSTEM,
+  });
+}
+
 export function formatCurrency(value: string | number) {
-  const n = typeof value === "string" ? parseFloat(value) : value;
-  return `${(Number.isFinite(n) ? n : 0).toLocaleString("ar-SY", NUMBERING_SYSTEM)} ل.س`;
+  return `${formatAmount(value)} ل.س`;
 }
 
 export function formatQuantity(value: string) {
@@ -33,12 +42,7 @@ const CURRENCY_LABEL: Record<string, string> = {
 
 /** Amount and currency label as separate strings, for mixed styling. Pass the response's own `currency` — money is pinned per response. */
 export function formatMoneyParts(value: string | number | null | undefined, currency?: string) {
-  const n = Number(value ?? 0);
-  const amount = (Number.isFinite(n) ? n : 0).toLocaleString("ar-SY", {
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 2,
-    ...NUMBERING_SYSTEM,
-  });
+  const amount = formatAmount(value);
   const label = currency ? (CURRENCY_LABEL[currency] ?? currency) : "ل.س";
   return { amount, label };
 }

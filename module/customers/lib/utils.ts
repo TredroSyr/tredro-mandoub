@@ -1,5 +1,6 @@
 import { Customer } from "../types";
 import { Shop, DayKey } from "@/module/map/lib/tour-data";
+import { formatAmount } from "@/lib/format";
 
 export const DAY_KEY_TO_API: Record<DayKey, string> = {
   sun: "sunday",
@@ -135,6 +136,5 @@ export function getCustomerWorkDays(customer: Customer): string[] {
 
 /** يعرض قيمة نقدية بصيغة string ثابتة الدقة من الـ API كنص عربي منسّق */
 export function formatCurrency(value: string | number) {
-  const n = typeof value === "string" ? parseFloat(value) : value;
-  return `${(Number.isFinite(n) ? n : 0).toLocaleString("ar-SY")} ل.س`;
+  return `${formatAmount(value)} ل.س`;
 }

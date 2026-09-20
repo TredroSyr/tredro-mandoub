@@ -209,7 +209,7 @@ function KpiCard({ item }: { item: Kpi }) {
         )}
       </div>
       <div className="flex flex-wrap items-baseline gap-1">
-        <span className="truncate text-xl font-semibold text-foreground">{item.value}</span>
+        <span className="text-xl font-semibold text-foreground">{item.value}</span>
         {item.suffix && <span className="text-xs text-muted-foreground">{item.suffix}</span>}
       </div>
       <span className="truncate text-xs text-muted-foreground">{item.label}</span>
@@ -402,8 +402,8 @@ function ActivityStatTile({ tile }: { tile: ActivityTileData }) {
   const isUp = (tile.change ?? 0) >= 0;
   return (
     <div className="flex h-[140px] w-[150px] shrink-0 flex-col justify-between rounded-2xl border border-border bg-card p-4">
-      <div className="flex items-center gap-1.5">
-        <span className="truncate text-xl font-semibold text-foreground">{tile.value}</span>
+      <div className="flex flex-wrap items-baseline gap-x-1.5">
+        <span className="text-xl font-semibold text-foreground">{tile.value}</span>
         {tile.suffix && <span className="text-[11px] text-muted-foreground">{tile.suffix}</span>}
         {tile.change != null && (
           <IconRenderer

@@ -18,7 +18,12 @@ import { useOutboxSummary } from "@/hooks/use-outbox-summary";
 import { useNetworkStatus } from "@/hooks/use-network-status";
 import { removeOutboxItem, type OutboxItem } from "@/lib/db/outbox";
 import { retryOutboxItem } from "@/lib/sync/flush-outbox";
-import { formatAgo, readSyncLog, type SyncLogEntry } from "@/lib/sync/sync-log";
+import {
+  formatAgo,
+  readSyncLog,
+  SYNC_LOG_RETENTION_DAYS,
+  type SyncLogEntry,
+} from "@/lib/sync/sync-log";
 import { hasOutboxEditor, OutboxItemEditor } from "./outbox-item-editor";
 
 function StatusBadge({ status }: { status: OutboxItem["status"] }) {
@@ -182,7 +187,12 @@ export function SyncIssuesView() {
 
       {history.length > 0 && (
         <section className="flex flex-col gap-2">
-          <h2 className="text-xs font-extrabold text-muted-foreground">آخر ما تمت مزامنته</h2>
+          <div className="flex flex-col gap-0.5">
+            <h2 className="text-xs font-extrabold text-muted-foreground">آخر ما تمت مزامنته</h2>
+            <p className="text-[11px] text-muted-foreground">
+              تُحفظ هذه القائمة ليومين فقط ثم تُحذف تلقائيًا — تأكد منها قبل ذلك.
+            </p>
+          </div>
           <ul className="flex flex-col gap-1.5">
             {history.map((entry) => (
               <li

@@ -1,4 +1,6 @@
-export type DayKey = "sat" | "sun" | "mon" | "tue" | "wed" | "thu";
+import { formatAmount } from "@/lib/format";
+
+export type DayKey ="sat" | "sun" | "mon" | "tue" | "wed" | "thu";
 
 export type Order = {
   id: string;
@@ -91,5 +93,5 @@ export function distanceKm(a: [number, number], b: [number, number]) {
 }
 
 export function formatMoney(n: number) {
-  return `${n.toLocaleString("ar-SY")} ل.س`;
+  return `${formatAmount(n)} ل.س`;
 }

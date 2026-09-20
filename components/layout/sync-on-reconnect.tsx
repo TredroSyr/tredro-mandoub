@@ -5,6 +5,7 @@ import { App } from "@capacitor/app";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "@/components/ui/toast";
 import { useNetworkStatus } from "@/hooks/use-network-status";
+import { countItems } from "@/lib/arabic-count";
 import { isNativeApp } from "@/lib/native";
 import { flushOutbox } from "@/lib/sync/flush-outbox";
 import { acknowledgeSyncLog, isSummaryBusy } from "@/lib/sync/sync-log";
@@ -44,11 +45,11 @@ export function SyncOnReconnect() {
       // While the launch summary is open it reports these itself.
       if (isSummaryBusy()) return;
       if (synced > 0) {
-        toast.success(`تمت مزامنة ${synced} ${synced === 1 ? "عنصر" : "عناصر"}`);
+        toast.success(`تمت مزامنة ${countItems(synced)}`);
         acknowledgeSyncLog();
       }
       if (failed > 0) {
-        toast.error(`تعذّرت مزامنة ${failed} — راجع «عناصر المزامنة»`);
+        toast.error(`تعذّرت مزامنة ${countItems(failed)} — راجع «عناصر المزامنة»`);
       }
     };
 
