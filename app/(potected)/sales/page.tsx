@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { PendingSyncList } from "@/components/tredro/pending-sync";
 import { IconRenderer } from "@/assets/icons/iconRenderer";
 import { SkeletonCard } from "@/components/ui/skeleton";
 import { EmptyState } from "@/components/tredro/empty-state";
@@ -29,6 +30,13 @@ export default function SalesPage() {
       </h1>
 
       <DateRangePicker value={range} onChange={setRange} className="mb-4" />
+
+      <PendingSyncList
+        kinds={["create_sales_invoice", "create_payment", "issue_return_invoice"]}
+        title="بانتظار المزامنة"
+        note="تم حفظها على جهازك ولا تظهر في القائمة أدناه بعد — ستُرسل تلقائيًا عند توفر الاتصال."
+        className="mb-4"
+      />
 
       {isError ? (
         <ErrorState error={error} onRetry={() => refetch()} isRetrying={isFetching} />

@@ -3,6 +3,8 @@
 import { useEffect, useState } from "react";
 import { IconRenderer } from "@/assets/icons/iconRenderer";
 import { Skeleton } from "@/components/ui/skeleton";
+import { PendingSyncChip } from "@/components/tredro/pending-sync";
+import { usePendingRequestAction } from "@/hooks/use-pending-sync";
 import { CreateInvoiceDrawer } from "@/module/invoices/components";
 import {
   useAcceptCustomerRequestMutation,
@@ -42,8 +44,14 @@ export function RequestCard({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // Answered (or invoiced) offline and still waiting to sync: the server still
+  // shows the old status, so the card must not offer the same action again.
+  const pending = usePendingRequestAction(request.id);
+
   const hasActions =
-    isRequestAnswerable(request.status) || isRequestDeliverable(request.status);
+    isRequestAnswerable(request.status) ||
+    isRequestDeliverable(request.status) ||
+    !!pending;
 
   return (
     <article className="flex h-43 flex-col justify-between rounded-2xl border border-border bg-card p-4">
@@ -84,7 +92,9 @@ export function RequestCard({
 
       {hasActions && (
         <div className="flex items-center justify-end gap-1.5 border-t border-border pt-3">
-          {isRequestAnswerable(request.status) && (
+          {pending && <PendingSyncChip item={pending} />}
+
+          {!pending && isRequestAnswerable(request.status) && (
             <>
               <button
                 onClick={(e) => {
@@ -109,7 +119,7 @@ export function RequestCard({
             </>
           )}
 
-          {isRequestDeliverable(request.status) && (
+          {!pending && isRequestDeliverable(request.status) && (
             <button
               onClick={(e) => {
                 e.stopPropagation();

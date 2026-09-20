@@ -1,6 +1,7 @@
 "use client";
 
 import { Suspense, useState } from "react";
+import { StorePendingNotice } from "@/module/stores/components/detail/store-pending-notice";
 import { useRouter, useSearchParams } from "next/navigation";
 import { ErrorState } from "@/components/tredro/error-state";
 import {
@@ -105,6 +106,8 @@ function StoreDetailContent() {
         customerId={customerId}
         onBack={goBack}
       />
+
+      <StorePendingNotice customerId={customerId} />
 
       <StoreIdentityCard customer={customer} isLoading={isLoading} />
 

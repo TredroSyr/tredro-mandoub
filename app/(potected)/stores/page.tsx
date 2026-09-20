@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { PendingSyncList } from "@/components/tredro/pending-sync";
 import { useRouter } from "next/navigation";
 import { ErrorState } from "@/components/tredro/error-state";
 import { StoresStats, StoresFilters, StoresList, type StoreDayFilter } from "@/module/stores/components";
@@ -61,6 +62,13 @@ export default function StoresPage() {
   return (
     <>
       <StoresStats total={total} activeCount={activeCount} inactiveCount={inactiveCount} isLoading={isLoading} />
+
+      <PendingSyncList
+        kinds={["create_customer"]}
+        title="محلات بانتظار المزامنة"
+        note="تم حفظها على جهازك ولا تظهر في القائمة بعد — ستُضاف تلقائيًا عند توفر الاتصال."
+        className="mb-3"
+      />
 
       <StoresFilters
         search={search}

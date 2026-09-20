@@ -1,6 +1,7 @@
 "use client";
 
 import { Suspense, useEffect, useState } from "react";
+import { PendingSyncList } from "@/components/tredro/pending-sync";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { SkeletonCard } from "@/components/ui/skeleton";
@@ -92,7 +93,17 @@ function MyOrdersContent() {
         ))}
       </div>
 
-      {tab === "orders" && <NewTransferForm />}
+      {tab === "orders" && (
+        <>
+          <PendingSyncList
+            kinds={["create_stock_transfer"]}
+            title="طلبات بضاعة بانتظار المزامنة"
+            note="تم حفظها على جهازك ولن تظهر في القائمة حتى تُرسل — لا حاجة لإعادة إرسالها."
+            className="mt-4"
+          />
+          <NewTransferForm />
+        </>
+      )}
 
       {tab === "received" && (
         <>

@@ -10,6 +10,8 @@ import {
 } from "@/components/ui/drawer";
 import { Button } from "@/components/ui/button";
 import { IconRenderer } from "@/assets/icons/iconRenderer";
+import { PendingSyncChip } from "@/components/tredro/pending-sync";
+import { usePendingTransferAction } from "@/hooks/use-pending-sync";
 import {
   useConfirmStockTransferMutation,
   useGetRepProductsQuery,
@@ -46,6 +48,7 @@ export function TransferDetailDrawer({
   const confirm = useConfirmStockTransferMutation();
   const reject = useRejectStockTransferMutation();
   const receive = useReceiveStockTransferMutation();
+  const pending = usePendingTransferAction(transfer?.id ?? -1);
 
   const productImages = useMemo(() => {
     const map: Record<number, string | null> = {};
@@ -87,7 +90,7 @@ export function TransferDetailDrawer({
             </DrawerClose>
           </div>
 
-          {needsRepConfirmation(transfer.status) && (
+          {needsRepConfirmation(transfer.status) && !pending && (
             <p className="rounded-xl bg-primary/10 px-3 py-2 text-[11px] text-primary">
               قامت الشركة بتعديل الكميات، يُرجى مراجعتها قبل التأكيد.
             </p>
@@ -95,7 +98,9 @@ export function TransferDetailDrawer({
 
           {showActions && (
             <div className="flex items-center gap-1.5">
-              {needsRepConfirmation(transfer.status) && (
+              {pending && <PendingSyncChip item={pending} />}
+
+              {!pending && needsRepConfirmation(transfer.status) && (
                 <>
                   <button
                     onClick={() => confirm.mutate(transfer.id)}
@@ -116,7 +121,7 @@ export function TransferDetailDrawer({
                 </>
               )}
 
-              {isReceivable(transfer.status) && (
+              {!pending && isReceivable(transfer.status) && (
                 <button
                   onClick={() => receive.mutate(transfer.id)}
                   disabled={receive.isPending}

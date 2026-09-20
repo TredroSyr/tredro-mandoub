@@ -2,6 +2,8 @@
 
 import { useEffect, useState } from "react";
 import { IconRenderer } from "@/assets/icons/iconRenderer";
+import { PendingSyncChip } from "@/components/tredro/pending-sync";
+import { usePendingTransferAction } from "@/hooks/use-pending-sync";
 import {
   useConfirmStockTransferMutation,
   useReceiveStockTransferMutation,
@@ -36,6 +38,9 @@ export function TransferCard({
   const confirm = useConfirmStockTransferMutation();
   const reject = useRejectStockTransferMutation();
   const receive = useReceiveStockTransferMutation();
+  // Done offline and still waiting to sync: the server still shows the old
+  // status, so the buttons must not offer the same action again.
+  const pending = usePendingTransferAction(transfer.id);
 
   useEffect(() => {
     if (autoOpen) setDetailOpen(true);
@@ -102,7 +107,7 @@ export function TransferCard({
           </p>
         )}
 
-        {needsRepConfirmation(transfer.status) && (
+        {needsRepConfirmation(transfer.status) && !pending && (
           <p className="mt-2 rounded-xl bg-primary/10 px-2.5 py-1.5 text-[11px] text-primary">
             قامت الشركة بتعديل الكميات، يُرجى مراجعتها قبل التأكيد.
           </p>
@@ -112,7 +117,9 @@ export function TransferCard({
 
         <div className="mt-3 flex items-center justify-end border-t border-border pt-3">
           <div className="flex items-center gap-1.5">
-            {needsRepConfirmation(transfer.status) && (
+            {pending && <PendingSyncChip item={pending} />}
+
+            {!pending && needsRepConfirmation(transfer.status) && (
               <>
                 <button
                   onClick={(e) => {
@@ -139,7 +146,7 @@ export function TransferCard({
               </>
             )}
 
-            {isReceivable(transfer.status) && (
+            {!pending && isReceivable(transfer.status) && (
               <button
                 onClick={(e) => {
                   e.stopPropagation();

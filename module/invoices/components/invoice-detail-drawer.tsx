@@ -8,11 +8,13 @@ import { Button } from "@/components/ui/button";
 import { Drawer, DrawerClose, DrawerContent, DrawerHeader, DrawerTitle } from "@/components/ui/drawer";
 import { Skeleton } from "@/components/ui/skeleton";
 import { formatDate } from "@/lib/format";
+import { PendingSyncNotice } from "@/components/tredro/pending-sync";
+import { usePendingPayments } from "@/hooks/use-pending-sync";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useGetSalesInvoiceDetailQuery } from "../hooks";
 import { renderNodeToPdfBlob } from "../lib/pdf";
 import { openWhatsAppChat, shareInvoicePdf } from "../lib/share";
-import { formatInvoiceMoney, formatInvoiceQuantity } from "../lib/utils";
+import { buildInvoiceWhatsAppMessage, formatInvoiceMoney, formatInvoiceQuantity } from "../lib/utils";
 import { InvoicePrintTemplate } from "./invoice-print-template";
 import { RecordPaymentDialog } from "./record-payment-dialog";
 
@@ -42,6 +44,7 @@ export function InvoiceDetailDrawer({
   // Cached data stays on screen when a refresh fails (e.g. offline).
   const isError = queryFailed && !data;
   const invoice = data?.data?.invoice;
+  const pendingPayments = usePendingPayments(invoiceId);
 
   const buildPdf = async () => {
     if (!printRef.current) return null;
@@ -50,14 +53,7 @@ export function InvoiceDetailDrawer({
 
   const handleShareMessage = () => {
     if (!invoice) return;
-    const text = [
-      `فاتورة ${invoice.number}`,
-      `${invoice.company_name}`,
-      `الإجمالي: ${formatInvoiceMoney(invoice.total_amount)}`,
-      `المحصَّل: ${formatInvoiceMoney(invoice.paid_amount)}`,
-      `المتبقي: ${formatInvoiceMoney(invoice.balance_due)}`,
-    ].join("\n");
-    openWhatsAppChat(invoice.customer_phone, text);
+    openWhatsAppChat(invoice.customer_phone, buildInvoiceWhatsAppMessage(invoice));
   };
 
   const handleSharePdf = async () => {
@@ -188,6 +184,13 @@ export function InvoiceDetailDrawer({
                 {invoice.notes && (
                   <p className="mt-3 rounded-2xl bg-muted/40 p-3 text-[11px] text-muted-foreground">{invoice.notes}</p>
                 )}
+
+                <PendingSyncNotice
+                  className="mt-3"
+                  items={pendingPayments}
+                  title="دفعات بانتظار المزامنة"
+                  note="المبلغ المتبقي أعلاه لا يشمل هذه الدفعات بعد — سيُحدَّث تلقائيًا بعد إرسالها."
+                />
 
                 {invoice.status !== "fully_paid" && (
                   <button
