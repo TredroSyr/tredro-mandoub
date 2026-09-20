@@ -223,13 +223,14 @@ export default function AppHeader({ onRefresh }: AppHeaderProps) {
               )}
 
               <div className="border-t border-border p-2">
-                <button
+                <Button
                   type="button"
+                  variant="ghost"
                   onClick={() => {
                     setMenuOpen(false);
                     router.push("/settings");
                   }}
-                  className={`${MENU_ITEM} w-full ${ITEM_ANIMATION}`}
+                  className={`${MENU_ITEM} h-auto w-full justify-start ${ITEM_ANIMATION}`}
                   style={{ animationDelay: "120ms" }}
                 >
                   <span className="flex items-center gap-3">
@@ -238,7 +239,7 @@ export default function AppHeader({ onRefresh }: AppHeaderProps) {
                     </span>
                     عرض إحصائياتي
                   </span>
-                </button>
+                </Button>
 
                 <button
                   type="button"
