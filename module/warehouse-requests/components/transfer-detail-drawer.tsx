@@ -89,7 +89,7 @@ export function TransferDetailDrawer({
 
           {needsRepConfirmation(transfer.status) && (
             <p className="rounded-xl bg-primary/10 px-3 py-2 text-[11px] text-primary">
-              عدّلت الشركة الكميات، يُرجى مراجعتها قبل التأكيد.
+              قامت الشركة بتعديل الكميات، يُرجى مراجعتها قبل التأكيد.
             </p>
           )}
 

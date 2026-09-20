@@ -332,7 +332,7 @@ function KpiCard({ item }: { item: Kpi }) {
   );
 }
 
-function KpiRow({ kpis }: { kpis: Kpi[] | null }) {
+function KpiRow({ kpis, loading }: { kpis: Kpi[] | null; loading: boolean }) {
   const {
     ref,
     dragging,
@@ -363,9 +363,9 @@ function KpiRow({ kpis }: { kpis: Kpi[] | null }) {
         dragging ? "cursor-grabbing select-none" : "cursor-grab"
       }`}
     >
-      {kpis.map(({ key, ...item }) => (
-        <KpiCard key={key} item={{ key, ...item }} />
-      ))}
+      {kpis.map(({ key, ...item }) =>
+        loading ? <KpiCardSkeleton key={key} /> : <KpiCard key={key} item={{ key, ...item }} />,
+      )}
     </div>
   );
 }
@@ -589,7 +589,7 @@ function ActivityStatTile({ tile }: { tile: ActivityTileData }) {
   );
 }
 
-function ActivitySection({ groups }: { groups: ActivityGroupData[] | null }) {
+function ActivitySection({ groups, loading }: { groups: ActivityGroupData[] | null; loading: boolean }) {
   const {
     ref,
     dragging,
@@ -646,9 +646,9 @@ function ActivitySection({ groups }: { groups: ActivityGroupData[] | null }) {
                 </h3>
               </div>
               <div className="flex gap-3">
-                {group.tiles.map((tile, i) => (
-                  <ActivityStatTile key={i} tile={tile} />
-                ))}
+                {group.tiles.map((tile, i) =>
+                  loading ? <ActivityTileSkeleton key={i} /> : <ActivityStatTile key={i} tile={tile} />,
+                )}
               </div>
             </div>
           ))}
@@ -701,7 +701,7 @@ export function AnalyticsOverview({ params }: AnalyticsOverviewProps) {
   }
 
   return (
-    <div className={`flex flex-col gap-5 transition-opacity ${isFetching ? "opacity-60" : ""}`}>
+    <div className="flex flex-col gap-5">
       {overview?.fx.stale && (
         <span className="flex items-center gap-1.5 text-xs text-amber-600">
           <IconRenderer name="warning_outlined" className="size-3.5" />
@@ -709,10 +709,10 @@ export function AnalyticsOverview({ params }: AnalyticsOverviewProps) {
         </span>
       )}
 
-      <KpiRow kpis={kpis} />
+      <KpiRow kpis={kpis} loading={isFetching} />
 
       <div className="grid grid-cols-1 gap-4">
-        {requestDistribution ? (
+        {requestDistribution && !isFetching ? (
           <OrdersDistributionCard
             bars={requestDistribution.bars}
             total={requestDistribution.total}
@@ -721,14 +721,14 @@ export function AnalyticsOverview({ params }: AnalyticsOverviewProps) {
           <OrdersDistributionSkeleton />
         )}
         {/* Insights are a bonus: shown while loading and when there is something to say, hidden on failure or an empty answer. */}
-        {insightsQuery.isLoading ? (
+        {insightsQuery.isFetching ? (
           <InsightBannerSkeleton />
         ) : (
           insights.length > 0 && <InsightBanner insights={insights} />
         )}
       </div>
 
-      <ActivitySection groups={activityGroups} />
+      <ActivitySection groups={activityGroups} loading={isFetching} />
     </div>
   );
 }

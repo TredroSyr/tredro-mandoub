@@ -101,7 +101,7 @@ export function TransferCard({
 
         {needsRepConfirmation(transfer.status) && (
           <p className="mt-2 rounded-xl bg-primary/10 px-2.5 py-1.5 text-[11px] text-primary">
-            عدّلت الشركة الكميات، يُرجى مراجعتها قبل التأكيد.
+            قامت الشركة بتعديل الكميات، يُرجى مراجعتها قبل التأكيد.
           </p>
         )}
 
