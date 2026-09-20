@@ -668,13 +668,14 @@ export interface AnalyticsOverviewProps {
 }
 
 export function AnalyticsOverview({ params }: AnalyticsOverviewProps) {
-  const { data, isLoading, isError, isFetching, isPlaceholderData, refetch, error } =
+  const { data, isPending, isSuccess, isError, isFetching, isPlaceholderData, refetch, error } =
     useMyOverviewQuery(params);
   // Skeletons only while there is nothing to show for these filters (first load, or the filters just changed) — a silent background refetch keeps the cards as they are.
-  const showSkeleton = isLoading || isPlaceholderData;
+  // `isPending` (not `isLoading`) so it also covers the idle moment while the persisted cache restores or the fetch is paused offline.
+  const showSkeleton = isPending || isPlaceholderData;
   const rawOverview = data?.data?.overview;
   const overview = hasOverviewShape(rawOverview) ? rawOverview : undefined;
-  const hasError = isError || (!isLoading && !overview);
+  const hasError = isError || (isSuccess && !overview);
 
   const insightsQuery = useMyInsightsQuery(params);
   const insights = insightsQuery.data?.data?.insights ?? [];
@@ -723,7 +724,7 @@ export function AnalyticsOverview({ params }: AnalyticsOverviewProps) {
           <OrdersDistributionSkeleton />
         )}
         {/* Insights are a bonus: shown while loading and when there is something to say, hidden on failure or an empty answer. */}
-        {insightsQuery.isLoading || insightsQuery.isPlaceholderData ? (
+        {(insightsQuery.isPending && insightsQuery.fetchStatus !== "paused") || insightsQuery.isPlaceholderData ? (
           <InsightBannerSkeleton />
         ) : (
           insights.length > 0 && <InsightBanner insights={insights} />
