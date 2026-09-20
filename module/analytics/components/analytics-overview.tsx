@@ -668,8 +668,10 @@ export interface AnalyticsOverviewProps {
 }
 
 export function AnalyticsOverview({ params }: AnalyticsOverviewProps) {
-  const { data, isLoading, isError, isFetching, refetch, error } =
+  const { data, isLoading, isError, isFetching, isPlaceholderData, refetch, error } =
     useMyOverviewQuery(params);
+  // Skeletons only while there is nothing to show for these filters (first load, or the filters just changed) — a silent background refetch keeps the cards as they are.
+  const showSkeleton = isLoading || isPlaceholderData;
   const rawOverview = data?.data?.overview;
   const overview = hasOverviewShape(rawOverview) ? rawOverview : undefined;
   const hasError = isError || (!isLoading && !overview);
@@ -709,10 +711,10 @@ export function AnalyticsOverview({ params }: AnalyticsOverviewProps) {
         </span>
       )}
 
-      <KpiRow kpis={kpis} loading={isFetching} />
+      <KpiRow kpis={kpis} loading={showSkeleton} />
 
       <div className="grid grid-cols-1 gap-4">
-        {requestDistribution && !isFetching ? (
+        {requestDistribution && !showSkeleton ? (
           <OrdersDistributionCard
             bars={requestDistribution.bars}
             total={requestDistribution.total}
@@ -721,14 +723,14 @@ export function AnalyticsOverview({ params }: AnalyticsOverviewProps) {
           <OrdersDistributionSkeleton />
         )}
         {/* Insights are a bonus: shown while loading and when there is something to say, hidden on failure or an empty answer. */}
-        {insightsQuery.isFetching ? (
+        {insightsQuery.isLoading || insightsQuery.isPlaceholderData ? (
           <InsightBannerSkeleton />
         ) : (
           insights.length > 0 && <InsightBanner insights={insights} />
         )}
       </div>
 
-      <ActivitySection groups={activityGroups} loading={isFetching} />
+      <ActivitySection groups={activityGroups} loading={showSkeleton} />
     </div>
   );
 }

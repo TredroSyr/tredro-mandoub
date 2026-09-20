@@ -47,8 +47,11 @@ export function TransferCard({
   const hasMoreLines = transfer.lines.length > MAX_VISIBLE_LINES;
 
   return (
-    <article className="rounded-2xl border border-border bg-card p-4">
-      <div onClick={() => setDetailOpen(true)} className="cursor-pointer">
+    <article className="flex h-full flex-col rounded-2xl border border-border bg-card p-4">
+      <div
+        onClick={() => setDetailOpen(true)}
+        className="flex flex-1 cursor-pointer flex-col"
+      >
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0">
             <p className="font-mono text-[11px] font-bold">
@@ -104,6 +107,8 @@ export function TransferCard({
             قامت الشركة بتعديل الكميات، يُرجى مراجعتها قبل التأكيد.
           </p>
         )}
+
+        <div className="flex-1" />
 
         <div className="mt-3 flex items-center justify-end border-t border-border pt-3">
           <div className="flex items-center gap-1.5">
