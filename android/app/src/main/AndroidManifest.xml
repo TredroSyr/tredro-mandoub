@@ -26,6 +26,23 @@
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
                 <data android:scheme="https" android:host="mandoub.tredro.online" />
+                <!-- List app routes explicitly instead of claiming the whole host: intent
+                     filters can't exclude paths, and an unrestricted filter makes
+                     https://mandoub.tredro.online/download/tredro-mandoub.apk open back
+                     inside the app (so the update button downloads nothing) rather than
+                     in the browser. Add a pathPrefix here when adding a top-level route. -->
+                <data android:path="/" />
+                <data android:pathPrefix="/home" />
+                <data android:pathPrefix="/map" />
+                <data android:pathPrefix="/my-orders" />
+                <data android:pathPrefix="/notifications" />
+                <data android:pathPrefix="/orders" />
+                <data android:pathPrefix="/sales" />
+                <data android:pathPrefix="/settings" />
+                <data android:pathPrefix="/stores" />
+                <data android:pathPrefix="/sync-issues" />
+                <data android:pathPrefix="/offline-debug" />
+                <data android:pathPrefix="/auth" />
             </intent-filter>
         </activity>
 
