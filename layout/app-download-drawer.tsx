@@ -104,7 +104,7 @@ export default function AppDownloadDrawer() {
             className="group relative mb-4 h-13 w-full overflow-hidden rounded-full bg-primary text-primary-foreground shadow-lg shadow-primary/30 transition-transform duration-300 active:scale-95 hover:scale-[1.02] hover:bg-primary/90"
           >
             <a
-              href="https://mandoub.tredro.online/download/tredro-mandoub.apk"
+              href="https://zyvf1dlacznk9vlz.public.blob.vercel-storage.com/tredro-mandoub.apk"
               download
               target="_blank"
               rel="noopener noreferrer"
