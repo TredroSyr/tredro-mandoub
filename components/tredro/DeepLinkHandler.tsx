@@ -20,6 +20,10 @@ function toInAppPath(url: string): string | null {
     return null;
   }
 
+  // Downloads are served by the host (vercel rewrite), not by the bundled app;
+  // routing them in-app lands on a "webpage not available" error page.
+  if (parsed.pathname.startsWith("/download/")) return null;
+
   return `${parsed.pathname}${parsed.search}${parsed.hash}` || "/";
 }
 
