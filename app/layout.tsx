@@ -12,20 +12,23 @@ import HardwareBackButton from "@/components/tredro/HardwareBackButton";
 import DeepLinkHandler from "@/components/tredro/DeepLinkHandler";
 
 export const metadata: Metadata = {
-  title: "Tredro | إدارة مندوبي المبيعات، الطلبات، والعملاء",
+  title: "Tredro Mandoub | تطبيق المندوب لإدارة الطلبات والزيارات والتحصيل",
   description:
-    "منصة متكاملة لإدارة مندوبي المبيعات تربط الشركات بالمندوبين والعملاء في تطبيق واحد. إدارة الطلبات، المخزون، الفواتير، وتتبع زيارات المندوبين بسهولة عبر لوحة تحكم للشركة وتطبيقات جوال للمندوبين والعملاء.",
+    "تطبيق مندوب المبيعات من Tredro: استلم طلبات المتاجر، سجّل الطلبات الجديدة، تابع زياراتك على الخريطة، وحصّل المبالغ المتأخرة من جوالك — حتى بدون إنترنت، مع مزامنة تلقائية عند عودة الاتصال.",
+  applicationName: "Tredro Mandoub",
   keywords: [
-    "إدارة مندوبي المبيعات",
-    "تطبيق مندوبين",
-    "إدارة الطلبات",
-    "إدارة العملاء",
-    "نظام إدارة مبيعات",
-    "تتبع المخزون",
-    "فواتير المبيعات",
-    "تطبيق B2B",
+    "تطبيق المندوب",
+    "تطبيق مندوب مبيعات",
+    "تطبيق مندوب توزيع",
+    "تسجيل طلبات المندوب",
+    "زيارات المندوبين",
+    "تحصيل المبالغ المتأخرة",
+    "إدارة المتاجر للمندوب",
+    "تطبيق يعمل بدون إنترنت",
+    "Tredro Mandoub",
+    "تحميل تطبيق المندوب",
   ],
-  authors: [{ name: "اسم الشركة أو الفريق" }],
+  authors: [{ name: "Tredro" }],
   metadataBase: new URL("https://example.com"),
   alternates: {
     canonical: "/",
@@ -34,11 +37,11 @@ export const metadata: Metadata = {
     },
   },
   openGraph: {
-    title: "منصة إدارة المندوبين",
+    title: "Tredro Mandoub | تطبيق المندوب",
     description:
-      "منصة متكاملة تربط الشركات بمندوبي المبيعات والعملاء — إدارة الطلبات، المخزون، والفواتير في مكان واحد.",
+      "طلباتك، متاجرك، زياراتك وتحصيلاتك في تطبيق واحد للمندوب — يعمل بدون إنترنت ويزامن تلقائياً.",
     url: "https://example.com",
-    siteName: "منصة إدارة المندوبين",
+    siteName: "Tredro Mandoub",
     locale: "ar_SA",
     type: "website",
     images: [
@@ -46,15 +49,15 @@ export const metadata: Metadata = {
         url: "/og-image.png",
         width: 1200,
         height: 630,
-        alt: "منصة إدارة المندوبين",
+        alt: "تطبيق Tredro Mandoub للمندوبين",
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "منصة إدارة المندوبين",
+    title: "Tredro Mandoub | تطبيق المندوب",
     description:
-      "إدارة مندوبي المبيعات، الطلبات، والعملاء في منصة واحدة متكاملة.",
+      "سجّل الطلبات، زر المتاجر، وحصّل المبالغ من جوالك — حتى بدون إنترنت.",
     images: ["/og-image.png"],
   },
   robots: {
