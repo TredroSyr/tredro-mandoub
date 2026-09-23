@@ -4,7 +4,6 @@ import { useState } from "react";
 import { IconRenderer } from "@/assets/icons/iconRenderer";
 import {
   ProductDetailsDrawer,
-  ProductTapHint,
   ProductThumb,
 } from "@/components/tredro/product-details-drawer";
 import { Input } from "@/components/ui/input";
@@ -65,13 +64,12 @@ export function InvoiceLinePicker({
                 onClick={() => setSelected(p)}
                 className="flex min-w-0 items-center gap-3 text-start"
               >
-                <ProductThumb url={p.image?.image} alt={p.image?.alt_text || p.name} />
+                <ProductThumb interactive url={p.image?.image} alt={p.image?.alt_text || p.name} />
                 <div className="min-w-0">
                   <p className="truncate text-xs font-bold">{p.name}</p>
                   <p className="font-mono text-[10px] text-muted-foreground">
                     {formatInvoiceMoney(p.price)} · بالسيارة {formatInvoiceQuantity(p.van_quantity)}
                   </p>
-                  <ProductTapHint />
                 </div>
               </button>
               <div className="flex shrink-0 items-center gap-1.5">

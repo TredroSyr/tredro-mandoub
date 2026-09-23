@@ -4,7 +4,6 @@ import { useState } from "react";
 import { IconRenderer } from "@/assets/icons/iconRenderer";
 import {
   ProductDetailsDrawer,
-  ProductTapHint,
   ProductThumb,
 } from "@/components/tredro/product-details-drawer";
 import { Skeleton, SkeletonCard } from "@/components/ui/skeleton";
@@ -92,13 +91,12 @@ function WarehouseItemRow({
       onClick={() => onOpen(item)}
       className="grid w-full grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-3 rounded-2xl border border-border bg-card p-3.5 text-start"
     >
-      <ProductThumb url={item.image?.image} alt={item.image?.alt_text || item.product_name} />
+      <ProductThumb interactive url={item.image?.image} alt={item.image?.alt_text || item.product_name} />
       <div className="min-w-0">
         <p className="truncate text-sm font-bold">{item.product_name}</p>
         <p className="font-mono text-[10px] text-muted-foreground">
           {item.unit_price != null ? formatCurrency(item.unit_price) : "بدون سعر"} / {translateUnitName(item.unit_name)}
         </p>
-        <ProductTapHint />
       </div>
       <span
         className={`shrink-0 rounded-full px-2.5 py-1 font-mono text-[11px] font-bold ${

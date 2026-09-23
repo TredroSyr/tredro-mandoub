@@ -29,34 +29,36 @@ export interface ProductDetails {
 export function ProductThumb({
   url,
   alt,
-  className = "size-12",
+  className = "size-14",
+  interactive = false,
 }: {
   url?: string | null;
   alt: string;
   className?: string;
+  /** Adds an eye badge signalling that tapping opens the details drawer. */
+  interactive?: boolean;
 }) {
   return (
-    <div
-      className={`grid shrink-0 place-items-center overflow-hidden rounded-xl bg-muted ${className}`}
-    >
-      {url ? (
-        // eslint-disable-next-line @next/next/no-img-element
-        <img src={url} alt={alt} loading="lazy" className="size-full object-cover" />
-      ) : (
-        <IconRenderer name="no_image_outlined" className="size-5 text-muted-foreground" />
+    <div className={`relative shrink-0 ${className}`}>
+      <div className="grid size-full place-items-center overflow-hidden rounded-xl bg-muted">
+        {url ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={url} alt={alt} loading="lazy" className="size-full object-cover" />
+        ) : (
+          <IconRenderer name="no_image_outlined" className="size-6 text-muted-foreground" />
+        )}
+      </div>
+      {interactive && (
+        <span className="absolute -bottom-1.5 -end-1.5 grid size-6 place-items-center rounded-full border-2 border-card bg-primary text-primary-foreground shadow">
+          <IconRenderer name="eye_visible_outlined" className="size-3.5" />
+        </span>
       )}
     </div>
   );
 }
 
-/** Tap hint shown on rows that open the details drawer. */
-export function ProductTapHint() {
-  return (
-    <span className="mt-0.5 flex items-center gap-1 text-[10px] font-bold text-primary">
-      <IconRenderer name="info_outlined" className="size-3" /> اضغط لعرض التفاصيل
-    </span>
-  );
-}
+// Opens at half height; drag the handle up to expand to almost full screen.
+const SNAP_POINTS: number[] = [0.5, 0.95];
 
 export function ProductDetailsDrawer({
   product,
@@ -66,8 +68,14 @@ export function ProductDetailsDrawer({
   onOpenChange: (open: boolean) => void;
 }) {
   return (
-    <Drawer open={product != null} onOpenChange={onOpenChange}>
-      <DrawerContent className="mt-0 flex max-h-[85svh] flex-col rounded-t-[1.75rem] border-t border-border bg-card">
+    <Drawer
+      open={product != null}
+      onOpenChange={onOpenChange}
+      showSwipeHandle
+      snapPoints={SNAP_POINTS}
+      defaultSnapPoint={SNAP_POINTS[0]}
+    >
+      <DrawerContent className="mt-0 rounded-t-[1.75rem] border-t border-border bg-card data-[swipe-axis=y]:[--drawer-content-max-height:calc(100dvh-2rem)]">
         {product && (
           <>
             <DrawerHeader className="flex shrink-0 flex-row items-start justify-between gap-3 border-b border-border pb-4 text-start">
@@ -81,7 +89,7 @@ export function ProductDetailsDrawer({
               </DrawerClose>
             </DrawerHeader>
 
-            <div className="min-h-0 flex-1 overflow-y-auto p-4">
+            <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain p-4">
               <ProductThumb
                 url={product.imageUrl}
                 alt={product.imageAlt || product.name}
