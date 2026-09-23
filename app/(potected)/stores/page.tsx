@@ -11,6 +11,7 @@ import { getTodayDayKey } from "@/module/map/lib/tour-data";
 import { filterCustomersByDay } from "@/module/customers/lib/utils";
 import { useGetDashboardQuery } from "@/module/dashboard/hooks";
 import { toISODate } from "@/lib/rep-tour-data";
+import { needsErrorState } from "@/lib/network-status";
 
 function matchesSearch(customer: Customer, query: string) {
   const q = query.trim().toLowerCase();
@@ -30,9 +31,17 @@ export default function StoresPage() {
   // The stores list is the rep's whole assigned set and is not paginated,
   // so we fetch it once and filter client-side — that keeps the stat
   // tiles accurate against the true total regardless of the day filter.
-  const { data, isLoading, isError: queryFailed, error, refetch, isFetching } = useGetCustomersQuery();
+  const {
+    data,
+    isLoading,
+    isError: queryFailed,
+    error,
+    refetch,
+    isFetching,
+    fetchStatus,
+  } = useGetCustomersQuery();
   // Cached data stays on screen when a refresh fails (e.g. offline).
-  const isError = queryFailed && !data;
+  const isError = needsErrorState({ isError: queryFailed, data, fetchStatus });
 
   const allCustomers = useMemo(() => data?.data?.customers ?? [], [data]);
   const total = data?.data?.total ?? allCustomers.length;
@@ -56,7 +65,14 @@ export default function StoresPage() {
   );
 
   if (isError) {
-    return <ErrorState error={error} onRetry={() => refetch()} isRetrying={isFetching} />;
+    return (
+      <ErrorState
+        error={error}
+        fetchStatus={fetchStatus}
+        onRetry={() => refetch()}
+        isRetrying={isFetching}
+      />
+    );
   }
 
   return (

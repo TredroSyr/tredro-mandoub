@@ -1,8 +1,15 @@
 "use client";
 
+import { useState } from "react";
 import { IconRenderer } from "@/assets/icons/iconRenderer";
+import {
+  ProductDetailsDrawer,
+  ProductTapHint,
+  ProductThumb,
+} from "@/components/tredro/product-details-drawer";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
+import { productToDetails } from "@/module/warehouse-requests/lib/utils";
 import { RepProduct } from "@/module/warehouse-requests/types";
 import { formatInvoiceMoney, formatInvoiceQuantity } from "../lib/utils";
 
@@ -21,6 +28,8 @@ export function InvoiceLinePicker({
   quantities: Record<number, number>;
   onQuantityChange: (productId: number, quantity: number) => void;
 }) {
+  const [selected, setSelected] = useState<RepProduct | null>(null);
+
   return (
     <div>
       <Input
@@ -51,12 +60,20 @@ export function InvoiceLinePicker({
               key={p.id}
               className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 rounded-2xl bg-background p-3"
             >
-              <div className="min-w-0">
-                <p className="truncate text-xs font-bold">{p.name}</p>
-                <p className="font-mono text-[10px] text-muted-foreground">
-                  {formatInvoiceMoney(p.price)} · بالسيارة {formatInvoiceQuantity(p.van_quantity)}
-                </p>
-              </div>
+              <button
+                type="button"
+                onClick={() => setSelected(p)}
+                className="flex min-w-0 items-center gap-3 text-start"
+              >
+                <ProductThumb url={p.image?.image} alt={p.image?.alt_text || p.name} />
+                <div className="min-w-0">
+                  <p className="truncate text-xs font-bold">{p.name}</p>
+                  <p className="font-mono text-[10px] text-muted-foreground">
+                    {formatInvoiceMoney(p.price)} · بالسيارة {formatInvoiceQuantity(p.van_quantity)}
+                  </p>
+                  <ProductTapHint />
+                </div>
+              </button>
               <div className="flex shrink-0 items-center gap-1.5">
                 <button
                   type="button"
@@ -82,6 +99,10 @@ export function InvoiceLinePicker({
           );
         })}
       </div>
+      <ProductDetailsDrawer
+        product={selected && productToDetails(selected)}
+        onOpenChange={(open) => !open && setSelected(null)}
+      />
     </div>
   );
 }

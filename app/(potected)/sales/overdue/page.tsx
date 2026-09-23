@@ -10,6 +10,7 @@ import { ErrorState } from "@/components/tredro/error-state";
 import { InvoiceDetailDrawer } from "@/module/invoices/components";
 import { useGetSalesInvoicesQuery } from "@/module/invoices/hooks";
 import { formatCurrency, formatDate } from "@/lib/format";
+import { needsErrorState } from "@/lib/network-status";
 
 export default function OverdueInvoicesPage() {
   return (
@@ -35,12 +36,20 @@ function OverdueInvoicesContent() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const { data, isLoading, isError: queryFailed, error, refetch, isFetching } = useGetSalesInvoicesQuery({
+  const {
+    data,
+    isLoading,
+    isError: queryFailed,
+    error,
+    refetch,
+    isFetching,
+    fetchStatus,
+  } = useGetSalesInvoicesQuery({
     overdue: true,
     page_size: 50,
   });
   // Cached data stays on screen when a refresh fails (e.g. offline).
-  const isError = queryFailed && !data;
+  const isError = needsErrorState({ isError: queryFailed, data, fetchStatus });
   const invoices = data?.data?.invoices ?? [];
 
   return (
@@ -54,7 +63,12 @@ function OverdueInvoicesContent() {
       </h1>
 
       {isError ? (
-        <ErrorState error={error} onRetry={() => refetch()} isRetrying={isFetching} />
+        <ErrorState
+          error={error}
+          fetchStatus={fetchStatus}
+          onRetry={() => refetch()}
+          isRetrying={isFetching}
+        />
       ) : isLoading ? (
         <div className="space-y-2">
           <SkeletonCard />

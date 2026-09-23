@@ -3,9 +3,9 @@
 import { Suspense, useEffect, useState } from "react";
 import { PendingSyncList } from "@/components/tredro/pending-sync";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Button } from "@/components/ui/button";
 import { SkeletonCard } from "@/components/ui/skeleton";
-import { IconRenderer } from "@/assets/icons/iconRenderer";
+import { ErrorState } from "@/components/tredro/error-state";
+import { needsErrorState } from "@/lib/network-status";
 import {
   NewTransferForm,
   TransferCard,
@@ -145,29 +145,18 @@ function MyOrdersContent() {
               </>
             )}
 
-            {(received.isError && !received.data) && (
-              <div className="flex flex-col items-center justify-center gap-2 rounded-2xl bg-muted/40 p-6 text-center">
-                <IconRenderer
-                  name="warning_outlined"
-                  className="h-8 w-8 text-destructive/60"
-                />
-                <p className="text-[11px] text-muted-foreground">
-                  تعذّر تحميل طلبات الشركة.
-                </p>
-                <Button
-                  size="sm"
-                  variant="secondary"
-                  onClick={() => received.refetch()}
-                  disabled={received.isFetching}
-                >
-                  <IconRenderer name="refresh_outlined" className="h-4 w-4" />
-                  إعادة المحاولة
-                </Button>
-              </div>
+            {needsErrorState(received) && (
+              <ErrorState
+                error={received.error}
+                fetchStatus={received.fetchStatus}
+                onRetry={() => received.refetch()}
+                isRetrying={received.isFetching}
+                className="rounded-2xl bg-muted/40 p-6 py-6"
+              />
             )}
 
             {!received.isLoading &&
-              !(received.isError && !received.data) &&
+              !needsErrorState(received) &&
               filteredList.length === 0 && (
                 <p className="rounded-2xl bg-muted/60 p-4 text-center text-[11px] text-muted-foreground">
                   لا توجد طلبات بعد.
@@ -175,7 +164,7 @@ function MyOrdersContent() {
               )}
 
             {!received.isLoading &&
-              !(received.isError && !received.data) &&
+              !needsErrorState(received) &&
               filteredList.map((transfer) => (
                 <TransferCard
                   key={transfer.id}

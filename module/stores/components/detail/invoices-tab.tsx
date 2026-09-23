@@ -6,6 +6,7 @@ import { IconRenderer } from "@/assets/icons/iconRenderer";
 import { ErrorState } from "@/components/tredro/error-state";
 import { EmptyState } from "@/components/tredro/empty-state";
 import { formatCurrency, formatDate } from "@/lib/format";
+import { needsErrorState } from "@/lib/network-status";
 import { useGetCustomerSalesInvoicesQuery } from "@/module/customers/hooks";
 import {
   CreateInvoiceDrawer,
@@ -46,9 +47,10 @@ export function InvoicesTab({
           <Skeleton className="h-16 w-full rounded-2xl" />
           <Skeleton className="h-16 w-full rounded-2xl" />
         </div>
-      ) : (q.isError && !q.data) ? (
+      ) : needsErrorState(q) ? (
         <ErrorState
           error={q.error}
+          fetchStatus={q.fetchStatus}
           onRetry={() => q.refetch()}
           isRetrying={q.isFetching}
           className="mt-3 gap-2 rounded-2xl bg-muted/40 p-6 py-6"

@@ -5,6 +5,7 @@ import { IconRenderer } from "@/assets/icons/iconRenderer";
 import type { iconName } from "@/assets/icons/iconRenderer/types";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ErrorState } from "@/components/tredro/error-state";
+import { needsErrorState } from "@/lib/network-status";
 import { formatDateShort, formatMoneyParts } from "@/lib/format";
 import { REQUEST_STATUS_META } from "@/module/orders/lib/utils";
 import type { CustomerRequestStatus } from "@/module/orders/types";
@@ -668,14 +669,24 @@ export interface AnalyticsOverviewProps {
 }
 
 export function AnalyticsOverview({ params }: AnalyticsOverviewProps) {
-  const { data, isPending, isSuccess, isError, isFetching, isPlaceholderData, refetch, error } =
-    useMyOverviewQuery(params);
+  const {
+    data,
+    isPending,
+    isSuccess,
+    isError,
+    isFetching,
+    isPlaceholderData,
+    fetchStatus,
+    refetch,
+    error,
+  } = useMyOverviewQuery(params);
   // Skeletons only while there is nothing to show for these filters (first load, or the filters just changed) — a silent background refetch keeps the cards as they are.
   // `isPending` (not `isLoading`) so it also covers the idle moment while the persisted cache restores or the fetch is paused offline.
   const showSkeleton = isPending || isPlaceholderData;
   const rawOverview = data?.data?.overview;
   const overview = hasOverviewShape(rawOverview) ? rawOverview : undefined;
-  const hasError = isError || (isSuccess && !overview);
+  const hasError =
+    needsErrorState({ isError, data, fetchStatus }) || (isSuccess && !overview);
 
   const insightsQuery = useMyInsightsQuery(params);
   const insights = insightsQuery.data?.data?.insights ?? [];
@@ -697,6 +708,7 @@ export function AnalyticsOverview({ params }: AnalyticsOverviewProps) {
     return (
       <ErrorState
         error={error}
+        fetchStatus={fetchStatus}
         isRetrying={isFetching}
         onRetry={() => refetch()}
       />

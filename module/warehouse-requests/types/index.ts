@@ -19,7 +19,7 @@ export interface RepProduct {
   price: string | null;
   /** Always a number string; "0.000" means the rep carries none. */
   van_quantity: string;
-  image: string | null;
+  image: { id: number; image: string; alt_text: string } | null;
 }
 
 export interface Pagination {

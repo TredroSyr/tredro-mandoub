@@ -4,6 +4,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { formatCurrency, formatQuantity, formatDate } from "@/lib/format";
 import { RequestStatusBadge } from "@/module/orders/components";
 import { useGetCustomerRequestsQuery } from "@/module/customers/hooks";
+import { needsErrorState } from "@/lib/network-status";
 
 export function RequestsTab({ query: q }: { query: ReturnType<typeof useGetCustomerRequestsQuery> }) {
   if (q.isLoading) {
@@ -15,10 +16,11 @@ export function RequestsTab({ query: q }: { query: ReturnType<typeof useGetCusto
     );
   }
 
-  if ((q.isError && !q.data)) {
+  if (needsErrorState(q)) {
     return (
       <ErrorState
         error={q.error}
+        fetchStatus={q.fetchStatus}
         onRetry={() => q.refetch()}
         isRetrying={q.isFetching}
         className="mt-4 gap-2 rounded-2xl bg-muted/40 p-6 py-6"

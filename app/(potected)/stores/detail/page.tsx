@@ -26,6 +26,7 @@ import {
   useGetCustomerSalesInvoicesQuery,
 } from "@/module/customers/hooks";
 import { getCustomerWorkDays } from "@/module/customers/lib/utils";
+import { needsErrorState } from "@/lib/network-status";
 
 export default function StoreDetailPage() {
   return (
@@ -41,10 +42,17 @@ function StoreDetailContent() {
   const id = searchParams.get("id");
   const customerId = id ? Number(id) : null;
 
-  const { data, isLoading, isError: queryFailed, error, refetch, isFetching } =
-    useGetCustomerByIdQuery(customerId);
+  const {
+    data,
+    isLoading,
+    isError: queryFailed,
+    error,
+    refetch,
+    isFetching,
+    fetchStatus,
+  } = useGetCustomerByIdQuery(customerId);
   // Cached data stays on screen when a refresh fails (e.g. offline).
-  const isError = queryFailed && !data;
+  const isError = needsErrorState({ isError: queryFailed, data, fetchStatus });
   const customer = data?.data?.customer;
 
   const [tab, setTab] = useState<StoreDetailTab>("requests");
@@ -73,6 +81,7 @@ function StoreDetailContent() {
         <StoreDetailHeader title="تفاصيل المحل" onBack={goBack} />
         <ErrorState
           error={error}
+          fetchStatus={fetchStatus}
           onRetry={() => refetch()}
           isRetrying={isFetching}
         />

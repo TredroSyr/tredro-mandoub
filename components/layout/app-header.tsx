@@ -86,46 +86,47 @@ export default function AppHeader({ onRefresh }: AppHeaderProps) {
 
   return (
     <header className="sticky top-0 z-30 border-b border-glass-border bg-glass px-4 pb-3 pt-[max(0.85rem,env(safe-area-inset-top))] backdrop-blur-2xl">
-      <div
-        className="mx-auto flex max-w-md items-center justify-between gap-3"
-        dir="ltr"
-      >
-        <button
-          type="button"
-          onClick={() => router.push("/notifications")}
-          aria-label="الإشعارات"
-          className="relative grid size-9 shrink-0 place-items-center rounded-2xl bg-secondary text-primary active:scale-95"
-        >
-          <IconRenderer
-            name={
-              unread > 0 ? "notification_new_outlined" : "notification_outlined"
-            }
-            className="size-4"
-          />
-          {unread > 0 && (
-            <span className="absolute -top-1 -end-1 grid min-w-4 place-items-center rounded-full bg-destructive px-1 font-mono text-white text-[9px] font-bold ">
-              {formatNum(unread)}
-            </span>
-          )}
-        </button>
-
-        {unsyncedCount > 0 && (
+      <div className="mx-auto flex max-w-md items-center gap-3" dir="ltr">
+        <div className="flex flex-1 items-center justify-start gap-2">
           <button
             type="button"
-            onClick={() => router.push("/sync-issues")}
-            aria-label="عناصر بانتظار المزامنة"
+            onClick={() => router.push("/notifications")}
+            aria-label="الإشعارات"
             className="relative grid size-9 shrink-0 place-items-center rounded-2xl bg-secondary text-primary active:scale-95"
           >
-            <IconRenderer name="refresh_outlined" className="size-4" />
-            <span
-              className={`absolute -top-1 -end-1 grid min-w-4 place-items-center rounded-full px-1 font-mono text-white text-[9px] font-bold ${
-                failedCount > 0 ? "bg-destructive" : "bg-warning"
-              }`}
-            >
-              {formatNum(unsyncedCount)}
-            </span>
+            <IconRenderer
+              name={
+                unread > 0
+                  ? "notification_new_outlined"
+                  : "notification_outlined"
+              }
+              className="size-4"
+            />
+            {unread > 0 && (
+              <span className="absolute -top-1 -end-1 grid min-w-4 place-items-center rounded-full bg-destructive px-1 font-mono text-white text-[9px] font-bold ">
+                {formatNum(unread)}
+              </span>
+            )}
           </button>
-        )}
+
+          {unsyncedCount > 0 && (
+            <button
+              type="button"
+              onClick={() => router.push("/sync-issues")}
+              aria-label="عناصر بانتظار المزامنة"
+              className="relative grid size-9 shrink-0 place-items-center rounded-2xl bg-secondary text-primary active:scale-95"
+            >
+              <IconRenderer name="refresh_outlined" className="size-4" />
+              <span
+                className={`absolute -top-1 -end-1 grid min-w-4 place-items-center rounded-full px-1 font-mono text-white text-[9px] font-bold ${
+                  failedCount > 0 ? "bg-destructive" : "bg-warning"
+                }`}
+              >
+                {formatNum(unsyncedCount)}
+              </span>
+            </button>
+          )}
+        </div>
 
         <button type="button" onClick={onRefresh} className="shrink-0">
           <Image
@@ -137,7 +138,7 @@ export default function AppHeader({ onRefresh }: AppHeaderProps) {
           />
         </button>
 
-        <div className="flex shrink-0 items-center" dir="rtl">
+        <div className="flex flex-1 items-center justify-end" dir="rtl">
           <Popover open={menuOpen} onOpenChange={setMenuOpen}>
             <PopoverTrigger
               aria-label="الملف الشخصي"

@@ -23,6 +23,8 @@
 # misc
 .DS_Store
 *.pem
+# public CA root cert bundled into the Android build (no private key/secret)
+!/android/app/src/main/res/raw/isrg_root_x1.pem
 
 # debug
 npm-debug.log*

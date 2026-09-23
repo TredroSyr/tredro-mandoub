@@ -52,7 +52,7 @@ export function TransferDetailDrawer({
 
   const productImages = useMemo(() => {
     const map: Record<number, string | null> = {};
-    for (const p of products.data?.data?.products ?? []) map[p.id] = p.image;
+    for (const p of products.data?.data?.products ?? []) map[p.id] = p.image?.image ?? null;
     return map;
   }, [products.data]);
 

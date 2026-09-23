@@ -2,8 +2,8 @@
 
 import { Suspense, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Button } from "@/components/ui/button";
-import { IconRenderer } from "@/assets/icons/iconRenderer";
+import { ErrorState } from "@/components/tredro/error-state";
+import { needsErrorState } from "@/lib/network-status";
 import { RequestCard, RequestCardSkeleton, RequestFilterTabs } from "@/module/orders/components";
 import { useGetCustomerRequestsQuery } from "@/module/orders/hooks";
 import { CustomerRequestStatus } from "@/module/orders/types";
@@ -34,12 +34,20 @@ function OrdersContent() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const { data, isLoading, isError: queryFailed, isFetching, refetch } = useGetCustomerRequestsQuery(
+  const {
+    data,
+    isLoading,
+    isError: queryFailed,
+    error,
+    isFetching,
+    fetchStatus,
+    refetch,
+  } = useGetCustomerRequestsQuery(
     filter === "all" ? undefined : { status: filter },
     { refetchOnMount: "always" },
   );
   // Cached data stays on screen when a refresh fails (e.g. offline).
-  const isError = queryFailed && !data;
+  const isError = needsErrorState({ isError: queryFailed, data, fetchStatus });
   const requests = data?.data?.requests ?? [];
 
   return (
@@ -56,14 +64,13 @@ function OrdersContent() {
         )}
 
         {isError && (
-          <div className="flex flex-col items-center justify-center gap-2 rounded-2xl bg-muted/40 p-6 text-center">
-            <IconRenderer name="warning_outlined" className="h-8 w-8 text-destructive/60" />
-            <p className="text-[11px] text-muted-foreground">تعذّر تحميل الطلبات.</p>
-            <Button size="sm" variant="secondary" onClick={() => refetch()} disabled={isFetching}>
-              <IconRenderer name="refresh_outlined" className="h-4 w-4" />
-              إعادة المحاولة
-            </Button>
-          </div>
+          <ErrorState
+            error={error}
+            fetchStatus={fetchStatus}
+            onRetry={() => refetch()}
+            isRetrying={isFetching}
+            className="rounded-2xl bg-muted/40 p-6 py-6"
+          />
         )}
 
         {!isLoading && !isError && requests.length === 0 && (

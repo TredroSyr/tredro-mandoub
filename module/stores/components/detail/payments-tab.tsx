@@ -2,6 +2,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { ErrorState } from "@/components/tredro/error-state";
 import { EmptyState } from "@/components/tredro/empty-state";
 import { formatCurrency, formatDate } from "@/lib/format";
+import { needsErrorState } from "@/lib/network-status";
 import { useGetCustomerPaymentsQuery } from "@/module/customers/hooks";
 
 /** Only "cash" is confirmed live; other sources fall back to showing the raw value as-is. */
@@ -19,10 +20,11 @@ export function PaymentsTab({ query: q }: { query: ReturnType<typeof useGetCusto
     );
   }
 
-  if ((q.isError && !q.data)) {
+  if (needsErrorState(q)) {
     return (
       <ErrorState
         error={q.error}
+        fetchStatus={q.fetchStatus}
         onRetry={() => q.refetch()}
         isRetrying={q.isFetching}
         className="mt-4 gap-2 rounded-2xl bg-muted/40 p-6 py-6"

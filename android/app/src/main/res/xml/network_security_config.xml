@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  api.tredro.online's cert chain roots at ISRG Root X1, but the intermediate
+  Let's Encrypt issues off (we've seen "Root YE" and "Root YR" so far, and it
+  keeps changing) isn't in old/unpatched Android trust stores (e.g. Galaxy J7
+  Prime on 7.x that stopped getting OS updates years ago). Pinning ISRG Root
+  X1 itself instead of a specific intermediate keeps this working no matter
+  which intermediate Let's Encrypt rotates in, since every chain we've seen
+  cross-signs back to X1.
+  Remove this once these newer intermediates are broadly trusted on old
+  devices, or if the server switches back to a chain old trust stores already
+  recognize without help.
+-->
+<network-security-config>
+    <domain-config>
+        <domain includeSubdomains="false">api.tredro.online</domain>
+        <trust-anchors>
+            <certificates src="system" />
+            <certificates src="@raw/isrg_root_x1" />
+        </trust-anchors>
+    </domain-config>
+</network-security-config>

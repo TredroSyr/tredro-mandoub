@@ -2,6 +2,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { ErrorState } from "@/components/tredro/error-state";
 import { EmptyState } from "@/components/tredro/empty-state";
 import { formatCurrency } from "@/lib/format";
+import { needsErrorState } from "@/lib/network-status";
 import { useGetCustomerReturnInvoicesQuery } from "@/module/customers/hooks";
 
 export function ReturnsTab({ query: q }: { query: ReturnType<typeof useGetCustomerReturnInvoicesQuery> }) {
@@ -14,10 +15,11 @@ export function ReturnsTab({ query: q }: { query: ReturnType<typeof useGetCustom
     );
   }
 
-  if ((q.isError && !q.data)) {
+  if (needsErrorState(q)) {
     return (
       <ErrorState
         error={q.error}
+        fetchStatus={q.fetchStatus}
         onRetry={() => q.refetch()}
         isRetrying={q.isFetching}
         className="mt-4 gap-2 rounded-2xl bg-muted/40 p-6 py-6"

@@ -1,4 +1,5 @@
-import { StockTransferLine, StockTransferStatus } from "../types";
+import type { ProductDetails } from "@/components/tredro/product-details-drawer";
+import { RepProduct, StockTransferLine, StockTransferStatus } from "../types";
 
 export const PICKUP_HOURS_OPTIONS = [1, 2, 3, 4, 6];
 
@@ -55,3 +56,16 @@ export const needsRepConfirmation = (status: StockTransferStatus) => status === 
 export const isReceivable = (status: StockTransferStatus) => status === "confirmed";
 
 export const isReceived = (status: StockTransferStatus) => status === "received";
+
+export function productToDetails(p: RepProduct): ProductDetails {
+  return {
+    name: p.name,
+    sku: p.sku,
+    barcode: p.barcode,
+    imageUrl: p.image?.image,
+    imageAlt: p.image?.alt_text,
+    unitName: p.unit_name,
+    price: p.price,
+    quantity: p.van_quantity,
+  };
+}

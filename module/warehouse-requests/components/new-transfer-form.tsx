@@ -5,7 +5,13 @@ import { IconRenderer } from "@/assets/icons/iconRenderer";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useCreateStockTransferMutation, useGetRepProductsQuery } from "../hooks";
-import { formatTransferQuantity } from "../lib/utils";
+import {
+  ProductDetailsDrawer,
+  ProductTapHint,
+  ProductThumb,
+} from "@/components/tredro/product-details-drawer";
+import { formatTransferQuantity, productToDetails } from "../lib/utils";
+import type { RepProduct } from "../types";
 import { PickupHoursSelector } from "./pickup-hours-selector";
 
 export interface TransferInitialValues {
@@ -26,6 +32,7 @@ export function NewTransferForm({
   onDone?: () => void;
 } = {}) {
   const [search, setSearch] = useState("");
+  const [selected, setSelected] = useState<RepProduct | null>(null);
   const seedLines = useMemo(() => initial?.lines ?? [], [initial]);
   const [quantities, setQuantities] = useState<Record<number, number>>(() =>
     Object.fromEntries(seedLines.map((l) => [l.product_id, parseFloat(l.quantity) || 0])),
@@ -120,12 +127,20 @@ export function NewTransferForm({
             key={p.id}
             className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 rounded-2xl bg-background p-3"
           >
-            <div className="min-w-0">
-              <p className="truncate text-xs font-bold">{p.name}</p>
-              <p className="font-mono text-[10px] text-muted-foreground">
-                بالسيارة {formatTransferQuantity(p.van_quantity)}
-              </p>
-            </div>
+            <button
+              type="button"
+              onClick={() => setSelected(p)}
+              className="flex min-w-0 items-center gap-3 text-start"
+            >
+              <ProductThumb url={p.image?.image} alt={p.image?.alt_text || p.name} />
+              <div className="min-w-0">
+                <p className="truncate text-xs font-bold">{p.name}</p>
+                <p className="font-mono text-[10px] text-muted-foreground">
+                  بالسيارة {formatTransferQuantity(p.van_quantity)}
+                </p>
+                <ProductTapHint />
+              </div>
+            </button>
             <div className="flex shrink-0 items-center gap-1.5">
               <button
                 onClick={() => step(p.id, -1)}
@@ -159,6 +174,11 @@ export function NewTransferForm({
       >
         <IconRenderer name="send_outlined" className="size-4" /> إرسال الطلب للشركة
       </button>
+
+      <ProductDetailsDrawer
+        product={selected && productToDetails(selected)}
+        onOpenChange={(open) => !open && setSelected(null)}
+      />
     </section>
   );
 }

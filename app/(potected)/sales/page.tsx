@@ -9,18 +9,27 @@ import { ErrorState } from "@/components/tredro/error-state";
 import DateRangePicker, { type Range } from "@/components/ui/date-range-picker";
 import { InvoiceDetailDrawer, SalesInvoiceRow } from "@/module/invoices/components";
 import { useGetSalesInvoicesQuery } from "@/module/invoices/hooks";
+import { needsErrorState } from "@/lib/network-status";
 
 export default function SalesPage() {
   const [range, setRange] = useState<Range>({});
   const [detailInvoiceId, setDetailInvoiceId] = useState<number | null>(null);
 
-  const { data, isLoading, isError: queryFailed, error, refetch, isFetching } = useGetSalesInvoicesQuery({
+  const {
+    data,
+    isLoading,
+    isError: queryFailed,
+    error,
+    refetch,
+    isFetching,
+    fetchStatus,
+  } = useGetSalesInvoicesQuery({
     date_from: range.from,
     date_to: range.to,
     page_size: 50,
   });
   // Cached data stays on screen when a refresh fails (e.g. offline).
-  const isError = queryFailed && !data;
+  const isError = needsErrorState({ isError: queryFailed, data, fetchStatus });
   const invoices = data?.data?.invoices ?? [];
 
   return (
@@ -39,7 +48,12 @@ export default function SalesPage() {
       />
 
       {isError ? (
-        <ErrorState error={error} onRetry={() => refetch()} isRetrying={isFetching} />
+        <ErrorState
+          error={error}
+          fetchStatus={fetchStatus}
+          onRetry={() => refetch()}
+          isRetrying={isFetching}
+        />
       ) : isLoading ? (
         <div className="space-y-2">
           <SkeletonCard />

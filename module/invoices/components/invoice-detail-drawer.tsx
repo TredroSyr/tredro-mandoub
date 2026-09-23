@@ -7,6 +7,8 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Drawer, DrawerClose, DrawerContent, DrawerHeader, DrawerTitle } from "@/components/ui/drawer";
 import { Skeleton } from "@/components/ui/skeleton";
+import { ErrorState } from "@/components/tredro/error-state";
+import { needsErrorState } from "@/lib/network-status";
 import { formatDate } from "@/lib/format";
 import { PendingSyncNotice } from "@/components/tredro/pending-sync";
 import { usePendingPayments } from "@/hooks/use-pending-sync";
@@ -38,11 +40,19 @@ export function InvoiceDetailDrawer({
   const [isExporting, setIsExporting] = useState(false);
   const [showPayment, setShowPayment] = useState(false);
 
-  const { data, isLoading, isError: queryFailed, refetch, isFetching } = useGetSalesInvoiceDetailQuery(invoiceId, {
+  const {
+    data,
+    isLoading,
+    isError: queryFailed,
+    error,
+    refetch,
+    isFetching,
+    fetchStatus,
+  } = useGetSalesInvoiceDetailQuery(invoiceId, {
     enabled: open,
   });
   // Cached data stays on screen when a refresh fails (e.g. offline).
-  const isError = queryFailed && !data;
+  const isError = needsErrorState({ isError: queryFailed, data, fetchStatus });
   const invoice = data?.data?.invoice;
   const pendingPayments = usePendingPayments(invoiceId);
 
@@ -98,12 +108,13 @@ export function InvoiceDetailDrawer({
             )}
 
             {!isLoading && isError && (
-              <div className="rounded-2xl bg-destructive/10 p-4 text-center text-xs text-destructive">
-                تعذّر تحميل الفاتورة.
-                <button onClick={() => refetch()} className="mt-2 block w-full font-bold underline">
-                  إعادة المحاولة
-                </button>
-              </div>
+              <ErrorState
+                error={error}
+                fetchStatus={fetchStatus}
+                onRetry={() => refetch()}
+                isRetrying={isFetching}
+                className="rounded-2xl bg-destructive/10 p-4 py-4"
+              />
             )}
 
             {!isLoading && invoice && (
