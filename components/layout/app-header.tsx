@@ -138,7 +138,7 @@ export default function AppHeader({ onRefresh }: AppHeaderProps) {
           />
         </button>
 
-        <div className="flex flex-1 items-center justify-end" dir="rtl">
+        <div className="flex flex-1 items-center justify-start" dir="rtl">
           <Popover open={menuOpen} onOpenChange={setMenuOpen}>
             <PopoverTrigger
               aria-label="الملف الشخصي"
