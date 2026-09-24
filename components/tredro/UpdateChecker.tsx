@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Image from "next/image";
 import { Capacitor } from "@capacitor/core";
 import { App } from "@capacitor/app";
 import api from "@/lib/axios";
@@ -17,7 +18,13 @@ const APK_URL =
 // Missing/non-numeric parts fail closed (treated as "not newer") so a
 // malformed value from the backend never wrongly triggers the update drawer.
 function isNewerVersion(remote: string, installed: string): boolean {
-  const parse = (v: string) => v.trim().split(".").map((p) => parseInt(p, 10));
+  const parse = (v: string) =>
+    String(v)
+      .trim()
+      .replace(/^v/i, "")
+      .split(/[-+]/)[0]
+      .split(".")
+      .map((p) => parseInt(p, 10));
   const remoteParts = parse(remote);
   const installedParts = parse(installed);
   const len = Math.max(remoteParts.length, installedParts.length);
@@ -51,20 +58,28 @@ export default function UpdateChecker() {
           success: boolean;
           message: string;
           data: { app: string; version: string };
-        }>("/apk-version", { params: { app: APP_PARAM } });
+        }>("/apk-version", {
+          // Timestamp + no-cache so the WebView never serves a stale version.
+          params: { app: APP_PARAM, _t: Date.now() },
+          headers: { "Cache-Control": "no-cache", Pragma: "no-cache" },
+        });
 
-        const remoteVersion = data.data.version;
+        const remoteVersion = data?.data?.version;
+        if (!remoteVersion) return;
 
         if (cancelled) return;
         if (!isNewerVersion(remoteVersion, installedVersion)) return;
 
         const dismissKey = `update_dismissed_v${remoteVersion}`;
-        if (sessionStorage.getItem(dismissKey)) return;
+        try {
+          if (sessionStorage.getItem(dismissKey)) return;
+        } catch {}
 
         setLatestVersion(remoteVersion);
         setOpen(true);
-      } catch {
-        // Silently no-op — never block app usage on a failed version check.
+      } catch (error) {
+        // Never block app usage on a failed version check.
+        console.warn("[UpdateChecker] version check failed", error);
       }
     })();
 
@@ -94,7 +109,16 @@ export default function UpdateChecker() {
 
         <div className="flex flex-col items-center text-center">
           <div className="relative mb-5 flex h-20 w-20 items-center justify-center rounded-2xl bg-background shadow-lg ring-1 ring-border">
-            <IconRenderer name="refresh_outlined" className="h-9 w-9 text-primary" />
+            <Image
+              src="/tredro/logo.svg"
+              alt="Tredro"
+              width={44}
+              height={44}
+              className="h-11 w-11"
+            />
+            <span className="absolute -bottom-2 -left-2 flex h-8 w-8 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-md ring-2 ring-background">
+              <IconRenderer name="download_outlined" className="h-4 w-4" />
+            </span>
           </div>
 
           <span className="mb-2 text-sm font-medium text-primary">Tredro</span>
