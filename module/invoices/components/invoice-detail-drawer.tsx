@@ -13,6 +13,9 @@ import { formatDate } from "@/lib/format";
 import { PendingSyncNotice } from "@/components/tredro/pending-sync";
 import { usePendingPayments } from "@/hooks/use-pending-sync";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { ProductDetailsDrawer, ProductThumb } from "@/components/tredro/product-details-drawer";
+import { translateUnitName } from "@/module/warehouse-requests/lib/utils";
+import type { SalesInvoiceLine } from "../types";
 import { useGetSalesInvoiceDetailQuery } from "../hooks";
 import { renderNodeToPdfBlob } from "../lib/pdf";
 import { openWhatsAppChat, shareInvoicePdf } from "../lib/share";
@@ -39,6 +42,7 @@ export function InvoiceDetailDrawer({
   const printRef = useRef<HTMLDivElement>(null);
   const [isExporting, setIsExporting] = useState(false);
   const [showPayment, setShowPayment] = useState(false);
+  const [selectedLine, setSelectedLine] = useState<SalesInvoiceLine | null>(null);
 
   const {
     data,
@@ -138,17 +142,26 @@ export function InvoiceDetailDrawer({
                 <div className="mt-3 space-y-2">
                   <p className="text-[11px] font-bold text-muted-foreground">المنتجات</p>
                   {invoice.lines.map((line) => (
-                    <div key={line.id} className="flex items-center gap-3 rounded-2xl border border-border p-3">
-                      <div className="min-w-0 flex-1">
-                        <p className="truncate text-xs font-bold">{line.product_name}</p>
+                    <button
+                      key={line.id}
+                      type="button"
+                      onClick={() => setSelectedLine(line)}
+                      className="grid w-full grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-3 rounded-2xl border border-border bg-card p-3.5 text-start"
+                    >
+                      <ProductThumb interactive url={line.image?.image} alt={line.image?.alt_text || line.product_name} />
+                      <div className="min-w-0">
+                        <p className="truncate text-sm font-bold">{line.product_name}</p>
                         <p className="font-mono text-[10px] text-muted-foreground">
-                          {formatInvoiceQuantity(line.quantity)} × {formatInvoiceMoney(line.unit_price)}
+                          {formatInvoiceMoney(line.unit_price)} / {translateUnitName(line.unit_name)}
                         </p>
                       </div>
-                      <span className="shrink-0 font-mono text-xs font-bold">
-                        {formatInvoiceMoney(line.subtotal)}
-                      </span>
-                    </div>
+                      <div className="flex shrink-0 flex-col items-end gap-1">
+                        <span className="rounded-full bg-primary/12 px-2.5 py-1 font-mono text-[11px] font-bold text-primary">
+                          {formatInvoiceQuantity(line.quantity)} {translateUnitName(line.unit_name)}
+                        </span>
+                        <span className="font-mono text-xs font-bold">{formatInvoiceMoney(line.subtotal)}</span>
+                      </div>
+                    </button>
                   ))}
                 </div>
 
@@ -244,6 +257,22 @@ export function InvoiceDetailDrawer({
           </div>
         </DrawerContent>
       </Drawer>
+
+      <ProductDetailsDrawer
+        product={
+          selectedLine && {
+            name: selectedLine.product_name,
+            sku: selectedLine.product_sku,
+            imageUrl: selectedLine.image?.image,
+            imageAlt: selectedLine.image?.alt_text,
+            unitName: selectedLine.unit_name,
+            price: selectedLine.unit_price,
+            quantity: selectedLine.quantity,
+            quantityLabel: "الكمية بالفاتورة",
+          }
+        }
+        onOpenChange={(o) => !o && setSelectedLine(null)}
+      />
 
       <RecordPaymentDialog invoice={invoice ?? null} open={showPayment} onOpenChange={setShowPayment} />
     </>

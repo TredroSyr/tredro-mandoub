@@ -18,6 +18,8 @@ export interface SalesInvoiceLine {
   product_sku: string;
   unit: number;
   unit_name: string;
+  /** Not yet confirmed on the invoice endpoint — the thumbnail falls back to a placeholder when absent. */
+  image?: { image: string; alt_text?: string | null } | null;
   quantity: string;
   unit_price: string;
   subtotal: string;
