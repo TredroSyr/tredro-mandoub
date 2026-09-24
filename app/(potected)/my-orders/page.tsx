@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useEffect, useState } from "react";
+import { Suspense, useEffect, useRef, useState } from "react";
 import { PendingSyncList } from "@/components/tredro/pending-sync";
 import { useRouter, useSearchParams } from "next/navigation";
 import { SkeletonCard } from "@/components/ui/skeleton";
@@ -55,6 +55,17 @@ function MyOrdersContent() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  const filtersRef = useRef<HTMLDivElement>(null);
+
+  // Keep the selected status chip in view.
+  useEffect(() => {
+    const list = filtersRef.current;
+    const active = list?.querySelector<HTMLElement>('[data-active="true"]');
+    if (!list || !active) return;
+    const left = active.offsetLeft - (list.clientWidth - active.offsetWidth) / 2;
+    list.scrollTo({ left, behavior: "smooth" });
+  }, [tab, statusFilter]);
+
   const received = useGetStockTransfersQuery();
 
   const receivedList = received.data?.data?.transfers ?? [];
@@ -107,8 +118,12 @@ function MyOrdersContent() {
 
       {tab === "received" && (
         <>
-          <div className="mt-4 flex flex-wrap items-center gap-1.5">
+          <div
+            ref={filtersRef}
+            className="relative mt-4 flex items-center gap-1.5 overflow-x-auto pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+          >
             <button
+              data-active={statusFilter === null}
               onClick={() => setStatusFilter(null)}
               className={`shrink-0 rounded-xl px-3 py-1.5 text-[11px] font-bold transition-colors ${
                 statusFilter === null
@@ -123,6 +138,7 @@ function MyOrdersContent() {
               return (
                 <button
                   key={filter.label}
+                  data-active={active}
                   onClick={() => setStatusFilter(filter.statuses)}
                   className={`shrink-0 rounded-xl px-3 py-1.5 text-[11px] font-bold transition-colors ${
                     active
