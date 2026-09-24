@@ -114,7 +114,6 @@ export function ProductDetailsDrawer({
                     </span>
                   </Row>
                 )}
-                <Row label="الوحدة">قطعة</Row>
                 {product.sku && <Row label="رمز المنتج (SKU)">{product.sku}</Row>}
                 {product.barcode && <Row label="الباركود">{product.barcode}</Row>}
               </dl>
