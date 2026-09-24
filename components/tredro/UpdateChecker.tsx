@@ -81,7 +81,7 @@ export default function UpdateChecker() {
   };
 
   return (
-    <Drawer open={open} onOpenChange={handleOpenChange}>
+    <Drawer open={open} onOpenChange={handleOpenChange} snapPoints={[]} showSwipeHandle={false}>
       <DrawerContent className="mx-auto max-w-md rounded-t-3xl rounded-b-3xl border-0 bg-background px-6 pb-8 pt-4 data-[state=open]:duration-500 data-[state=open]:ease-out data-[state=closed]:duration-300">
         <DrawerClose>
           <button

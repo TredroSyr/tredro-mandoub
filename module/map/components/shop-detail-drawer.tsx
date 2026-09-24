@@ -33,7 +33,7 @@ export function ShopDetailDrawer({
   const estimatedMinutes = Math.max(2, Math.round(distance * 3));
 
   return (
-    <Drawer open={open} onOpenChange={onOpenChange}>
+    <Drawer open={open} onOpenChange={onOpenChange} snapPoints={[]}>
       <DrawerContent
         className={`${overlayZ} mt-0 flex h-[75svh] flex-col rounded-t-[1.75rem] border-t border-glass-border bg-card/95 shadow-sheet backdrop-blur-xl ${panelWidthClass} md:rounded-b-[1.75rem]`}
         style={{ bottom: bottomNavHeight }}

@@ -4,6 +4,7 @@ import * as React from "react";
 import { Drawer as DrawerPrimitive } from "@base-ui/react/drawer";
 
 import { cn } from "@/lib/utils";
+import { useDrawerBack } from "@/hooks/use-drawer-back";
 
 type DrawerContextProps = {
   hasSnapPoints: boolean;
@@ -24,16 +25,34 @@ function useDrawer() {
   return context;
 }
 
+/** Bottom drawers open at half the screen; dragging the handle up expands to full. */
+const DEFAULT_SNAP_POINTS = [0.5, 1];
+
+/**
+ * Snap behavior is on by default for modal bottom drawers. Pass `snapPoints={[]}`
+ * for a compact, auto-height drawer.
+ */
 function Drawer({
   modal = true,
-  showSwipeHandle = false,
+  showSwipeHandle,
   snapPoints,
+  defaultSnapPoint,
   swipeDirection = "down",
+  open,
+  actionsRef,
   ...props
 }: DrawerPrimitive.Root.Props & {
   showSwipeHandle?: boolean;
 }) {
-  const hasSnapPoints = snapPoints != null && snapPoints.length > 0;
+  const ownActionsRef = React.useRef<DrawerPrimitive.Root.Actions | null>(null);
+  const resolvedActionsRef = actionsRef ?? ownActionsRef;
+  useDrawerBack(open === true, () => resolvedActionsRef.current?.close());
+
+  const resolvedSnapPoints =
+    snapPoints ??
+    (swipeDirection === "down" && modal !== false ? DEFAULT_SNAP_POINTS : []);
+  const hasSnapPoints = resolvedSnapPoints.length > 0;
+  showSwipeHandle ??= hasSnapPoints;
   const contextValue = React.useMemo(
     () => ({ hasSnapPoints, modal, showSwipeHandle, swipeDirection }),
     [hasSnapPoints, modal, showSwipeHandle, swipeDirection],
@@ -44,7 +63,12 @@ function Drawer({
       <DrawerPrimitive.Root
         data-slot="drawer"
         modal={modal}
-        snapPoints={snapPoints}
+        open={open}
+        actionsRef={resolvedActionsRef}
+        snapPoints={hasSnapPoints ? resolvedSnapPoints : undefined}
+        defaultSnapPoint={
+          hasSnapPoints ? (defaultSnapPoint ?? resolvedSnapPoints[0]) : undefined
+        }
         swipeDirection={swipeDirection}
         {...props}
       />
@@ -89,7 +113,7 @@ function DrawerSwipeHandle({
       data-slot="drawer-swipe-handle"
       aria-hidden="true"
       className={cn(
-        "relative z-10 flex shrink-0 cursor-grab transition-opacity duration-200 group-data-nested-drawer-open/drawer-popup:opacity-0 group-data-nested-drawer-swiping/drawer-popup:opacity-100 group-data-[swipe-axis=x]/drawer-popup:h-full group-data-[swipe-axis=x]/drawer-popup:w-3 group-data-[swipe-axis=x]/drawer-popup:items-center group-data-[swipe-axis=y]/drawer-popup:h-3 group-data-[swipe-axis=y]/drawer-popup:w-full group-data-[swipe-axis=y]/drawer-popup:justify-center group-data-[swipe-direction=down]/drawer-popup:items-end group-data-[swipe-direction=left]/drawer-popup:order-last group-data-[swipe-direction=left]/drawer-popup:justify-start group-data-[swipe-direction=right]/drawer-popup:justify-end group-data-[swipe-direction=up]/drawer-popup:order-last group-data-[swipe-direction=up]/drawer-popup:items-start after:block after:shrink-0 after:rounded-full after:bg-muted group-data-[swipe-axis=x]/drawer-popup:after:h-24 group-data-[swipe-axis=x]/drawer-popup:after:w-1 group-data-[swipe-axis=y]/drawer-popup:after:h-1 group-data-[swipe-axis=y]/drawer-popup:after:w-24 active:cursor-grabbing",
+        "relative z-10 flex shrink-0 cursor-grab touch-none transition-opacity duration-200 group-data-nested-drawer-open/drawer-popup:opacity-0 group-data-nested-drawer-swiping/drawer-popup:opacity-100 group-data-[swipe-axis=x]/drawer-popup:h-full group-data-[swipe-axis=x]/drawer-popup:w-5 group-data-[swipe-axis=x]/drawer-popup:items-center group-data-[swipe-axis=y]/drawer-popup:w-full group-data-[swipe-axis=y]/drawer-popup:justify-center group-data-[swipe-axis=y]/drawer-popup:py-2.5 group-data-[swipe-direction=left]/drawer-popup:order-last group-data-[swipe-direction=left]/drawer-popup:justify-start group-data-[swipe-direction=right]/drawer-popup:justify-end group-data-[swipe-direction=up]/drawer-popup:order-last after:block after:shrink-0 after:rounded-full after:bg-muted-foreground/40 group-data-[swipe-axis=x]/drawer-popup:after:h-10 group-data-[swipe-axis=x]/drawer-popup:after:w-1.5 group-data-[swipe-axis=y]/drawer-popup:after:h-1.5 group-data-[swipe-axis=y]/drawer-popup:after:w-10 active:cursor-grabbing",
         className,
       )}
       {...props}
@@ -128,7 +152,7 @@ function DrawerContent({
             // Bleed.
             "after:pointer-events-none after:absolute after:bg-(--drawer-bleed-background,var(--color-popover)) data-[swipe-axis=x]:after:inset-y-0 data-[swipe-axis=x]:after:w-(--bleed) data-[swipe-axis=y]:after:inset-x-0 data-[swipe-axis=y]:after:h-(--bleed) data-[swipe-direction=down]:after:top-full data-[swipe-direction=left]:after:right-full data-[swipe-direction=right]:after:left-full data-[swipe-direction=up]:after:bottom-full",
             // Sizing.
-            "[--drawer-content-height:var(--drawer-height,auto)] data-[swipe-axis=x]:[--drawer-content-width:75%] data-[swipe-axis=y]:[--drawer-content-max-height:calc(100dvh-6rem)] data-[swipe-axis=y]:data-snap-points:[--drawer-content-height:100dvh] data-[swipe-axis=x]:sm:[--drawer-content-width:24rem]",
+            "[--drawer-content-height:var(--drawer-height,auto)] data-[swipe-axis=x]:[--drawer-content-width:75%] data-[swipe-axis=y]:[--drawer-content-max-height:calc(100dvh-6rem)] data-[swipe-axis=y]:data-snap-points:[--drawer-content-height:100dvh] data-[swipe-axis=y]:data-snap-points:[--drawer-content-max-height:none] data-[swipe-axis=x]:sm:[--drawer-content-width:24rem]",
             // Stack.
             "[--bleed:3rem] [--peek:1rem] [--stack-height:var(--drawer-frontmost-height,var(--drawer-height,0px))] [--stack-peek-offset:max(0px,calc((var(--nested-drawers)-var(--stack-progress))*var(--peek)))] [--stack-progress:clamp(0,var(--drawer-swipe-progress),1)] [--stack-scale-base:max(0,calc(1-(var(--nested-drawers)*var(--stack-step))))] [--stack-scale:clamp(0,calc(var(--stack-scale-base)+(var(--stack-step)*var(--stack-progress))),1)] [--stack-shrink:calc(1-var(--stack-scale))] [--stack-step:0.05]",
             // Transitions.

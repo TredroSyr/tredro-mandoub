@@ -58,7 +58,7 @@ export function ProductThumb({
 }
 
 // Opens at half height; drag the handle up to expand to almost full screen.
-const SNAP_POINTS: number[] = [0.5, 0.95];
+const SNAP_POINTS: number[] = [0.5, 1];
 
 export function ProductDetailsDrawer({
   product,
@@ -68,7 +68,6 @@ export function ProductDetailsDrawer({
   onOpenChange: (open: boolean) => void;
 }) {
   const [snap, setSnap] = useState<number>(SNAP_POINTS[0]);
-  const expanded = snap === SNAP_POINTS[1];
 
   return (
     <Drawer
@@ -82,20 +81,9 @@ export function ProductDetailsDrawer({
       snapPoint={snap}
       onSnapPointChange={(next) => typeof next === "number" && setSnap(next)}
     >
-      <DrawerContent className="mt-0 rounded-t-[1.75rem] border-t border-border bg-card data-[swipe-axis=y]:[--drawer-content-max-height:calc(100dvh-2rem)]">
+      <DrawerContent className="mt-0 rounded-t-[1.75rem] border-t border-border bg-card">
         {product && (
           <>
-            <button
-              type="button"
-              onClick={() => setSnap(SNAP_POINTS[expanded ? 0 : 1])}
-              className="flex shrink-0 items-center justify-center gap-1.5 pt-1 text-[11px] font-bold text-primary"
-            >
-              <IconRenderer
-                name={expanded ? "chevron_down_outlined" : "chevron_up_outlined"}
-                className={`size-4 ${expanded ? "" : "animate-bounce"}`}
-              />
-              {expanded ? "اسحب للأسفل للتصغير" : "اسحب للأعلى لعرض كل التفاصيل"}
-            </button>
             <DrawerHeader className="flex shrink-0 flex-row items-start justify-between gap-3 border-b border-border pb-4 text-start">
               <DrawerTitle className="min-w-0 break-words text-sm font-extrabold">
                 {product.name}

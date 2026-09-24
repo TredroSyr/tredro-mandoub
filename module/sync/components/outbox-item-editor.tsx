@@ -159,7 +159,7 @@ function TransferEditor({ item, onClose }: EditorProps) {
   const payload = item.payload as CreateStockTransferPayload;
   return (
     <Drawer open onOpenChange={(open) => !open && onClose()}>
-      <DrawerContent className="flex max-h-[92dvh] flex-col">
+      <DrawerContent className="flex flex-col">
         <DrawerHeader className="flex flex-row items-center justify-between gap-3 px-5">
           <DrawerTitle className="text-base">تعديل طلب بضاعة معلّق</DrawerTitle>
           <DrawerClose>

@@ -4,6 +4,7 @@ import { useEffect, useRef } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { App } from "@capacitor/app";
 import { Capacitor } from "@capacitor/core";
+import { closeTopDrawer } from "@/hooks/use-drawer-back";
 
 /**
  * Wires the Android hardware/gesture back button to in-app navigation.
@@ -51,6 +52,8 @@ export default function HardwareBackButton() {
     let listenerHandle: { remove: () => void } | undefined;
 
     App.addListener("backButton", () => {
+      if (closeTopDrawer()) return;
+
       if (depthRef.current > 0) {
         depthRef.current -= 1;
         router.back();
