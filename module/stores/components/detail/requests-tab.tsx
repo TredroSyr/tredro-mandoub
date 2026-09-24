@@ -3,6 +3,7 @@ import { EmptyState } from "@/components/tredro/empty-state";
 import { Skeleton } from "@/components/ui/skeleton";
 import { formatCurrency, formatQuantity, formatDate } from "@/lib/format";
 import { RequestStatusBadge } from "@/module/orders/components";
+import { translateUnitName } from "@/module/orders/lib/utils";
 import { useGetCustomerRequestsQuery } from "@/module/customers/hooks";
 import { needsErrorState } from "@/lib/network-status";
 
@@ -44,7 +45,7 @@ export function RequestsTab({ query: q }: { query: ReturnType<typeof useGetCusto
               <li key={l.id} className="flex justify-between gap-3 text-[11px]">
                 <span className="truncate text-muted-foreground">{l.product_name}</span>
                 <span className="shrink-0 font-mono">
-                  ×{formatQuantity(l.desired_quantity)} {l.unit_name}
+                  ×{formatQuantity(l.desired_quantity)} {translateUnitName(l.unit_name)}
                 </span>
               </li>
             ))}
