@@ -11,7 +11,6 @@ import {
   DrawerTitle,
 } from "@/components/ui/drawer";
 import { formatCurrency, formatQuantity } from "@/lib/format";
-import { translateUnitName } from "@/module/warehouse-requests/lib/utils";
 
 export interface ProductDetails {
   name: string;
@@ -105,17 +104,17 @@ export function ProductDetailsDrawer({
               <dl className="mt-4 divide-y divide-border rounded-2xl border border-border bg-background text-xs">
                 <Row label="السعر">
                   {product.price != null ? formatCurrency(product.price) : "بدون سعر"} /{" "}
-                  {translateUnitName(product.unitName)}
+                  قطعة
                 </Row>
                 {product.quantity != null && (
                   <Row label={product.quantityLabel ?? "الكمية بالسيارة"}>
                     <span className={product.isLowStock ? "text-warning-foreground" : undefined}>
-                      {formatQuantity(product.quantity)} {translateUnitName(product.unitName)}
+                      {formatQuantity(product.quantity)} قطعة
                       {product.isLowStock ? " · مخزون منخفض" : ""}
                     </span>
                   </Row>
                 )}
-                <Row label="الوحدة">{translateUnitName(product.unitName)}</Row>
+                <Row label="الوحدة">قطعة</Row>
                 {product.sku && <Row label="رمز المنتج (SKU)">{product.sku}</Row>}
                 {product.barcode && <Row label="الباركود">{product.barcode}</Row>}
               </dl>

@@ -9,7 +9,6 @@ import {
 import { Skeleton, SkeletonCard } from "@/components/ui/skeleton";
 import { EmptyState } from "@/components/tredro/empty-state";
 import { formatCurrency, formatQuantity } from "@/lib/format";
-import { translateUnitName } from "@/module/warehouse-requests/lib/utils";
 import type { DashboardData, DashboardWarehouseItem } from "@/module/dashboard/types";
 
 export interface HomeWarehouseSectionProps {
@@ -95,7 +94,7 @@ function WarehouseItemRow({
       <div className="min-w-0">
         <p className="truncate text-sm font-bold">{item.product_name}</p>
         <p className="font-mono text-[10px] text-muted-foreground">
-          {item.unit_price != null ? formatCurrency(item.unit_price) : "بدون سعر"} / {translateUnitName(item.unit_name)}
+          {item.unit_price != null ? formatCurrency(item.unit_price) : "بدون سعر"} / قطعة
         </p>
       </div>
       <span
