@@ -103,7 +103,7 @@ function WarehouseItemRow({
           item.is_low_stock ? "bg-warning/20 text-warning-foreground" : "bg-primary/12 text-primary"
         }`}
       >
-        {formatQuantity(item.quantity)} {translateUnitName(item.unit_name)}
+        {formatQuantity(item.quantity)} قطعة
       </span>
     </button>
   );

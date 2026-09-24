@@ -157,7 +157,7 @@ export function InvoiceDetailDrawer({
                       </div>
                       <div className="flex shrink-0 flex-col items-end gap-1">
                         <span className="rounded-full bg-primary/12 px-2.5 py-1 font-mono text-[11px] font-bold text-primary">
-                          {formatInvoiceQuantity(line.quantity)} {translateUnitName(line.unit_name)}
+                          {formatInvoiceQuantity(line.quantity)} قطعة
                         </span>
                         <span className="font-mono text-xs font-bold">{formatInvoiceMoney(line.subtotal)}</span>
                       </div>
