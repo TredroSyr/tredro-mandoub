@@ -81,9 +81,8 @@ export function ReturnDetailDrawer({
                   <p className="text-[11px] font-bold text-muted-foreground">المنتجات المرتجعة</p>
                   {item.lines.map((line) => (
                     <div key={line.id} className="flex items-center gap-3 rounded-2xl border border-border p-3">
-                      <div className="flex shrink-0 flex-col items-center justify-center rounded-xl bg-primary/10 px-3 py-1.5 text-primary">
+                      <div className="flex min-w-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 px-3 py-2 text-primary">
                         <span className="font-mono text-sm font-extrabold leading-none">{Number(line.quantity)}</span>
-                        <span className="mt-0.5 text-[9px] font-bold">{line.unit_name}</span>
                       </div>
                       <div className="min-w-0 flex-1">
                         <p className="truncate text-xs font-bold">{line.product_name}</p>
