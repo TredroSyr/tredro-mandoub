@@ -76,6 +76,23 @@ export function ReturnDetailDrawer({
                 <Row label="طريقة الاسترداد" value={item.refund_method} />
               </div>
 
+              {item.lines && item.lines.length > 0 && (
+                <div className="mt-3 space-y-2">
+                  <p className="text-[11px] font-bold text-muted-foreground">المنتجات المرتجعة</p>
+                  {item.lines.map((line) => (
+                    <div key={line.id} className="flex items-center gap-3 rounded-2xl border border-border p-3">
+                      <div className="min-w-0 flex-1">
+                        <p className="truncate text-xs font-bold">{line.product_name}</p>
+                        <p className="font-mono text-[10px] text-muted-foreground">
+                          {Number(line.quantity)} {line.unit_name} × {formatCurrency(line.unit_price)}
+                        </p>
+                      </div>
+                      <span className="shrink-0 font-mono text-xs font-bold">{formatCurrency(line.subtotal)}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+
               <div className="mt-3 space-y-1.5 rounded-2xl bg-muted/50 p-3">
                 {Number(item.overage_amount) > 0 && (
                   <div className="flex items-center justify-between px-1 text-xs">

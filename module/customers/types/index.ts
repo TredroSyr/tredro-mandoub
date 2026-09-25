@@ -185,6 +185,23 @@ export interface PaymentsResponse {
   };
 }
 
+export interface ReturnInvoiceLine {
+  id: number;
+  product: number;
+  product_name: string;
+  product_sku: string;
+  product_barcode: string;
+  product_image: string | null;
+  unit: number;
+  unit_name: string;
+  unit_code: string;
+  quantity: string;
+  unit_price: string;
+  subtotal: string;
+  tax_rate: string;
+  sales_invoice_line: number;
+}
+
 export interface ReturnInvoice {
   id: number;
   number: string;
@@ -206,6 +223,7 @@ export interface ReturnInvoice {
   issued_at: string;
   created_at: string;
   updated_at: string;
+  lines?: ReturnInvoiceLine[];
 }
 
 export interface ReturnInvoicesResponse {
