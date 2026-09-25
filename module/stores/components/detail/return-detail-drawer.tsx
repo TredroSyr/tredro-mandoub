@@ -81,10 +81,14 @@ export function ReturnDetailDrawer({
                   <p className="text-[11px] font-bold text-muted-foreground">المنتجات المرتجعة</p>
                   {item.lines.map((line) => (
                     <div key={line.id} className="flex items-center gap-3 rounded-2xl border border-border p-3">
+                      <div className="flex shrink-0 flex-col items-center justify-center rounded-xl bg-primary/10 px-3 py-1.5 text-primary">
+                        <span className="font-mono text-sm font-extrabold leading-none">{Number(line.quantity)}</span>
+                        <span className="mt-0.5 text-[9px] font-bold">{line.unit_name}</span>
+                      </div>
                       <div className="min-w-0 flex-1">
                         <p className="truncate text-xs font-bold">{line.product_name}</p>
                         <p className="font-mono text-[10px] text-muted-foreground">
-                          {Number(line.quantity)} {line.unit_name} × {formatCurrency(line.unit_price)}
+                          {formatCurrency(line.unit_price)} للوحدة
                         </p>
                       </div>
                       <span className="shrink-0 font-mono text-xs font-bold">{formatCurrency(line.subtotal)}</span>
