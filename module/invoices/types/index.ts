@@ -82,6 +82,9 @@ export interface CreateSalesInvoicePayload {
   date?: string;
   currency?: string;
   notes?: string;
+  /** Where the rep was (rep tracking); send both or neither. */
+  latitude?: number;
+  longitude?: number;
   // no `warehouse` field — never send it, it defaults to the rep's own van
 }
 
@@ -92,6 +95,8 @@ export interface CreatePaymentPayload {
   amount: string;
   collected_at?: string;
   note?: string;
+  latitude?: number;
+  longitude?: number;
 }
 
 export interface CreatePaymentResponse {
@@ -111,6 +116,8 @@ export interface CreateReturnInvoicePayload {
   sales_invoice: number;
   lines: CreateReturnInvoiceLinePayload[];
   notes?: string;
+  latitude?: number;
+  longitude?: number;
 }
 
 export interface CreateReturnInvoiceResponse {

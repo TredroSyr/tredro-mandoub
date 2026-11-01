@@ -27,6 +27,7 @@ import {
 } from "@/module/customers/hooks";
 import { getCustomerWorkDays } from "@/module/customers/lib/utils";
 import { needsErrorState } from "@/lib/network-status";
+import { NoSaleVisitButton } from "@/module/tracking/components/no-sale-visit-drawer";
 
 export default function StoreDetailPage() {
   return (
@@ -123,6 +124,7 @@ function StoreDetailContent() {
       <StoreFinancialSummary customer={customer} isLoading={isLoading} />
 
       {!isLoading && customer && <StoreWhatsappButton phone={customer.phone} />}
+      {!isLoading && customer && <NoSaleVisitButton customerId={customerId} />}
 
       <StoreDetailTabs value={tab} onChange={setTab} />
 

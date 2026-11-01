@@ -10,6 +10,7 @@ import {
   HomeNewRequestsSection,
 } from "@/module/home/components";
 import { useGetDashboardQuery } from "@/module/dashboard/hooks";
+import { HomeDayCard } from "@/module/tracking/components/home-day-card";
 import { needsErrorState } from "@/lib/network-status";
 
 export default function HomePage() {
@@ -41,6 +42,7 @@ export default function HomePage() {
 
   return (
     <>
+      <HomeDayCard />
       <HomeWarehouseSection dashboard={dashboard} isLoading={showSkeleton} />
       <HomeTransfersSection />
       <HomeOverdueSection />

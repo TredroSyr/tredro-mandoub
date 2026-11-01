@@ -18,6 +18,7 @@ import {
   acceptCustomerRequest,
   rejectCustomerRequest,
 } from "@/module/orders/api";
+import { createVisit } from "@/module/tracking/api";
 import type { OutboxItem } from "@/lib/db/outbox";
 
 /**
@@ -117,6 +118,13 @@ export async function replayOutboxItem(item: OutboxItem): Promise<void> {
       await rejectCustomerRequest(requestId, payload, item.id);
       return;
     }
+
+    case "create_visit":
+      await createVisit(
+        item.payload as Parameters<typeof createVisit>[0],
+        item.id,
+      );
+      return;
 
     default:
       throw new Error(`Unknown outbox item kind: ${item.kind}`);

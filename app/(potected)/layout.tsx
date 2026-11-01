@@ -9,6 +9,7 @@ import BottomNav, { NAV_H } from "@/layout/bottom-nav";
 import AppHeader from "@/components/layout/app-header";
 import { OfflineBanner } from "@/components/layout/offline-banner";
 import { SyncOnReconnect } from "@/components/layout/sync-on-reconnect";
+import { RepDayTracker } from "@/components/layout/rep-day-tracker";
 import { SyncReminder } from "@/components/layout/sync-reminder";
 import { SyncSummary } from "@/components/layout/sync-summary";
 import { PullToRefresh } from "@/components/tredro/pull-to-refresh";
@@ -45,6 +46,7 @@ export default function ProtectedLayout({ children }: { children: ReactNode }) {
       <UpdateChecker />
       <div style={{ paddingBottom: NAV_H }} className="min-h-dvh bg-background">
         <SyncOnReconnect />
+        <RepDayTracker />
         <SyncSummary />
         <SyncReminder />
         <OfflineBanner />

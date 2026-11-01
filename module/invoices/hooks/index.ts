@@ -25,6 +25,33 @@ import {
   SalesInvoicesListParams,
 } from "../types";
 import { isRefundMethodRequiredError } from "../lib/utils";
+import { toOffsetIso } from "@/module/tracking/lib/time";
+import { recentCoords } from "@/module/tracking/lib/tracker";
+
+/**
+ * Where and when, for the company's tracking map: the rep's recent GPS fix and
+ * the device time, so a write synced late from offline keeps its real moment.
+ * Added after the idempotency key is taken — a retry is the same operation
+ * even if the GPS has moved a little since.
+ */
+/** A queued write being edited already says where it happened; keep that. */
+const coordsFor = (payload: { latitude?: number; longitude?: number }) =>
+  payload.latitude != null && payload.longitude != null ? {} : recentCoords();
+
+const withSalesInvoiceContext = (payload: CreateSalesInvoicePayload): CreateSalesInvoicePayload => {
+  const now = toOffsetIso();
+  return {
+    ...payload,
+    date: payload.date ?? now,
+    ...(payload.payment_amount && !payload.payment_collected_at ? { payment_collected_at: now } : {}),
+    ...coordsFor(payload),
+  };
+};
+const withPaymentContext = (payload: CreatePaymentPayload): CreatePaymentPayload => ({
+  ...payload,
+  collected_at: payload.collected_at ?? toOffsetIso(),
+  ...coordsFor(payload),
+});
 
 type MutationError = AxiosError<ApiErrorResponse> | OfflineQueuedError;
 
@@ -79,12 +106,13 @@ export const useCreateSalesInvoiceMutation = (options?: {
     mutationKey: ["createSalesInvoice"],
     mutationFn: (payload) => {
       const key = keyFor(payload);
+      const body = withSalesInvoiceContext(payload);
       return runOrQueue({
         id: key,
         kind: "create_sales_invoice",
         label: `فاتورة مبيعات — عميل رقم ${payload.customer_id}`,
-        payload,
-        run: () => createSalesInvoice(payload, key),
+        payload: body,
+        run: () => createSalesInvoice(body, key),
         replaces: options?.replacesOutboxId,
       });
     },
@@ -127,12 +155,13 @@ export const useCreatePaymentMutation = (options?: {
     mutationKey: ["createPayment"],
     mutationFn: (payload) => {
       const key = keyFor(payload);
+      const body = withPaymentContext(payload);
       return runOrQueue({
         id: key,
         kind: "create_payment",
         label: `دفعة بقيمة ${payload.amount} — فاتورة رقم ${payload.sales_invoice}`,
-        payload,
-        run: () => createPayment(payload, key),
+        payload: body,
+        run: () => createPayment(body, key),
         replaces: options?.replacesOutboxId,
       });
     },
@@ -167,7 +196,7 @@ export const useCreateReturnInvoiceMutation = (options?: {
   // step would leave an un-issued draft on the server with nobody noticing.
   return useMutation<CreateReturnInvoiceResponse, MutationError, CreateReturnInvoicePayload>({
     mutationKey: ["createReturnInvoice"],
-    mutationFn: (payload) => createReturnInvoice(payload, keyFor(payload)),
+    mutationFn: (payload) => createReturnInvoice({ ...payload, ...coordsFor(payload) }, keyFor(payload)),
     onSuccess: (data) => {
       reset();
       invalidate();
